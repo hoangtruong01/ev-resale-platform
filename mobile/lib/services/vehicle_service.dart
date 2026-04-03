@@ -1,0 +1,70 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/network/dio_client.dart';
+import '../models/vehicle_model.dart';
+
+final vehicleServiceProvider = Provider<VehicleService>((ref) {
+  return VehicleService(ref.watch(dioProvider));
+});
+
+class VehicleService {
+  final Dio _dio;
+  VehicleService(this._dio);
+
+  Future<VehicleListResponse> getVehicles({
+    int page = 1,
+    int limit = 10,
+    String? search,
+    String? brand,
+    double? minPrice,
+    double? maxPrice,
+    int? minYear,
+    int? maxYear,
+    String? location,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    final response = await _dio.get('/vehicles', queryParameters: {
+      'page': page,
+      'limit': limit,
+      if (search != null && search.isNotEmpty) 'search': search,
+      if (brand != null) 'brand': brand,
+      if (minPrice != null) 'minPrice': minPrice,
+      if (maxPrice != null) 'maxPrice': maxPrice,
+      if (minYear != null) 'minYear': minYear,
+      if (maxYear != null) 'maxYear': maxYear,
+      if (location != null && location.isNotEmpty) 'location': location,
+      if (sortBy != null) 'sortBy': sortBy,
+      if (sortOrder != null) 'sortOrder': sortOrder,
+      'approvalStatus': 'APPROVED',
+    });
+    return VehicleListResponse.fromJson(response.data);
+  }
+
+  Future<VehicleModel> getVehicleById(String id) async {
+    final response = await _dio.get('/vehicles/$id');
+    return VehicleModel.fromJson(response.data);
+  }
+
+  Future<VehicleListResponse> getMyVehicles({int page = 1, int limit = 10}) async {
+    final response = await _dio.get('/vehicles/my-vehicles', queryParameters: {
+      'page': page,
+      'limit': limit,
+    });
+    return VehicleListResponse.fromJson(response.data);
+  }
+
+  Future<VehicleModel> createVehicle(Map<String, dynamic> data) async {
+    final response = await _dio.post('/vehicles', data: data);
+    return VehicleModel.fromJson(response.data);
+  }
+
+  Future<VehicleModel> updateVehicle(String id, Map<String, dynamic> data) async {
+    final response = await _dio.put('/vehicles/$id', data: data);
+    return VehicleModel.fromJson(response.data);
+  }
+
+  Future<void> deleteVehicle(String id) async {
+    await _dio.delete('/vehicles/$id');
+  }
+}

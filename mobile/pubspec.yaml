@@ -1,0 +1,95 @@
+name: evn_battery_trading
+description: Nền tảng mua bán pin xe điện cũ EVN
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # HTTP & Network
+  dio: ^5.4.3
+  retrofit: ^4.1.0
+
+  # Secure Storage (JWT token)
+  flutter_secure_storage: ^9.0.0
+
+  # Image Handling
+  cached_network_image: ^3.3.1
+  image_picker: ^1.1.2
+
+  # UI Components
+  shimmer: ^3.0.0
+  flutter_svg: ^2.0.10+1
+  lottie: ^3.1.0
+  smooth_page_indicator: ^1.2.0+3
+  photo_view: ^0.15.0
+  badges: ^3.1.2
+
+  # Formatting
+  intl: ^0.19.0
+
+  # WebSocket (Chat + Auctions real-time)
+  socket_io_client: ^2.0.3+1
+
+  # Google Sign In
+  google_sign_in: ^6.2.1
+
+  # Push Notifications (local)
+  flutter_local_notifications: ^17.0.0
+
+  # Environment
+  flutter_dotenv: ^5.1.0
+
+  # JSON
+  json_annotation: ^4.9.0
+
+  # Utils
+  timeago: ^3.6.1
+  url_launcher: ^6.2.6
+  share_plus: ^9.0.0
+  flutter_staggered_grid_view: ^0.7.0
+  infinite_scroll_pagination: ^4.0.0
+  form_builder_validators: ^11.0.0
+  flutter_form_builder: ^9.3.0
+  pinput: ^5.0.0
+  percent_indicator: ^4.2.3
+  fl_chart: ^0.68.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+  json_serializable: ^6.8.0
+  retrofit_generator: ^8.1.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - .env
+
+  fonts:
+    - family: BeVietnamPro
+      fonts:
+        - asset: assets/fonts/BeVietnamPro-Regular.ttf
+        - asset: assets/fonts/BeVietnamPro-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/BeVietnamPro-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/BeVietnamPro-Bold.ttf
+          weight: 700
