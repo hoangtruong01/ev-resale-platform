@@ -1,0 +1,777 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and user management
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  phone              String?   @unique
+  password           String? // For local auth (hashed)
+  fullName           String
+  name               String? // For display name (can be different from fullName)
+  avatar             String?
+  googleId           String?   @unique
+  facebookId         String?   @unique
+  provider           String?   @default("local") // "local", "google", "facebook", etc.
+  isActive           Boolean   @default(true)
+  isProfileComplete  Boolean   @default(false) // Track if user completed profile
+  profileCompletedAt DateTime? // When profile was completed
+  role               UserRole  @default(USER)
+  address            String?
+  dateOfBirth        DateTime? // Date of birth
+  gender             Gender? // Gender
+  occupation         String? // Job/occupation
+  bio                String? // Short bio
+  rating             Decimal?  @db.Decimal(3, 2) // Average rating from reviews
+  totalRatings       Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  profile                     Profile?
+  bids                        Bid[]
+  reviews                     Review[]
+  reviewsGiven                Review[]                @relation("ReviewGiver")
+  transactions                Transaction[]
+  purchases                   Purchase[]
+  notifications               Notification[]
+  chatRoomsAsBuyer            ChatRoom[]              @relation("ChatRoomBuyer")
+  chatRoomsAsSeller           ChatRoom[]              @relation("ChatRoomSeller")
+  chatMessages                ChatMessage[]
+  vehicles                    Vehicle[]               @relation("VehicleSeller")
+  batteries                   Battery[]               @relation("BatterySeller")
+  auctions                    Auction[]               @relation("AuctionSeller")
+  vehicleApprovals            Vehicle[]               @relation("VehicleApprovedBy")
+  batteryApprovals            Battery[]               @relation("BatteryApprovedBy")
+  auctionApprovals            Auction[]               @relation("AuctionApprovedBy")
+  favorites                   Favorite[]
+  transactionDisputesReported TransactionDispute[]    @relation("TransactionDisputeReporter")
+  transactionDisputesResolved TransactionDispute[]    @relation("TransactionDisputeResolver")
+  passwordResets              PasswordReset[]
+  transactionFeeUpdates       TransactionFeeSetting[] @relation("TransactionFeeSettingUpdatedBy")
+  listingFeeUpdates           ListingFeeTier[]        @relation("ListingFeeTierUpdatedBy")
+  commissionTierUpdates       CommissionTier[]        @relation("CommissionTierUpdatedBy")
+  feeChangeLogsUpdated        FeeChangeLog[]          @relation("FeeChangeLogUpdatedBy")
+  contractsAsBuyer            Contract[]              @relation("ContractBuyer")
+  contractsAsSeller           Contract[]              @relation("ContractSeller")
+  contractSignatures          ContractSignature[]     @relation("ContractSignatureUser")
+  PaymentMethod               PaymentMethod[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+// Vehicle model for electric vehicles
+model Vehicle {
+  id               String         @id @default(uuid())
+  name             String
+  brand            String
+  model            String
+  year             Int
+  price            Decimal        @db.Decimal(12, 2)
+  mileage          Int?
+  condition        String
+  description      String?
+  images           String[]
+  location         String
+  color            String?
+  transmission     String?
+  seatCount        Int?
+  hasWarranty      Boolean?       @default(false)
+  isActive         Boolean        @default(true)
+  status           VehicleStatus  @default(AVAILABLE)
+  isSpamSuspicious Boolean        @default(false)
+  spamScore        Float          @default(0)
+  spamReasons      Json?
+  spamCheckedAt    DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  approvalStatus   ApprovalStatus @default(PENDING)
+  approvalNotes    String?
+  approvedAt       DateTime?
+  approvedById     String?
+
+  // Foreign keys
+  sellerId   String
+  seller     User   @relation("VehicleSeller", fields: [sellerId], references: [id])
+  approvedBy User?  @relation("VehicleApprovedBy", fields: [approvedById], references: [id])
+
+  // Relations
+  reviews      Review[]
+  comparisons  Comparison[]
+  transactions Transaction[]
+  chatRooms    ChatRoom[]
+  favorites    Favorite[]
+
+  @@map("vehicles")
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  SOLD
+  AUCTION
+  RESERVED
+}
+
+// Battery model for EV batteries
+model Battery {
+  id               String         @id @default(uuid())
+  name             String
+  type             BatteryType
+  capacity         Decimal        @db.Decimal(8, 2) // kWh
+  voltage          Decimal?       @db.Decimal(8, 2) // V
+  condition        Int // percentage 0-100
+  price            Decimal        @db.Decimal(12, 2)
+  description      String?
+  images           String[]
+  location         String
+  isActive         Boolean        @default(true)
+  status           BatteryStatus  @default(AVAILABLE)
+  isSpamSuspicious Boolean        @default(false)
+  spamScore        Float          @default(0)
+  spamReasons      Json?
+  spamCheckedAt    DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  approvalStatus   ApprovalStatus @default(PENDING)
+  approvalNotes    String?
+  approvedAt       DateTime?
+  approvedById     String?
+
+  // Foreign keys
+  sellerId   String
+  seller     User   @relation("BatterySeller", fields: [sellerId], references: [id])
+  approvedBy User?  @relation("BatteryApprovedBy", fields: [approvedById], references: [id])
+
+  // Relations
+  reviews      Review[]
+  comparisons  Comparison[]
+  transactions Transaction[]
+  chatRooms    ChatRoom[]
+  favorites    Favorite[]
+
+  @@map("batteries")
+}
+
+enum BatteryType {
+  LITHIUM_ION
+  LITHIUM_POLYMER
+  NICKEL_METAL_HYDRIDE
+  LEAD_ACID
+}
+
+enum BatteryStatus {
+  AVAILABLE
+  SOLD
+  AUCTION
+  RESERVED
+}
+
+// Auction model
+model Auction {
+  id               String          @id @default(uuid())
+  title            String
+  description      String?
+  itemType         AuctionItemType
+  lotQuantity      Int             @default(1)
+  itemBrand        String?
+  itemModel        String?
+  itemYear         Int?
+  itemMileage      Int?
+  itemCapacity     Int?
+  itemCondition    Int?
+  location         String?
+  contactPhone     String?
+  contactEmail     String?
+  buyNowPrice      Decimal?        @db.Decimal(12, 2)
+  startingPrice    Decimal         @db.Decimal(12, 2)
+  currentPrice     Decimal         @db.Decimal(12, 2)
+  bidStep          Decimal         @default(1000000) @db.Decimal(12, 2)
+  startTime        DateTime
+  endTime          DateTime
+  status           AuctionStatus   @default(PENDING)
+  isSpamSuspicious Boolean         @default(false)
+  spamScore        Float           @default(0)
+  spamReasons      Json?
+  spamCheckedAt    DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  approvalStatus   ApprovalStatus  @default(PENDING)
+  approvalNotes    String?
+  approvedAt       DateTime?
+  approvedById     String?
+
+  // Foreign keys
+  sellerId   String
+  seller     User   @relation("AuctionSeller", fields: [sellerId], references: [id])
+  approvedBy User?  @relation("AuctionApprovedBy", fields: [approvedById], references: [id])
+
+  // Relations
+  bids         Bid[]
+  favorites    Favorite[]
+  media        AuctionMedia[]
+  transactions Transaction[]
+
+  @@map("auctions")
+}
+
+model AuctionMedia {
+  id        String   @id @default(uuid())
+  auctionId String
+  url       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId], name: "auction_media_auctionId_idx")
+  @@map("auction_media")
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AuctionStatus {
+  PENDING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+enum AuctionItemType {
+  VEHICLE
+  BATTERY
+  OTHER
+}
+
+// Bid model for auction bids
+model Bid {
+  id        String   @id @default(uuid())
+  amount    Decimal  @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+
+  // Foreign keys
+  bidderId  String
+  bidder    User    @relation(fields: [bidderId], references: [id])
+  auctionId String
+  auction   Auction @relation(fields: [auctionId], references: [id])
+
+  @@map("bids")
+}
+
+// Review model for ratings and feedback
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign keys
+  reviewerId String
+  reviewer   User     @relation("ReviewGiver", fields: [reviewerId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  vehicleId  String?
+  vehicle    Vehicle? @relation(fields: [vehicleId], references: [id])
+  batteryId  String?
+  battery    Battery? @relation(fields: [batteryId], references: [id])
+
+  @@map("reviews")
+}
+
+// Comparison model for product comparisons
+model Comparison {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  vehicles  Vehicle[]
+  batteries Battery[]
+
+  @@map("comparisons")
+}
+
+// Profile model for user details
+model Profile {
+  id                    String   @id @default(uuid())
+  bio                   String?
+  location              String?
+  ward                  String?
+  district              String? // Quận/huyện
+  city                  String? // Thành phố/tỉnh
+  country               String?  @default("Vietnam")
+  website               String?
+  socialLinks           Json? // For storing social media links
+  preferences           Json? // For user preferences like notifications, etc.
+  idNumber              String? // Số CMND/CCCD
+  idType                IdType? // Loại giấy tờ
+  emergencyContactName  String? // Tên người liên hệ khẩn cấp
+  emergencyContactPhone String? // SĐT người liên hệ khẩn cấp
+  bankAccount           String? // Số tài khoản ngân hàng
+  bankName              String? // Tên ngân hàng
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Foreign keys
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+enum IdType {
+  CMND
+  CCCD
+  PASSPORT
+  OTHER
+}
+
+model PasswordReset {
+  id                  String    @id @default(uuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email               String
+  otpHash             String
+  otpExpiresAt        DateTime
+  attempts            Int       @default(0)
+  maxAttempts         Int       @default(5)
+  resendCount         Int       @default(0)
+  lastSentAt          DateTime  @default(now())
+  isVerified          Boolean   @default(false)
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
+  completedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("password_resets")
+}
+
+// Transaction model for tracking sales and purchases
+model Transaction {
+  id               String            @id @default(uuid())
+  amount           Decimal           @db.Decimal(12, 2)
+  fee              Decimal?          @db.Decimal(12, 2)
+  commission       Decimal?          @db.Decimal(12, 2)
+  status           TransactionStatus @default(PENDING)
+  paymentMethod    String?
+  notes            String?
+  chatRoomId       String?
+  buyerAccepted    Boolean?
+  buyerRespondedAt DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  // Foreign keys
+  sellerId  String
+  seller    User      @relation(fields: [sellerId], references: [id])
+  vehicleId String?
+  vehicle   Vehicle?  @relation(fields: [vehicleId], references: [id])
+  batteryId String?
+  battery   Battery?  @relation(fields: [batteryId], references: [id])
+  auctionId String?
+  auction   Auction?  @relation(fields: [auctionId], references: [id])
+  chatRoom  ChatRoom? @relation(fields: [chatRoomId], references: [id])
+
+  // Relations
+  purchase        Purchase?
+  paymentAttempts PaymentAttempt[]
+  dispute         TransactionDispute?
+  contract        Contract?
+
+  @@index([chatRoomId])
+  @@index([vehicleId])
+  @@index([batteryId])
+  @@index([auctionId])
+  @@map("transactions")
+}
+
+enum ContractStatus {
+  PENDING
+  BUYER_SIGNED
+  SELLER_SIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum ContractPartyRole {
+  BUYER
+  SELLER
+}
+
+model Contract {
+  id                 String         @id @default(uuid())
+  transactionId      String         @unique
+  buyerId            String
+  sellerId           String
+  templatePath       String?
+  finalPdfPath       String?
+  status             ContractStatus @default(PENDING)
+  buyerSignedAt      DateTime?
+  sellerSignedAt     DateTime?
+  completedAt        DateTime?
+  requestEmailSentAt DateTime?
+  finalEmailSentAt   DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  transaction Transaction         @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  buyer       User                @relation("ContractBuyer", fields: [buyerId], references: [id])
+  seller      User                @relation("ContractSeller", fields: [sellerId], references: [id])
+  signatures  ContractSignature[]
+
+  @@map("contracts")
+}
+
+model ContractSignature {
+  id            String            @id @default(uuid())
+  contractId    String
+  userId        String
+  role          ContractPartyRole
+  signaturePath String
+  signedAt      DateTime          @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  user     User     @relation("ContractSignatureUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, role])
+  @@map("contract_signatures")
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum TransactionPartyRole {
+  BUYER
+  SELLER
+}
+
+enum TransactionDisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
+enum TransactionDisputeResolution {
+  BUYER
+  SELLER
+  PARTIAL
+}
+
+model TransactionDispute {
+  id                String                        @id @default(uuid())
+  transactionId     String                        @unique
+  transaction       Transaction                   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  reporterId        String
+  reporter          User                          @relation("TransactionDisputeReporter", fields: [reporterId], references: [id])
+  reporterRole      TransactionPartyRole
+  reason            String
+  description       String?
+  evidence          Json?
+  status            TransactionDisputeStatus      @default(OPEN)
+  resolutionOutcome TransactionDisputeResolution?
+  resolutionNotes   String?
+  resolvedById      String?
+  resolvedBy        User?                         @relation("TransactionDisputeResolver", fields: [resolvedById], references: [id])
+  resolvedAt        DateTime?
+  createdAt         DateTime                      @default(now())
+  updatedAt         DateTime                      @updatedAt
+
+  @@map("transaction_disputes")
+}
+
+enum FeeChangeType {
+  TRANSACTION_FEE
+  LISTING_FEE
+  COMMISSION
+}
+
+model TransactionFeeSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique @default("default")
+  rate        Decimal  @db.Decimal(5, 2)
+  minFee      Decimal? @db.Decimal(12, 2)
+  maxFee      Decimal? @db.Decimal(12, 2)
+  updatedById String?
+  updatedBy   User?    @relation("TransactionFeeSettingUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("transaction_fee_settings")
+}
+
+model ListingFeeTier {
+  id          String   @id @default(uuid())
+  name        String
+  duration    Int
+  features    String[]
+  price       Decimal  @db.Decimal(12, 2)
+  enabled     Boolean  @default(true)
+  order       Int      @default(0)
+  updatedById String?
+  updatedBy   User?    @relation("ListingFeeTierUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([order])
+  @@map("listing_fee_tiers")
+}
+
+model CommissionTier {
+  id              String   @id @default(uuid())
+  name            String
+  rate            Decimal  @db.Decimal(5, 2)
+  minRequirement  Int      @default(0)
+  requirementUnit String
+  enabled         Boolean  @default(true)
+  order           Int      @default(0)
+  updatedById     String?
+  updatedBy       User?    @relation("CommissionTierUpdatedBy", fields: [updatedById], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([order])
+  @@map("commission_tiers")
+}
+
+model FeeChangeLog {
+  id          String        @id @default(uuid())
+  type        FeeChangeType
+  itemId      String?
+  itemName    String?
+  oldValue    Json?
+  newValue    Json?
+  reason      String?
+  updatedById String?
+  updatedBy   User?         @relation("FeeChangeLogUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime      @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@map("fee_change_logs")
+}
+
+enum PaymentGateway {
+  VNPAY
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum PaymentCardBrand {
+  VISA
+  MASTERCARD
+  JCB
+  AMEX
+  OTHER
+}
+
+model PaymentMethod {
+  id                  String           @id @default(uuid())
+  userId              String
+  brand               PaymentCardBrand @default(VISA)
+  cardholderName      String
+  encryptedCardNumber String
+  encryptionIv        String
+  encryptionAuthTag   String
+  cardLast4           String
+  expiryMonth         Int
+  expiryYear          Int
+  billingAddress      String?
+  isDefault           Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("payment_methods")
+}
+
+model PaymentAttempt {
+  id            String               @id @default(uuid())
+  transactionId String
+  transaction   Transaction          @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  gateway       PaymentGateway
+  status        PaymentAttemptStatus @default(PENDING)
+  amount        Decimal              @db.Decimal(12, 2)
+  bankCode      String?
+  orderInfo     String?
+  txnRef        String               @unique
+  payUrl        String?
+  ipAddress     String?
+  vnpSecureHash String?
+  vnpParams     Json?
+  responseCode  String?
+  callbackAt    DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([transactionId])
+  @@index([gateway])
+  @@index([status])
+  @@map("payment_attempts")
+}
+
+// Purchase model for buyers
+model Purchase {
+  id           String         @id @default(uuid())
+  status       PurchaseStatus @default(PENDING)
+  deliveryDate DateTime?
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  // Foreign keys
+  buyerId       String
+  buyer         User        @relation(fields: [buyerId], references: [id])
+  transactionId String      @unique
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  @@map("purchases")
+}
+
+enum PurchaseStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// Notification model
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  metadata  Json? // For additional data like auction ID, etc.
+  createdAt DateTime         @default(now())
+
+  // Foreign keys
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  BID_PLACED
+  AUCTION_WON
+  AUCTION_LOST
+  ITEM_SOLD
+  PAYMENT_RECEIVED
+  REVIEW_RECEIVED
+  SYSTEM_ALERT
+}
+
+enum FavoriteItemType {
+  VEHICLE
+  BATTERY
+  AUCTION
+}
+
+model Favorite {
+  id        String           @id @default(uuid())
+  userId    String
+  itemType  FavoriteItemType
+  vehicleId String?
+  batteryId String?
+  auctionId String?
+  createdAt DateTime         @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id])
+  battery Battery? @relation(fields: [batteryId], references: [id])
+  auction Auction? @relation(fields: [auctionId], references: [id])
+
+  @@index([userId], name: "favorites_userId_idx")
+  @@index([userId, itemType], name: "favorites_userId_itemType_idx")
+  @@map("favorites")
+}
+
+// Settings model for application configuration
+model Settings {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+  type  String @default("string")
+
+  @@map("settings")
+}
+
+// Chat room represents a private conversation between a buyer and a seller
+model ChatRoom {
+  id        String   @id @default(uuid())
+  buyerId   String
+  sellerId  String
+  vehicleId String?
+  batteryId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buyer        User          @relation("ChatRoomBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller       User          @relation("ChatRoomSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?      @relation(fields: [vehicleId], references: [id])
+  battery      Battery?      @relation(fields: [batteryId], references: [id])
+  messages     ChatMessage[]
+  transactions Transaction[]
+
+  @@unique([buyerId, sellerId, vehicleId, batteryId])
+  @@map("chat_rooms")
+}
+
+// Individual chat message that belongs to a chat room
+model ChatMessage {
+  id        String    @id @default(uuid())
+  roomId    String
+  senderId  String
+  content   String
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation(fields: [senderId], references: [id])
+
+  @@map("chat_messages")
+}

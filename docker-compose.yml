@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: evn_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: evn_market
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - evn_network
+
+  # pgAdmin 4
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: evn_pgadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@evnmarket.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - evn_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    container_name: evn_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/evn_market?schema=public
+      NODE_ENV: development
+      PORT: 3000
+      JWT_SECRET: evn-market-super-secret-key-2025
+      JWT_EXPIRES_IN: 7d
+    volumes:
+      - ./be:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - evn_network
+    command: npm run start:dev
+
+  # Frontend
+  frontend:
+    build:
+      context: ./FE
+      dockerfile: Dockerfile
+    container_name: evn_frontend
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NUXT_PUBLIC_API_BASE_URL: http://localhost:3000/api
+      NODE_ENV: development
+    volumes:
+      - ./FE:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - evn_network
+    command: yarn dev
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  evn_network:
+    driver: bridge

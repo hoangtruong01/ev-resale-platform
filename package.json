@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "vnpay": "^2.4.4"
+  }
+}
