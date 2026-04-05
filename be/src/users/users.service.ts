@@ -4,13 +4,16 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { KycStatus, UserRole, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpdateProfileDto, CreateReviewDto } from './dto';
-import { SubmitKycDto, ReviewKycDto } from './dto/submit-kyc.dto';
-import { unlink } from 'fs/promises';
+import {
+  UpdateProfileDto,
+  SubmitKycDto,
+  ReviewKycDto,
+  CreateReviewDto,
+} from './dto';
 import { join } from 'path';
-
-type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class UsersService {
@@ -19,7 +22,7 @@ export class UsersService {
   private get favoriteModel() {
     const client = this.prisma as PrismaService & {
       favorite?: {
-        count: (args: any) => Promise<number>;
+        count: (args: Prisma.FavoriteCountArgs) => Promise<number>;
       };
     };
     return client.favorite;
@@ -28,7 +31,7 @@ export class UsersService {
   async findAll(query?: { page?: number; limit?: number; search?: string }) {
     const { page = 1, limit = 10, search } = query || {};
 
-    const where: any = { isActive: true };
+    const where: Prisma.UserWhereInput = { isActive: true };
 
     if (search) {
       where.OR = [
@@ -352,21 +355,17 @@ export class UsersService {
       );
     }
 
-    const profileData: any = {
+    const profileData: Prisma.ProfileUpdateInput = {
+      kycStatus: KycStatus.PENDING,
       idNumber: dto.idNumber,
       idType: dto.idType,
       idFrontImage: files.idFrontImage,
       idBackImage: files.idBackImage ?? null,
       faceImage: files.faceImage ?? null,
-      kycStatus: 'PENDING',
+      idIssueDate: dto.idIssueDate ? new Date(dto.idIssueDate) : undefined,
+      idIssuePlace: dto.idIssuePlace,
     };
 
-    if (dto.idIssueDate) {
-      profileData.idIssueDate = new Date(dto.idIssueDate);
-    }
-    if (dto.idIssuePlace) {
-      profileData.idIssuePlace = dto.idIssuePlace;
-    }
     if (dto.fullNameOnId) {
       // Store as fullName update if provided
       await this.prisma.user.update({
@@ -453,16 +452,13 @@ export class UsersService {
     };
   }
 
-  /**
-   * Admin-only: List users pending KYC review
-   */
   async listPendingKyc(adminRole: UserRole) {
-    if (adminRole !== 'ADMIN' && adminRole !== 'MODERATOR') {
+    if (adminRole !== UserRole.ADMIN && adminRole !== UserRole.MODERATOR) {
       throw new ForbiddenException('Chỉ quản trị viên mới có thể xem danh sách KYC.');
     }
 
     const profiles = await this.prisma.profile.findMany({
-      where: { kycStatus: 'PENDING' } as any,
+      where: { kycStatus: KycStatus.PENDING },
       include: {
         user: {
           select: {

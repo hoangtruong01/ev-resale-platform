@@ -6,6 +6,7 @@ import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';
+import '../../admin/screens/kyc_management_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -287,6 +288,31 @@ class ProfileScreen extends ConsumerWidget {
                   ),
 
                   const SizedBox(height: 12),
+
+                  if (user?.role == 'ADMIN' || user?.role == 'MODERATOR') ...[
+                    _MenuSection(
+                      title: 'Quản trị hệ thống',
+                      items: [
+                        _MenuItem(
+                          icon: Icons.admin_panel_settings_outlined,
+                          label: 'Duyệt eKYC người dùng',
+                          color: AppTheme.primaryGreen,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const KycManagementScreen(),
+                            ),
+                          ),
+                        ),
+                        _MenuItem(
+                          icon: Icons.analytics_outlined,
+                          label: 'Thống kê hệ thống',
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
 
                   // Logout
                   InkWell(

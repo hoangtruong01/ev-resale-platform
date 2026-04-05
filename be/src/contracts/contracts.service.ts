@@ -867,7 +867,6 @@ export class ContractsService {
         role,
         signedAt: new Date(),
         signaturePath,
-        ipAddress: payload.ipAddress ?? null,
       },
     });
 
@@ -900,14 +899,6 @@ export class ContractsService {
       await this.generateAndSendFinalPdf(contractId, updatedContract);
     }
 
-    return {
-      message:
-        newStatus === ContractStatus.COMPLETED
-          ? 'Hợp đồng đã được cả hai bên ký. Email xác nhận sẽ được gửi sớm.'
-          : 'Đã ký hợp đồng thành công. Đợi bên còn lại ký.',
-      status: newStatus,
-      contractId,
-    };
   }
 }
 

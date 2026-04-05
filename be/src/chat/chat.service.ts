@@ -22,7 +22,7 @@ export class ChatService {
 
     const roomFilter = this.buildRoomFilter(payload);
 
-    const existingRoom = await this.chatRoom.findFirst({
+    const existingRoom = await this.prisma.chatRoom.findFirst({
       where: roomFilter,
       include: this.roomInclude,
     });
@@ -32,7 +32,7 @@ export class ChatService {
     }
 
     try {
-      return await this.chatRoom.create({
+      return await this.prisma.chatRoom.create({
         data: {
           buyerId: payload.buyerId,
           sellerId: payload.sellerId,
@@ -48,7 +48,7 @@ export class ChatService {
         'code' in error &&
         (error as any).code === 'P2002'
       ) {
-        const room = await this.chatRoom.findFirst({
+        const room = await this.prisma.chatRoom.findFirst({
           where: roomFilter,
           include: this.roomInclude,
         });
@@ -63,7 +63,7 @@ export class ChatService {
   }
 
   async findRoomsForUser(userId: string) {
-    const rooms = await this.chatRoom.findMany({
+    const rooms = await this.prisma.chatRoom.findMany({
       where: {
         OR: [{ buyerId: userId }, { sellerId: userId }],
       },
@@ -82,10 +82,10 @@ export class ChatService {
       return [];
     }
 
-    const unreadCounts = await this.chatMessage.groupBy({
+    const unreadCounts = await this.prisma.chatMessage.groupBy({
       by: ['roomId'],
       where: {
-        roomId: { in: rooms.map((room: any) => room.id) },
+        roomId: { in: rooms.map((room) => room.id) },
         senderId: { not: userId },
         readAt: null,
       },
@@ -97,14 +97,14 @@ export class ChatService {
       unreadMap.set(entry.roomId, entry._count._all);
     }
 
-    return rooms.map((room: any) => ({
+    return rooms.map((room) => ({
       ...room,
       unreadCount: unreadMap.get(room.id) ?? 0,
     }));
   }
 
   async getRoom(roomId: string) {
-    const room = await this.chatRoom.findUnique({
+    const room = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       include: this.roomInclude,
     });
@@ -122,7 +122,7 @@ export class ChatService {
     const baseLimit = Number.isFinite(limit) ? limit : 50;
     const clampedLimit = Math.min(Math.max(baseLimit, 1), 200);
 
-    return this.chatMessage.findMany({
+    return this.prisma.chatMessage.findMany({
       where: { roomId },
       orderBy: { createdAt: 'asc' },
       take: clampedLimit,
@@ -139,7 +139,7 @@ export class ChatService {
 
     await this.ensureRoomParticipant(roomId, senderId);
 
-    const message = await this.chatMessage.create({
+    const message = await this.prisma.chatMessage.create({
       data: {
         roomId,
         senderId,
@@ -149,7 +149,7 @@ export class ChatService {
       include: this.messageInclude,
     });
 
-    await this.chatRoom.update({
+    await this.prisma.chatRoom.update({
       where: { id: roomId },
       data: { updatedAt: message.createdAt },
     });
@@ -160,7 +160,7 @@ export class ChatService {
   async markMessagesAsRead(roomId: string, userId: string) {
     await this.ensureRoomParticipant(roomId, userId);
 
-    const result = await this.chatMessage.updateMany({
+    const result = await this.prisma.chatMessage.updateMany({
       where: {
         roomId,
         senderId: { not: userId },
@@ -183,7 +183,7 @@ export class ChatService {
     dto: ProposeContractDto,
   ) {
     // 1. Load the room
-    const room = await this.chatRoom.findUnique({
+    const room = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       include: {
         buyer: {
@@ -211,8 +211,8 @@ export class ChatService {
     }
 
     // 2. Check KYC for both parties
-    const buyerKyc = (room.buyer as any)?.profile?.kycStatus;
-    const sellerKyc = (room.seller as any)?.profile?.kycStatus;
+    const buyerKyc = room.buyer?.profile?.kycStatus;
+    const sellerKyc = room.seller?.profile?.kycStatus;
 
     if (buyerKyc !== 'APPROVED') {
       throw new BadRequestException(
@@ -300,7 +300,7 @@ export class ChatService {
   }
 
   private async ensureRoomExists(roomId: string) {
-    const exists = await this.chatRoom.findUnique({
+    const exists = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       select: { id: true },
     });
@@ -310,7 +310,7 @@ export class ChatService {
   }
 
   private async ensureRoomParticipant(roomId: string, userId: string) {
-    const room = await this.chatRoom.findUnique({
+    const room = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       select: { buyerId: true, sellerId: true },
     });
@@ -324,21 +324,13 @@ export class ChatService {
     }
   }
 
-  private buildRoomFilter(payload: CreateRoomDto): Record<string, unknown> {
+  private buildRoomFilter(payload: CreateRoomDto) {
     return {
       buyerId: payload.buyerId,
       sellerId: payload.sellerId,
       vehicleId: payload.vehicleId ?? null,
       batteryId: payload.batteryId ?? null,
     };
-  }
-
-  private get chatRoom() {
-    return (this.prisma as any).chatRoom;
-  }
-
-  private get chatMessage() {
-    return (this.prisma as any).chatMessage;
   }
 
   private readonly roomInclude = {

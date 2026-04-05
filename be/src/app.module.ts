@@ -17,7 +17,6 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ComparisonsModule } from './comparisons/comparisons.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ChatModule } from './chat/chat.module';
-import { UploadsModule } from './uploads/uploads.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FeesModule } from './fees/fees.module';
@@ -42,7 +41,6 @@ import { FeesModule } from './fees/fees.module';
     NotificationsModule,
     ComparisonsModule,
     ChatModule,
-    UploadsModule,
     DashboardModule,
     PaymentsModule,
     FeesModule,
