@@ -864,6 +864,7 @@ export class ContractsService {
     await this.prisma.contractSignature.create({
       data: {
         contractId,
+        userId: isBuyer ? (contract as any).buyerId : (contract as any).sellerId,
         role,
         signedAt: new Date(),
         signaturePath,
@@ -899,6 +900,41 @@ export class ContractsService {
       await this.generateAndSendFinalPdf(contractId, updatedContract);
     }
 
+  }
+
+  private async saveSignatureFile(
+    contractId: string,
+    role: string,
+    base64Data: string,
+  ): Promise<string> {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const signatureDir = path.join(process.cwd(), 'uploads', 'signatures');
+    await fs.mkdir(signatureDir, { recursive: true });
+    
+    const fileName = `${contractId}_${role}_${Date.now()}.png`;
+    const filePath = path.join(signatureDir, fileName);
+    
+    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    await fs.writeFile(filePath, Buffer.from(base64Image, 'base64'));
+    
+    return `/uploads/signatures/${fileName}`;
+  }
+
+  private async generateAndSendFinalPdf(contractId: string, contract: any) {
+    console.log(`Generating final PDF for contract ${contractId}`);
+    await this.prisma.contract.update({
+      where: { id: contractId },
+      data: {
+        finalPdfPath: `/uploads/contracts/final_${contractId}.pdf`,
+        completedAt: new Date(),
+        finalEmailSentAt: new Date(),
+      },
+    });
+  }
+
+  private getBuyerFromChatRoom(room: any) {
+    return room.buyer;
   }
 }
 

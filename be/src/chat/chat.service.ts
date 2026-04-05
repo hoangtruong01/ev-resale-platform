@@ -144,7 +144,7 @@ export class ChatService {
         roomId,
         senderId,
         content: content.trim(),
-        metadata: metadata ?? undefined,
+        metadata: (metadata as any) ?? undefined,
       },
       include: this.messageInclude,
     });

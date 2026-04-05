@@ -289,8 +289,8 @@ export class UsersService {
       if (shouldHandleProfile) {
         await tx.profile.upsert({
           where: { userId },
-          update: profileUpdatePayload,
-          create: profileCreatePayload,
+          update: profileUpdatePayload as any,
+          create: profileCreatePayload as any,
         });
       }
     });
@@ -376,8 +376,8 @@ export class UsersService {
 
     await this.prisma.profile.upsert({
       where: { userId },
-      update: profileData,
-      create: { userId, ...profileData },
+      update: profileData as any,
+      create: { userId, ...profileData } as any,
     });
 
     return {
