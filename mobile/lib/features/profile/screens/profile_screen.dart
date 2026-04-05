@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
+import 'kyc_verification_screen.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -166,6 +167,55 @@ class ProfileScreen extends ConsumerWidget {
                         icon: Icons.person_outline,
                         label: 'Thông tin cá nhân',
                         onTap: () {},
+                      ),
+                      _MenuItem(
+                        icon: Icons.verified_user_outlined,
+                        label: 'Xác thực danh tính (eKYC)',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const KycVerificationScreen(),
+                          ),
+                        ),
+                        trailing: Consumer(
+                          builder: (ctx, ref, _) {
+                            final kycStatus = ref.watch(kycStatusProvider);
+                            return kycStatus.when(
+                              loading: () => const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              error: (_, __) => const SizedBox.shrink(),
+                              data: (data) {
+                                final status =
+                                    data['kycStatus'] as String? ?? 'UNVERIFIED';
+                                final (label, color) = switch (status) {
+                                  'APPROVED' => ('Đã xác thực', AppTheme.success),
+                                  'PENDING' => ('Đang xét duyệt', AppTheme.warning),
+                                  'REJECTED' => ('Bị từ chối', AppTheme.error),
+                                  _ => ('Chưa xác thực', AppTheme.grey400),
+                                };
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    label,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: color,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.lock_outline,

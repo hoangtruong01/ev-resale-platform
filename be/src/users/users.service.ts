@@ -2,12 +2,15 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma, User, UserRole } from '@prisma/client';
 import { UpdateProfileDto, CreateReviewDto } from './dto';
+import { SubmitKycDto, ReviewKycDto } from './dto/submit-kyc.dto';
 import { unlink } from 'fs/promises';
 import { join } from 'path';
+
+type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
 
 @Injectable()
 export class UsersService {
@@ -202,7 +205,7 @@ export class UsersService {
     const composedAddress =
       addressParts.length > 0 ? addressParts.join(', ') : null;
 
-    const userUpdateData: Prisma.UserUpdateInput = {};
+    const userUpdateData: Record<string, unknown> = {};
 
     if (sanitizedPhone !== undefined) {
       userUpdateData.phone = sanitizedPhone;
@@ -223,10 +226,8 @@ export class UsersService {
       userUpdateData.profileCompletedAt = new Date();
     }
 
-    const profileUpdatePayload: Prisma.ProfileUpdateInput = {};
-    const profileCreatePayload: Prisma.ProfileUncheckedCreateInput = {
-      userId,
-    };
+    const profileUpdatePayload: Record<string, unknown> = {};
+    const profileCreatePayload: Record<string, unknown> = { userId };
 
     const setProfileValue = (key: string, value: unknown) => {
       (profileUpdatePayload as Record<string, unknown>)[key] = value;
@@ -313,6 +314,174 @@ export class UsersService {
     };
   }
 
+  // ─── eKYC ──────────────────────────────────────────────────────────────────
+
+  /**
+   * Submit KYC request. User provides their ID details.
+   * Sets kycStatus to PENDING and stores the info in Profile.
+   */
+  async submitKyc(
+    userId: string,
+    dto: SubmitKycDto,
+    files: {
+      idFrontImage?: string;
+      idBackImage?: string;
+      faceImage?: string;
+    },
+  ) {
+    const userRecord = await this.prisma.user.findUnique({
+      where: { id: userId, isActive: true },
+      include: { profile: true },
+    });
+
+    if (!userRecord) {
+      throw new NotFoundException('User not found');
+    }
+
+    // If already approved, do not allow re-submission
+    if ((userRecord.profile as any)?.kycStatus === 'APPROVED') {
+      throw new BadRequestException(
+        'Tài khoản đã được xác thực danh tính. Không thể nộp lại.',
+      );
+    }
+
+    // Must upload at least front image
+    if (!files.idFrontImage) {
+      throw new BadRequestException(
+        'Ảnh mặt trước CMND/CCCD là bắt buộc.',
+      );
+    }
+
+    const profileData: any = {
+      idNumber: dto.idNumber,
+      idType: dto.idType,
+      idFrontImage: files.idFrontImage,
+      idBackImage: files.idBackImage ?? null,
+      faceImage: files.faceImage ?? null,
+      kycStatus: 'PENDING',
+    };
+
+    if (dto.idIssueDate) {
+      profileData.idIssueDate = new Date(dto.idIssueDate);
+    }
+    if (dto.idIssuePlace) {
+      profileData.idIssuePlace = dto.idIssuePlace;
+    }
+    if (dto.fullNameOnId) {
+      // Store as fullName update if provided
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { fullName: dto.fullNameOnId },
+      });
+    }
+
+    await this.prisma.profile.upsert({
+      where: { userId },
+      update: profileData,
+      create: { userId, ...profileData },
+    });
+
+    return {
+      message: 'Hồ sơ xác thực danh tính đã được nộp. Vui lòng chờ xét duyệt.',
+      kycStatus: 'PENDING',
+    };
+  }
+
+  /**
+   * Get KYC status for own profile
+   */
+  async getKycStatus(userId: string) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId },
+      select: {
+        kycStatus: true,
+        idNumber: true,
+        idType: true,
+        idFrontImage: true,
+        idBackImage: true,
+        faceImage: true,
+        idIssueDate: true,
+        idIssuePlace: true,
+      },
+    });
+
+    return {
+      kycStatus: (profile as any)?.kycStatus ?? 'UNVERIFIED',
+      profile: profile ?? null,
+    };
+  }
+
+  /**
+   * Admin-only: Review (approve/reject) a user's KYC
+   */
+  async reviewKyc(
+    adminId: string,
+    adminRole: UserRole,
+    targetUserId: string,
+    dto: ReviewKycDto,
+  ) {
+    if (adminRole !== 'ADMIN' && adminRole !== 'MODERATOR') {
+      throw new ForbiddenException('Chỉ quản trị viên mới có thể duyệt KYC.');
+    }
+
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId: targetUserId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Không tìm thấy hồ sơ KYC của người dùng này.');
+    }
+
+    if ((profile as any).kycStatus !== 'PENDING') {
+      throw new BadRequestException(
+        'Hồ sơ KYC không ở trạng thái chờ duyệt.',
+      );
+    }
+
+    await this.prisma.profile.update({
+      where: { userId: targetUserId },
+      data: { kycStatus: dto.decision } as any,
+    });
+
+    return {
+      message:
+        dto.decision === 'APPROVED'
+          ? 'Đã chấp thuận xác thực danh tính.'
+          : 'Đã từ chối xác thực danh tính.',
+      kycStatus: dto.decision,
+      notes: dto.notes,
+    };
+  }
+
+  /**
+   * Admin-only: List users pending KYC review
+   */
+  async listPendingKyc(adminRole: UserRole) {
+    if (adminRole !== 'ADMIN' && adminRole !== 'MODERATOR') {
+      throw new ForbiddenException('Chỉ quản trị viên mới có thể xem danh sách KYC.');
+    }
+
+    const profiles = await this.prisma.profile.findMany({
+      where: { kycStatus: 'PENDING' } as any,
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            avatar: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    return profiles;
+  }
+
+  // ─── Existing methods ──────────────────────────────────────────────────────
+
   async getTransactions(
     userId: string,
     query: {
@@ -321,14 +490,9 @@ export class UsersService {
       type?: 'sales' | 'purchases' | 'all';
     },
   ) {
-    const { page = 1, limit = 10, type = 'all' } = query;
-    const skip = (page - 1) * limit;
-
-    const transactions = [];
+    const { page = 1, limit = 10 } = query;
+    const transactions: any[] = [];
     const total = 0;
-
-    // Note: This will need to be updated once Transaction model is properly generated
-    // For now, returning empty result to avoid compilation errors
     return {
       data: transactions,
       pagination: {
@@ -392,12 +556,10 @@ export class UsersService {
   async createReview(reviewerId: string, createReviewDto: CreateReviewDto) {
     const { userId, vehicleId, batteryId, ...reviewData } = createReviewDto;
 
-    // Check if reviewer is not reviewing themselves
     if (reviewerId === userId) {
       throw new BadRequestException('You cannot review yourself');
     }
 
-    // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -406,7 +568,6 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    // Create the review
     const review = await this.prisma.review.create({
       data: {
         ...reviewData,
@@ -432,7 +593,6 @@ export class UsersService {
       },
     });
 
-    // Update user's average rating
     await this.updateUserRating(userId);
 
     return review;
@@ -445,14 +605,9 @@ export class UsersService {
     });
 
     if (reviews.length > 0) {
-      const averageRating =
-        reviews.reduce((sum, review) => sum + review.rating, 0) /
-        reviews.length;
-
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          // rating: averageRating, // This will need to be uncommented when rating field is added to User model
           totalRatings: reviews.length,
         },
       });
@@ -478,28 +633,14 @@ export class UsersService {
     if (type === 'batteries' || type === 'all') {
       [batteries, totalBatteries] = await Promise.all([
         this.prisma.battery.findMany({
-          where: {
-            sellerId: userId,
-            isActive: true,
-            status: 'AVAILABLE',
-          },
+          where: { sellerId: userId, isActive: true, status: 'AVAILABLE' },
           skip: type === 'batteries' ? skip : 0,
           take: type === 'batteries' ? limit : limit / 2,
-          include: {
-            _count: {
-              select: {
-                reviews: true,
-              },
-            },
-          },
+          include: { _count: { select: { reviews: true } } },
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.battery.count({
-          where: {
-            sellerId: userId,
-            isActive: true,
-            status: 'AVAILABLE',
-          },
+          where: { sellerId: userId, isActive: true, status: 'AVAILABLE' },
         }),
       ]);
     }
@@ -507,28 +648,14 @@ export class UsersService {
     if (type === 'vehicles' || type === 'all') {
       [vehicles, totalVehicles] = await Promise.all([
         this.prisma.vehicle.findMany({
-          where: {
-            sellerId: userId,
-            isActive: true,
-            status: 'AVAILABLE',
-          },
+          where: { sellerId: userId, isActive: true, status: 'AVAILABLE' },
           skip: type === 'vehicles' ? skip : 0,
           take: type === 'vehicles' ? limit : limit / 2,
-          include: {
-            _count: {
-              select: {
-                reviews: true,
-              },
-            },
-          },
+          include: { _count: { select: { reviews: true } } },
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.vehicle.count({
-          where: {
-            sellerId: userId,
-            isActive: true,
-            status: 'AVAILABLE',
-          },
+          where: { sellerId: userId, isActive: true, status: 'AVAILABLE' },
         }),
       ]);
     }
@@ -580,9 +707,7 @@ export class UsersService {
 
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        avatar: avatarUrl,
-      },
+      data: { avatar: avatarUrl },
       select: {
         id: true,
         email: true,
@@ -609,9 +734,7 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-    });
+    return this.prisma.user.findUnique({ where: { email } });
   }
 
   async create(userData: {
@@ -620,20 +743,14 @@ export class UsersService {
     name?: string;
     role?: UserRole;
   }) {
-    return this.prisma.user.create({
-      data: userData,
-    });
+    return this.prisma.user.create({ data: userData });
   }
 
-  async update(id: string, userData: Partial<User>) {
-    return this.prisma.user.update({
-      where: { id },
-      data: userData,
-    });
+  async update(id: string, userData: Record<string, unknown>) {
+    return this.prisma.user.update({ where: { id }, data: userData as any });
   }
 
   async remove(id: string) {
-    // Soft delete - just deactivate
     return this.prisma.user.update({
       where: { id },
       data: { isActive: false },
@@ -641,10 +758,7 @@ export class UsersService {
   }
 
   async hardDelete(id: string) {
-    // Hard delete - permanently remove from database
-    return this.prisma.user.delete({
-      where: { id },
-    });
+    return this.prisma.user.delete({ where: { id } });
   }
 
   async getStatistics() {

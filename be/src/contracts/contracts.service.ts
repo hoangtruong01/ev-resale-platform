@@ -782,4 +782,132 @@ export class ContractsService {
 
     return undefined;
   }
+
+  // ─── New methods for by-contractId flow ──────────────────────────────────
+
+  /**
+   * Get contract status by contractId (used by Flutter chat card)
+   */
+  async getContractStatus(contractId: string, userId: string) {
+    const contract = await this.prisma.contract.findUnique({
+      where: { id: contractId },
+      select: {
+        id: true,
+        status: true,
+        buyerId: true,
+        sellerId: true,
+      },
+    });
+
+    if (!contract) {
+      throw new NotFoundException('Không tìm thấy hợp đồng.');
+    }
+
+    if (contract.buyerId !== userId && contract.sellerId !== userId) {
+      throw new ForbiddenException('Bạn không có quyền xem hợp đồng này.');
+    }
+
+    return { contractId: contract.id, status: contract.status };
+  }
+
+  /**
+   * Sign contract by contractId (Flutter flow without transactionId)
+   */
+  async signContractById(
+    contractId: string,
+    userId: string,
+    payload: SignContractDto,
+  ) {
+    const contract = await this.prisma.contract.findUnique({
+      where: { id: contractId },
+      include: contractDetailInclude,
+    });
+
+    if (!contract) {
+      throw new NotFoundException('Không tìm thấy hợp đồng.');
+    }
+
+    const buyer = this.extractBuyer(contract);
+    const isBuyer = buyer?.id === userId;
+    const isSeller = contract.transaction.seller.id === userId;
+
+    if (!isBuyer && !isSeller) {
+      throw new ForbiddenException('Bạn không có quyền ký hợp đồng này.');
+    }
+
+    if (
+      contract.status === ContractStatus.COMPLETED ||
+      contract.status === ContractStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        'Hợp đồng đã hoàn thành hoặc bị huỷ, không thể ký.',
+      );
+    }
+
+    const role = isBuyer ? ContractPartyRole.BUYER : ContractPartyRole.SELLER;
+
+    // Check if already signed by this party
+    const existingSig = await this.prisma.contractSignature.findFirst({
+      where: { contractId, role },
+    });
+    if (existingSig) {
+      throw new BadRequestException('Bạn đã ký hợp đồng này rồi.');
+    }
+
+    // Save signature
+    const signaturePath = await this.saveSignatureFile(
+      contractId,
+      role,
+      payload.signatureData,
+    );
+
+    await this.prisma.contractSignature.create({
+      data: {
+        contractId,
+        role,
+        signedAt: new Date(),
+        signaturePath,
+        ipAddress: payload.ipAddress ?? null,
+      },
+    });
+
+    // Determine new status
+    const otherRole =
+      role === ContractPartyRole.BUYER
+        ? ContractPartyRole.SELLER
+        : ContractPartyRole.BUYER;
+
+    const otherSigned = await this.prisma.contractSignature.findFirst({
+      where: { contractId, role: otherRole },
+    });
+
+    let newStatus: ContractStatus;
+    if (otherSigned) {
+      newStatus = ContractStatus.COMPLETED;
+    } else if (role === ContractPartyRole.BUYER) {
+      newStatus = ContractStatus.BUYER_SIGNED;
+    } else {
+      newStatus = ContractStatus.SELLER_SIGNED;
+    }
+
+    const updatedContract = await this.prisma.contract.update({
+      where: { id: contractId },
+      data: { status: newStatus },
+      include: contractDetailInclude,
+    });
+
+    if (newStatus === ContractStatus.COMPLETED) {
+      await this.generateAndSendFinalPdf(contractId, updatedContract);
+    }
+
+    return {
+      message:
+        newStatus === ContractStatus.COMPLETED
+          ? 'Hợp đồng đã được cả hai bên ký. Email xác nhận sẽ được gửi sớm.'
+          : 'Đã ký hợp đồng thành công. Đợi bên còn lại ký.',
+      status: newStatus,
+      contractId,
+    };
+  }
 }
+

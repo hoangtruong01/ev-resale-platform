@@ -343,6 +343,13 @@ model Profile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  kycStatus             KycStatus @default(UNVERIFIED)
+  idFrontImage          String?
+  idBackImage           String?
+  faceImage             String?
+  idIssueDate           DateTime?
+  idIssuePlace          String?
+
   @@map("profiles")
 }
 
@@ -351,6 +358,13 @@ enum IdType {
   CCCD
   PASSPORT
   OTHER
+}
+
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model PasswordReset {

@@ -2,11 +2,12 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { SendMessageDto } from './dto/send-message.dto';
+import { ProposeContractDto } from './dto/propose-contract.dto';
 
 @Injectable()
 export class ChatService {
@@ -42,8 +43,10 @@ export class ChatService {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
+        error !== null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as any).code === 'P2002'
       ) {
         const room = await this.chatRoom.findFirst({
           where: roomFilter,
@@ -82,7 +85,7 @@ export class ChatService {
     const unreadCounts = await this.chatMessage.groupBy({
       by: ['roomId'],
       where: {
-        roomId: { in: rooms.map((room) => room.id) },
+        roomId: { in: rooms.map((room: any) => room.id) },
         senderId: { not: userId },
         readAt: null,
       },
@@ -94,7 +97,7 @@ export class ChatService {
       unreadMap.set(entry.roomId, entry._count._all);
     }
 
-    return rooms.map((room) => ({
+    return rooms.map((room: any) => ({
       ...room,
       unreadCount: unreadMap.get(room.id) ?? 0,
     }));
@@ -169,6 +172,133 @@ export class ChatService {
     return { updated: result.count };
   }
 
+  /**
+   * Propose a digital contract for signing in a chat room.
+   * Checks that both parties have KYC APPROVED, then creates a
+   * Transaction + Contract and posts a system message in the chat.
+   */
+  async proposeContract(
+    roomId: string,
+    proposerId: string,
+    dto: ProposeContractDto,
+  ) {
+    // 1. Load the room
+    const room = await this.chatRoom.findUnique({
+      where: { id: roomId },
+      include: {
+        buyer: {
+          include: { profile: true },
+        },
+        seller: {
+          include: { profile: true },
+        },
+        vehicle: { select: { id: true, name: true } },
+        battery: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!room) {
+      throw new NotFoundException('Không tìm thấy phòng chat.');
+    }
+
+    const isBuyer = room.buyerId === proposerId;
+    const isSeller = room.sellerId === proposerId;
+
+    if (!isBuyer && !isSeller) {
+      throw new ForbiddenException(
+        'Bạn không phải thành viên của phòng chat này.',
+      );
+    }
+
+    // 2. Check KYC for both parties
+    const buyerKyc = (room.buyer as any)?.profile?.kycStatus;
+    const sellerKyc = (room.seller as any)?.profile?.kycStatus;
+
+    if (buyerKyc !== 'APPROVED') {
+      throw new BadRequestException(
+        'Người mua chưa hoàn tất xác thực danh tính (eKYC). Không thể ký hợp đồng.',
+      );
+    }
+
+    if (sellerKyc !== 'APPROVED') {
+      throw new BadRequestException(
+        'Người bán chưa hoàn tất xác thực danh tính (eKYC). Không thể ký hợp đồng.',
+      );
+    }
+
+    const agreedPrice = parseFloat(dto.agreedPrice);
+    if (isNaN(agreedPrice) || agreedPrice <= 0) {
+      throw new BadRequestException('Giá thỏa thuận không hợp lệ.');
+    }
+
+    // 3. Create Transaction + Contract in a single db transaction
+    const result = await this.prisma.$transaction(async (tx) => {
+      // Create Transaction record
+      const transaction = await tx.transaction.create({
+        data: {
+          amount: agreedPrice,
+          status: 'PENDING',
+          chatRoomId: roomId,
+          sellerId: room.sellerId,
+          vehicleId: room.vehicleId ?? undefined,
+          batteryId: room.batteryId ?? undefined,
+          notes: dto.notes ?? null,
+        },
+      });
+
+      // Create Purchase (buyer side)
+      await tx.purchase.create({
+        data: {
+          buyerId: room.buyerId,
+          transactionId: transaction.id,
+          status: 'PENDING',
+        },
+      });
+
+      // Create Contract
+      const contract = await tx.contract.create({
+        data: {
+          transactionId: transaction.id,
+          buyerId: room.buyerId,
+          sellerId: room.sellerId,
+          status: 'PENDING',
+        },
+      });
+
+      // Post a system message in the chat
+      const assetName = room.vehicle?.name ?? room.battery?.name ?? 'Sản phẩm';
+      const systemMessage = await tx.chatMessage.create({
+        data: {
+          roomId,
+          senderId: proposerId,
+          content: `📋 Yêu cầu ký hợp đồng: ${assetName}`,
+          metadata: {
+            type: 'CONTRACT',
+            contractId: contract.id,
+            transactionId: transaction.id,
+            agreedPrice,
+            assetName,
+            proposedBy: proposerId,
+          },
+        },
+      });
+
+      await tx.chatRoom.update({
+        where: { id: roomId },
+        data: { updatedAt: systemMessage.createdAt },
+      });
+
+      return { transaction, contract, systemMessage };
+    });
+
+    return {
+      message: 'Đã gửi yêu cầu ký hợp đồng vào chat. Cả hai bên vui lòng ký xác nhận.',
+      contractId: result.contract.id,
+      transactionId: result.transaction.id,
+      systemMessage: result.systemMessage,
+    };
+  }
+
   private async ensureRoomExists(roomId: string) {
     const exists = await this.chatRoom.findUnique({
       where: { id: roomId },
@@ -194,7 +324,7 @@ export class ChatService {
     }
   }
 
-  private buildRoomFilter(payload: CreateRoomDto): Prisma.ChatRoomWhereInput {
+  private buildRoomFilter(payload: CreateRoomDto): Record<string, unknown> {
     return {
       buyerId: payload.buyerId,
       sellerId: payload.sellerId,
