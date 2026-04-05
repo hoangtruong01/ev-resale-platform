@@ -24,8 +24,11 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: be/yarn.lock
           
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
         
       - name: Generate Prisma Client
         run: npx prisma generate
@@ -54,8 +57,11 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: FE/yarn.lock
           
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Install Dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
         
       - name: Build Nuxt App
         run: yarn build
