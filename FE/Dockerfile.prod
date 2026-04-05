@@ -1,0 +1,32 @@
+# Multi-stage production build for Frontend (Nuxt)
+# STAGE 1: Build
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Enable corepack for yarn
+RUN corepack enable
+
+COPY package.json yarn.lock* ./
+RUN yarn install --frozen-lockfile
+
+COPY . .
+
+# Build Nuxt app in standalone/production mode
+RUN yarn build
+
+# STAGE 2: Run
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Nuxt 3 output directory is typically .output
+COPY --from=builder /app/.output ./.output
+
+EXPOSE 3000
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=3000
+
+# Run the Nitro server built by Nuxt
+CMD ["node", ".output/server/index.mjs"]

@@ -1,0 +1,43 @@
+# Multi-stage production build for NestJS Backend
+# STAGE 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Enable corepack for yarn if needed or just use default yarn
+# Copy package files
+COPY package.json yarn.lock* ./
+
+# Install all dependencies (including dev)
+RUN yarn install --frozen-lockfile
+
+# Copy source code and prisma
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build the application
+RUN yarn build
+
+# Install production dependencies only to reduce image size
+RUN yarn install --production --frozen-lockfile --ignore-scripts
+
+# STAGE 2: Run
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy production dependencies and built files
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Start command uses node instead of setup script
+CMD ["node", "dist/main"]

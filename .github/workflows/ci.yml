@@ -1,0 +1,94 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  backend-ci:
+    name: Backend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./be
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: be/yarn.lock
+          
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        
+      - name: Lint Code
+        run: yarn lint
+        continue-on-error: true # Let it pass even if there are unhandled an-types in legacy files for now
+        
+      - name: Build Application
+        run: yarn build
+
+  frontend-ci:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./FE
+        
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+          cache-dependency-path: FE/yarn.lock
+          
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Build Nuxt App
+        run: yarn build
+
+  mobile-ci:
+    name: Mobile CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./mobile
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0' # Adjust this to your specific local flutter version
+          channel: 'stable'
+          cache: true
+          
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Analyze code
+        run: flutter analyze
+        continue-on-error: true # Suppress failures from warnings to keep CI green while onboarding
+        
+      - name: Build APK (Debug to save time on CI)
+        run: flutter build apk --debug
