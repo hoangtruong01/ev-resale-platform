@@ -1,6 +1,6 @@
 # Multi-stage production build for Frontend (Nuxt)
 # STAGE 1: Build
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN yarn build
 
 # STAGE 2: Run
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
