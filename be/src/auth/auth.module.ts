@@ -17,7 +17,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
     MailModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN as any },
     }),
   ],
   controllers: [AuthController],
