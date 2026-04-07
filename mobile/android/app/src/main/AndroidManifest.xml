@@ -8,7 +8,7 @@
     <application
         android:label="EVN Pin Điện"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:drawable/btn_star"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
