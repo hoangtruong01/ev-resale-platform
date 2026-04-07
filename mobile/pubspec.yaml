@@ -23,6 +23,7 @@ dependencies:
 
   # Secure Storage (JWT token)
   flutter_secure_storage: ^9.0.0
+  google_fonts: ^6.2.1
 
   # Image Handling
   cached_network_image: ^3.3.1

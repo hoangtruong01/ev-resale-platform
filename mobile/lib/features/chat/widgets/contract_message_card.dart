@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
-import 'signature_pad_screen.dart';
+import '../screens/signature_pad_screen.dart';
 
 /// A special chat message card that shows when a contract has been proposed.
 /// Both parties can tap "Ký hợp đồng" to open the signature screen.

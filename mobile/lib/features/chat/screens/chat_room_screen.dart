@@ -98,10 +98,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     if (user == null) return;
 
     _socket = io.io(
-      AppConstants.baseUrl.replaceAll('/api', ''),
+      '${AppConstants.baseUrl.replaceAll('/api', '')}/chat',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setNamespace('/chat')
           .setAuth({'userId': user.id})
           .disableAutoConnect()
           .build(),

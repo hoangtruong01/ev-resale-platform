@@ -327,7 +327,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
                   child: _ImagePickerCard(
                     label: 'Mặt sau',
                     image: _backImage,
-                    icon: Icons.credit_card_two_tone_outlined,
+                    icon: Icons.credit_card,
                     onTap: () => _pickImage('back'),
                   ),
                 ),
