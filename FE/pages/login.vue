@@ -139,6 +139,7 @@ const form = reactive({
 const passwordInput = ref(null);
 const loginError = ref("");
 const toast = useToast();
+const { login } = useAuth();
 
 // Set head
 useHead({
@@ -153,105 +154,30 @@ const route = useRoute();
 const handleLogin = async () => {
   try {
     loginError.value = "";
-    // Check for admin credentials
-    if (form.email === "admin@gmail.com" && form.password === "123456789") {
-      // Admin login - create mock admin token
-      const token = useCookie("auth-token");
-      token.value = "admin-mock-token-" + Date.now();
+    const result = await login({ email: form.email, password: form.password });
 
-      // Save admin user info
-      const adminUser = useCookie("auth-user");
-      adminUser.value = {
-        id: "admin-id",
-        email: "admin@gmail.com",
-        fullName: "Administrator",
-        name: "Admin",
-        role: "ADMIN",
-        isProfileComplete: true,
-      };
+    if (!result.success) {
+      throw new Error(result.error || "Đăng nhập thất bại");
+    }
 
-      toast.add({
-        title: "🎉 Chào mừng Admin!",
-        description: "Đăng nhập với quyền quản trị thành công",
-        color: "green",
-      });
+    toast.add({
+      title: "✨ Chào mừng bạn trở lại!",
+      description: "Đăng nhập thành công",
+      color: "green",
+    });
 
-      // Redirect to admin analytics page
+    if (result.isAdmin) {
       await navigateTo("/admin/analytics");
       return;
     }
 
-    // Check for demo user credentials
-    if (form.email === "user@gmail.com" && form.password === "123456789") {
-      // Regular user login - create mock user token
-      const token = useCookie("auth-token");
-      token.value = "user-mock-token-" + Date.now();
-
-      // Save user info
-      const user = useCookie("auth-user");
-      user.value = {
-        id: "user-id",
-        email: "user@gmail.com",
-        fullName: "Nguyễn Văn User",
-        name: "Nguyễn Văn User",
-        role: "USER",
-        avatar: "/professional-avatar.svg",
-        isProfileComplete: true,
-      };
-
-      toast.add({
-        title: "✨ Chào mừng bạn trở lại!",
-        description: "Đăng nhập thành công",
-        color: "green",
-      });
-
-      // Regular users go to dashboard
-      const redirectTo = route.query.redirect || "/dashboard";
-      await navigateTo(redirectTo);
+    if (result.requiresProfileCompletion) {
+      await navigateTo("/auth/complete-profile");
       return;
     }
 
-    // Regular user login
-    const { $api } = useNuxtApp();
-
-    const response = await $api("/auth/login", {
-      method: "POST",
-      body: {
-        email: form.email,
-        password: form.password,
-      },
-    });
-
-    if (response.access_token) {
-      // Save token
-      const token = useCookie("auth-token");
-      token.value = response.access_token;
-
-      // Save user info
-      const user = useCookie("auth-user");
-      user.value = response.user;
-
-      toast.add({
-        title: "✨ Chào mừng bạn trở lại!",
-        description: "Đăng nhập thành công",
-        color: "green",
-      });
-
-      const isAdminUser = response.user?.role === "ADMIN";
-
-      if (isAdminUser) {
-        await navigateTo("/admin/analytics");
-        return;
-      }
-
-      // Check if profile needs completion for regular users
-      if (response.requiresProfileCompletion) {
-        await navigateTo("/auth/complete-profile");
-      } else {
-        const redirectTo = route.query.redirect || "/dashboard";
-        await navigateTo(redirectTo);
-      }
-    }
+    const redirectTo = route.query.redirect || "/dashboard";
+    await navigateTo(redirectTo);
   } catch (error) {
     console.error("Login error:", error);
     const possibleMessage = Array.isArray(error?.data?.message)

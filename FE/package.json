@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -30,6 +32,7 @@
     "@nuxtjs/tailwindcss": "^6.10.0",
     "@types/node": "^24.5.2",
     "autoprefixer": "^10.4.16",
+    "@playwright/test": "^1.52.0",
     "postcss": "^8.4.32"
   }
 }

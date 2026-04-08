@@ -3,6 +3,7 @@ import {
   Get,
   Put,
   Post,
+  Patch,
   Delete,
   Param,
   Query,
@@ -28,12 +29,17 @@ import { BatteriesService } from '../batteries/batteries.service';
 import { AuctionsService } from '../auctions/auctions.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { TransactionsService } from '../transactions/transactions.service';
+import { SupportTicketsService } from '../support-tickets/support-tickets.service';
 import { ResolveTransactionDisputeDto } from '../transactions/dto';
+import { SupportTicketStatus } from '@prisma/client';
 import {
   AdminAnalyticsService,
   AdminAnalyticsPeriod,
   AdminAnalyticsResponse,
 } from './admin-analytics.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from './admin.guard';
+import { UpdateSupportTicketStatusDto } from '../support-tickets/dto';
 
 interface AdminRequest extends Request {
   user?: {
@@ -55,6 +61,7 @@ export class AdminController {
     private readonly vehiclesService: VehiclesService,
     private readonly transactionsService: TransactionsService,
     private readonly analyticsService: AdminAnalyticsService,
+    private readonly supportTicketsService: SupportTicketsService,
   ) {}
 
   // Dashboard Statistics
@@ -75,6 +82,51 @@ export class AdminController {
       batteries: batteryStats,
       auctions: auctionStats,
     };
+  }
+
+  @Get('support-tickets')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'Get support tickets (Admin)',
+    description: 'Get paginated list of support tickets with filters',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, enum: SupportTicketStatus })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  async listSupportTickets(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('status') status?: SupportTicketStatus,
+    @Query('search') search?: string,
+  ) {
+    const toNumber = (value?: string) => {
+      if (!value) return undefined;
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
+    return this.supportTicketsService.findAll({
+      page: toNumber(page),
+      limit: toNumber(limit),
+      status,
+      search,
+    });
+  }
+
+  @Patch('support-tickets/:id')
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiOperation({
+    summary: 'Update support ticket status (Admin)',
+    description: 'Update the status of a support ticket',
+  })
+  @ApiParam({ name: 'id', description: 'Support ticket ID' })
+  @ApiBody({ type: UpdateSupportTicketStatusDto })
+  async updateSupportTicketStatus(
+    @Param('id') id: string,
+    @Body(ValidationPipe) payload: UpdateSupportTicketStatusDto,
+  ) {
+    return this.supportTicketsService.updateStatus(id, payload.status);
   }
 
   @Get('analytics')

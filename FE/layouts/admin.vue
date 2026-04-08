@@ -60,6 +60,17 @@
           </li>
 
           <li class="nav-item">
+            <NuxtLink
+              to="/admin/support-tickets"
+              class="nav-link"
+              active-class="active"
+            >
+              <Icon name="mdi:lifebuoy" class="nav-icon" />
+              <span>Support tickets</span>
+            </NuxtLink>
+          </li>
+
+          <li class="nav-item">
             <NuxtLink to="/admin/fees" class="nav-link" active-class="active">
               <Icon name="mdi:percent" class="nav-icon" />
               <span>Phí & Hoa hồng</span>
@@ -152,6 +163,7 @@ const pageTitle = computed(() => {
     "/admin/auctions": "Quản lý đấu giá",
     "/admin/transactions": "Quản lý giao dịch",
     "/admin/fees": "Phí & Hoa hồng",
+    "/admin/support-tickets": "Support tickets",
   };
   return titleMap[route.path] || "Admin Dashboard";
 });

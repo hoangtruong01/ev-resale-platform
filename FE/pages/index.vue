@@ -201,12 +201,29 @@
           {{ $t("featured_products") }}
         </h3>
         <div>
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            v-if="errorMessage"
+            class="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600"
+          >
+            {{ errorMessage }}
+          </div>
+
+          <div
+            v-else-if="isLoading && !visibleItems.length"
+            class="flex items-center justify-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-6 text-primary"
+          >
+            <span
+              class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            ></span>
+            <span>{{ $t("loading") }}</span>
+          </div>
+
+          <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <UiCard
-              v-for="(item, idx) in visibleItems"
-              :key="idx"
+              v-for="item in visibleItems"
+              :key="item.id"
               class="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              @click="goToVehicleDetail(idx + 1)"
+              @click="goToVehicleDetail(item.id)"
             >
               <div
                 class="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 relative"
@@ -221,9 +238,11 @@
                 }}</UiBadge>
               </div>
               <UiCardContent class="p-4">
-                <h4 class="font-semibold text-lg mb-2">Tesla Model 3 2020</h4>
+                <h4 class="font-semibold text-lg mb-2">
+                  {{ item.name }}
+                </h4>
                 <p class="text-2xl font-bold text-primary mb-2">
-                  850,000,000 ₫
+                  {{ formatPrice(item.price) }}
                 </p>
                 <div
                   class="flex items-center gap-4 text-sm text-muted-foreground mb-3"
@@ -232,18 +251,24 @@
                     <span>📍</span>
                     {{ $t("hanoi") }}
                   </div>
-                  <div class="flex items-center gap-1">
+                  <div v-if="item.year" class="flex items-center gap-1">
                     <span>📅</span>
-                    2020
+                    {{ item.year }}
                   </div>
                 </div>
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1">
                     <span class="text-amber-600">⭐</span>
-                    <span class="text-sm">4.8 (24 {{ $t("reviews") }})</span>
+                    <span class="text-sm">
+                      <template v-if="item.reviewCount">
+                        {{ item.rating?.toFixed(1) || "0.0" }} ({
+                        {{ item.reviewCount }} {{ $t("reviews") }})
+                      </template>
+                      <template v-else>0 {{ $t("reviews") }}</template>
+                    </span>
                   </div>
                   <UiButton size="sm">
-                    <NuxtLink :to="`/vehicles/${idx + 1}`">{{
+                    <NuxtLink :to="`/vehicles/${item.id}`">{{
                       $t("viewDetails")
                     }}</NuxtLink>
                   </UiButton>
@@ -256,7 +281,8 @@
           <div class="mt-8 flex justify-center">
             <UiButton
               size="lg"
-              v-if="visibleItems.length < items.length"
+              v-if="hasMore"
+              :disabled="isLoading"
               @click="loadMore"
             >
               {{ $t("load_more") }}
@@ -353,7 +379,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 
 // Use i18n for head
 const { t } = useI18n();
@@ -364,33 +390,92 @@ useHead({
   meta: [{ name: "description", content: t("evn_market_desc") }],
 });
 
-// Simple demo data: replicate the same product several times for the demo.
-const items = ref(
-  Array.from({ length: 12 }).map((_, i) => ({
-    id: i + 1,
-    title: "Tesla Model 3 2020",
-    price: "850,000,000 ₫",
-    location: "Hà Nội",
-    year: 2020,
-    rating: "4.8 (24)",
-  }))
-);
+interface FeaturedVehicle {
+  id: string;
+  name: string;
+  price: number;
+  location: string;
+  year?: number | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+}
 
+const items = ref<FeaturedVehicle[]>([]);
 const perPage = ref(6);
 const page = ref(1);
+const isLoading = ref(false);
+const hasMore = ref(true);
+const errorMessage = ref<string | null>(null);
 
-const visibleItems = computed(() =>
-  items.value.slice(0, perPage.value * page.value)
-);
+const { get } = useApi();
+
+const visibleItems = computed(() => items.value);
+
+const fetchFeaturedVehicles = async () => {
+  if (isLoading.value || !hasMore.value) {
+    return;
+  }
+
+  isLoading.value = true;
+  errorMessage.value = null;
+
+  try {
+    const params = new URLSearchParams({
+      page: String(page.value),
+      limit: String(perPage.value),
+      approvalStatus: "APPROVED",
+    });
+
+    const response = await get<{ data?: any[]; pagination?: any }>(
+      `/vehicles?${params.toString()}`
+    );
+
+    const nextItems = (response?.data ?? []).map((item) => ({
+      id: item.id,
+      name: item.name,
+      price: Number(item.price ?? 0),
+      location: item.location || t("location"),
+      year: item.year ?? null,
+      rating: null,
+      reviewCount: item.reviews?.length ?? 0,
+    }));
+
+    items.value = [...items.value, ...nextItems];
+    const totalPages = response?.pagination?.totalPages ?? page.value;
+    hasMore.value = page.value < totalPages;
+  } catch (error) {
+    console.error("Failed to load featured vehicles", error);
+    errorMessage.value = t("unableToLoadVehicles");
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 function loadMore() {
   page.value += 1;
+  fetchFeaturedVehicles();
 }
 
-function goToVehicleDetail(id) {
+function goToVehicleDetail(id: string) {
   const router = useRouter();
   router.push(`/vehicles/${id}`);
 }
+
+const formatPrice = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return "0 ₫";
+  }
+
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+};
+
+onMounted(() => {
+  fetchFeaturedVehicles();
+});
 
 // Register local component usage for TS awareness (Nuxt auto-imports components)
 // Using <LangSwitcher /> in template above

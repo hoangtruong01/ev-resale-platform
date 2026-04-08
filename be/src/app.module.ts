@@ -20,6 +20,7 @@ import { ChatModule } from './chat/chat.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FeesModule } from './fees/fees.module';
+import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { FeesModule } from './fees/fees.module';
     DashboardModule,
     PaymentsModule,
     FeesModule,
+    SupportTicketsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

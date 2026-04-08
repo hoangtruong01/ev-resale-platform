@@ -6,6 +6,7 @@ import { BatteriesModule } from '../batteries/batteries.module';
 import { AuctionsModule } from '../auctions/auctions.module';
 import { VehiclesModule } from '../vehicles/vehicles.module';
 import { TransactionsModule } from '../transactions/transactions.module';
+import { SupportTicketsModule } from '../support-tickets/support-tickets.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
     AuctionsModule,
     VehiclesModule,
     TransactionsModule,
+    SupportTicketsModule,
   ],
   controllers: [AdminController],
   providers: [AdminAnalyticsService],
