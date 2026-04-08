@@ -24,6 +24,8 @@ import {
   AllowedAuctionItemType,
   MAX_AUCTION_PRICE,
 } from './auction.constants';
+import { MailService } from '../mail/mail.service';
+import { SmsService } from '../sms/sms.service';
 
 @Injectable()
 export class AuctionsService {
@@ -33,6 +35,8 @@ export class AuctionsService {
     private readonly prisma: PrismaService,
     private readonly moderation: ContentModerationService,
     private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
+    private readonly smsService: SmsService,
   ) {}
 
   private async createNotificationSafely(
@@ -736,6 +740,14 @@ export class AuctionsService {
           take: 1,
           include: { bidder: true },
         },
+        seller: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        },
       },
     });
 
@@ -803,6 +815,60 @@ export class AuctionsService {
           amount: highestBid.amount.toString(),
         },
       });
+
+      if (highestBid.bidder?.email) {
+        void this.mailService
+          .sendMail({
+            to: highestBid.bidder.email,
+            subject: 'EVN Market: Ban da thang dau gia',
+            text: `Ban da thang dau gia ${auction.title} voi gia ${highestBid.amount.toString()}.`,
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send winner email: ${message}`);
+          });
+      }
+
+      if (highestBid.bidder?.phone) {
+        void this.smsService
+          .sendSms(
+            highestBid.bidder.phone,
+            `EVN Market: Ban da thang dau gia ${auction.title}.`,
+          )
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send winner SMS: ${message}`);
+          });
+      }
+
+      if (auction.seller?.email) {
+        void this.mailService
+          .sendMail({
+            to: auction.seller.email,
+            subject: 'EVN Market: Dau gia da ket thuc',
+            text: `Phien dau gia ${auction.title} da ket thuc voi gia ${highestBid.amount.toString()}.`,
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send seller email: ${message}`);
+          });
+      }
+
+      if (auction.seller?.phone) {
+        void this.smsService
+          .sendSms(
+            auction.seller.phone,
+            `EVN Market: Dau gia ${auction.title} da ket thuc.`,
+          )
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send seller SMS: ${message}`);
+          });
+      }
     } else {
       await this.createNotificationSafely({
         userId: auction.sellerId,
@@ -812,6 +878,33 @@ export class AuctionsService {
         type: NotificationType.SYSTEM_ALERT,
         metadata: { auctionId },
       });
+
+      if (auction.seller?.email) {
+        void this.mailService
+          .sendMail({
+            to: auction.seller.email,
+            subject: 'EVN Market: Phien dau gia khong co luot dat gia',
+            text: `Phien dau gia ${auction.title} da ket thuc nhung khong co luot dat gia.`,
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send no-bid email: ${message}`);
+          });
+      }
+
+      if (auction.seller?.phone) {
+        void this.smsService
+          .sendSms(
+            auction.seller.phone,
+            `EVN Market: Phien dau gia ${auction.title} ket thuc, chua co dat gia.`,
+          )
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send no-bid SMS: ${message}`);
+          });
+      }
     }
 
     return this.findOne(auctionId);

@@ -2,14 +2,25 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBidDto, UpdateBidDto } from './dto';
-import { AuctionStatus } from '@prisma/client';
+import { AuctionStatus, NotificationType } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
+import { SmsService } from '../sms/sms.service';
 
 @Injectable()
 export class BidsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(BidsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+    private readonly mailService: MailService,
+    private readonly smsService: SmsService,
+  ) {}
 
   async create(createBidDto: CreateBidDto) {
     const { auctionId, bidderId, amount } = createBidDto;
@@ -17,6 +28,16 @@ export class BidsService {
     // Check if the auction exists and is active
     const auction = await this.prisma.auction.findUnique({
       where: { id: auctionId },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
     });
 
     if (!auction) {
@@ -96,8 +117,52 @@ export class BidsService {
       return newBid;
     });
 
-    // Here you could add notification logic for other bidders and the seller
-    // Notification logic would be handled by a separate service
+    if (auction.sellerId) {
+      try {
+        await this.notificationsService.create({
+          userId: auction.sellerId,
+          title: 'Có lượt đặt giá mới',
+          message: `Phiên đấu giá ${auction.title} vừa nhận lượt đặt giá mới.`,
+          type: NotificationType.BID_PLACED,
+          metadata: {
+            auctionId,
+            amount: amount.toString(),
+            bidderId,
+          },
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Unknown error';
+        this.logger.warn(`Failed to notify seller: ${message}`);
+      }
+
+      if (auction.seller?.email) {
+        void this.mailService
+          .sendMail({
+            to: auction.seller.email,
+            subject: 'EVN Market: Có lượt đặt giá mới',
+            text: `Phiên đấu giá ${auction.title} vừa có lượt đặt giá mới.`,
+          })
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send bid email: ${message}`);
+          });
+      }
+
+      if (auction.seller?.phone) {
+        void this.smsService
+          .sendSms(
+            auction.seller.phone,
+            `EVN Market: Co luot dat gia moi cho ${auction.title}.`,
+          )
+          .catch((err) => {
+            const message =
+              err instanceof Error ? err.message : 'Unknown error';
+            this.logger.warn(`Failed to send bid SMS: ${message}`);
+          });
+      }
+    }
 
     return bid;
   }

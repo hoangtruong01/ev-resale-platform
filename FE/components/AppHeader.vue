@@ -71,6 +71,20 @@
           <!-- Show user dropdown when authenticated -->
           <template v-else>
             <NuxtLink
+              to="/notifications"
+              class="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              :aria-label="$t('notifications')"
+              :title="$t('notifications')"
+            >
+              <Icon name="mdi:bell-outline" class="h-5 w-5" />
+              <span
+                v-if="notificationUnreadCount > 0"
+                class="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-xs font-semibold text-white"
+              >
+                {{ notificationBadge }}
+              </span>
+            </NuxtLink>
+            <NuxtLink
               to="/chat"
               class="relative inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
               :aria-label="$t('messages')"
@@ -101,10 +115,16 @@
 // Get auth state
 const { isLoggedIn, currentUser, logout } = useAuth();
 const { unreadTotal, fetchRooms } = useChatRooms();
+const { unreadCount, fetchUnreadCount } = useNotifications();
 const router = useRouter();
 
 const unreadBadge = computed(() =>
-  unreadTotal.value > 99 ? "99+" : String(unreadTotal.value)
+  unreadTotal.value > 99 ? "99+" : String(unreadTotal.value),
+);
+
+const notificationUnreadCount = computed(() => unreadCount.value);
+const notificationBadge = computed(() =>
+  unreadCount.value > 99 ? "99+" : String(unreadCount.value),
 );
 
 // Handle logout
@@ -121,8 +141,9 @@ watch(
   (loggedIn) => {
     if (loggedIn) {
       void fetchRooms();
+      void fetchUnreadCount();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 </script>

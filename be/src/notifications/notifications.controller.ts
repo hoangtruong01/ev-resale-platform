@@ -11,6 +11,7 @@ import {
   ParseUUIDPipe,
   ParseIntPipe,
   ParseBoolPipe,
+  Req,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto, UpdateNotificationDto } from './dto';
@@ -25,6 +26,14 @@ import {
 } from '@nestjs/swagger';
 import { NotificationType, UserRole } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+
+interface RequestWithUser {
+  user?: {
+    sub?: string;
+    id?: string;
+  };
+}
 
 @ApiTags('notifications')
 @Controller('notifications')
@@ -32,7 +41,7 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new notification (Admin or Moderator)' })
@@ -46,7 +55,7 @@ export class NotificationsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiBearerAuth()
   @ApiOperation({
@@ -126,6 +135,46 @@ export class NotificationsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get notifications for current user' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'isRead', required: false, type: Boolean })
+  findMyNotifications(
+    @Req() req: RequestWithUser,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('isRead', new ParseBoolPipe({ optional: true })) isRead?: boolean,
+  ) {
+    const userId = req.user?.id ?? req.user?.sub;
+    return this.notificationsService.findByUser(
+      userId as string,
+      page || 1,
+      limit || 10,
+      isRead,
+    );
+  }
+
+  @Get('me/unread-count')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get unread notification count for current user' })
+  getMyUnreadCount(@Req() req: RequestWithUser) {
+    const userId = req.user?.id ?? req.user?.sub;
+    return this.notificationsService.getUnreadCount(userId as string);
+  }
+
+  @Patch('me/mark-all-read')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Mark all notifications as read for current user' })
+  markMyNotificationsRead(@Req() req: RequestWithUser) {
+    const userId = req.user?.id ?? req.user?.sub;
+    return this.notificationsService.markAllAsRead(userId as string);
+  }
+
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a notification' })
   @ApiParam({ name: 'id', description: 'Notification ID' })
