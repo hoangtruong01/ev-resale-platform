@@ -13,6 +13,13 @@ android/gradlew
 android/gradlew.bat
 android/gradle/
 
+# Keep Gradle wrapper in VCS so CI uses the intended Gradle version.
+!android/gradlew
+!android/gradlew.bat
+!android/gradle/wrapper/
+!android/gradle/wrapper/gradle-wrapper.jar
+!android/gradle/wrapper/gradle-wrapper.properties
+
 # iOS
 ios/Flutter/flutter_export_environment.sh
 ios/Flutter/App.framework
