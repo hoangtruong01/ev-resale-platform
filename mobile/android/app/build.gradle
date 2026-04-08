@@ -55,4 +55,8 @@ flutter {
 }
 
 dependencies {
+    // Ensure Flutter embedding is on the Kotlin compile classpath in CI.
+    debugImplementation "io.flutter:flutter_embedding_debug:1.0.0"
+    profileImplementation "io.flutter:flutter_embedding_profile:1.0.0"
+    releaseImplementation "io.flutter:flutter_embedding_release:1.0.0"
 }
