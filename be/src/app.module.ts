@@ -21,6 +21,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { PaymentsModule } from './payments/payments.module';
 import { FeesModule } from './fees/fees.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
+import { IotModule } from './iot/iot.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { SupportTicketsModule } from './support-tickets/support-tickets.module';
     PaymentsModule,
     FeesModule,
     SupportTicketsModule,
+    IotModule,
   ],
   controllers: [AppController],
   providers: [AppService],

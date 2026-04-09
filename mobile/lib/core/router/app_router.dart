@@ -18,6 +18,7 @@ import '../../features/profile/screens/profile_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../widgets/main_shell.dart';
 import '../../features/auth/screens/splash_screen.dart';
+import '../../features/batteries/screens/battery_monitor_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -108,6 +109,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/notifications',
             builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: '/battery-monitor/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final name = state.uri.queryParameters['name'] ?? 'Giám sát Pin';
+              return BatteryMonitorScreen(batteryId: id, batteryName: name);
+            },
           ),
         ],
       ),

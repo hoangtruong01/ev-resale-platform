@@ -177,6 +177,25 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                     ),
 
                     const SizedBox(height: 20),
+                    
+                    // Live Monitoring Button
+                    if (battery.isActive) // Only show if active
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => context.push('/battery-monitor/${battery.id}?name=${battery.name}'),
+                          icon: const Icon(Icons.sensors_outlined),
+                          label: const Text('Theo dõi trực tiếp qua PLC'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryGreen,
+                            side: const BorderSide(color: AppTheme.primaryGreen),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
                     const Divider(),
                     const SizedBox(height: 16),
 

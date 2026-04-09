@@ -380,10 +380,39 @@ export class UsersService {
       create: { userId, ...profileData } as any,
     });
 
+    // --- Mock OCR Automation ---
+    // In a real system, this would call an external OCR API like Google Vision or AWS Textract
+    this.mockOcrAndAutoApprove(userId, dto.fullNameOnId);
+
     return {
-      message: 'Hồ sơ xác thực danh tính đã được nộp. Vui lòng chờ xét duyệt.',
+      message: 'Hồ sơ xác thực danh tính đang được AI xử lý tự động. Vui lòng kiểm tra lại sau vài giây.',
       kycStatus: 'PENDING',
     };
+  }
+
+  /**
+   * Mock OCR Process: Waits 3 seconds and automatically approves KYC
+   */
+  private mockOcrAndAutoApprove(userId: string, fullNameOnId?: string) {
+    // We don't await this so the API response is immediate
+    setTimeout(async () => {
+      try {
+        console.log(`[Mock OCR] Processing KYC for user ${userId}...`);
+        
+        // Simulate logic: if fullName exists, it "matches" the OCR
+        // In this mock, we always approve for demonstration
+        await this.prisma.profile.update({
+          where: { userId },
+          data: { 
+            kycStatus: KycStatus.APPROVED,
+          } as any,
+        });
+
+        console.log(`[Mock OCR] KYC for user ${userId} APPROVED automatically.`);
+      } catch (error) {
+        console.error(`[Mock OCR] Error auto-approving KYC:`, error);
+      }
+    }, 3000); // 3 seconds delay as requested
   }
 
   /**

@@ -11,8 +11,9 @@ import {
   ContractStatus,
   Prisma,
   UserRole,
+  TransactionStatus,
 } from '@prisma/client';
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { PrismaService } from '../prisma/prisma.service';
@@ -228,6 +229,16 @@ export class ContractsService {
       updateData.completedAt = now;
     }
 
+    if (
+      contract.transaction.status !== TransactionStatus.DEPOSIT_PAID &&
+      contract.transaction.status !== TransactionStatus.CONTRACT_SIGNED && // Allow if already partially signed
+      contract.transaction.status !== TransactionStatus.AWAITING_BALANCE // Allow if already completed signing (idempotency)
+    ) {
+      throw new BadRequestException(
+        'Bạn chỉ có thể ký hợp đồng sau khi đã thanh toán tiền cọc.',
+      );
+    }
+
     const updated = await this.prisma.contract.update({
       where: { id: contract.id },
       data: updateData,
@@ -235,6 +246,10 @@ export class ContractsService {
     });
 
     if (nextStatus === ContractStatus.COMPLETED) {
+      await this.prisma.transaction.update({
+        where: { id: contract.transactionId },
+        data: { status: TransactionStatus.AWAITING_BALANCE },
+      });
       await this.generateAndSendFinalContract(updated);
     }
 
@@ -493,108 +508,148 @@ export class ContractsService {
   }
 
   private async buildFinalPdf(contract: ContractDetail) {
-    const templatePath = contract.templatePath ?? this.resolveTemplatePath();
-    let pdfDoc: PDFDocument;
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595.28, 841.89]); // A4
+    const { width, height } = page.getSize();
+    
+    // Embed font
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    
+    // 1. Header with styling
+    page.drawRectangle({
+      x: 0,
+      y: height - 60,
+      width,
+      height: 60,
+      color: rgb(0.1, 0.45, 0.25), // Primary Green
+    });
 
-    if (templatePath && (await this.fileExists(templatePath))) {
-      const templateBytes = await fs.readFile(templatePath);
-      pdfDoc = await PDFDocument.load(templateBytes);
-    } else {
-      pdfDoc = await PDFDocument.create();
-      const placeholder = pdfDoc.addPage([595.28, 841.89]);
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      placeholder.setFont(font);
-      placeholder.setFontSize(18);
-      const { height } = placeholder.getSize();
-      placeholder.drawText('HỢP ĐỒNG GIAO DỊCH', { x: 60, y: height - 80 });
-      placeholder.setFontSize(12);
-      placeholder.drawText('Mẫu hợp đồng tạm thời do chưa có mẫu chính thức.', {
-        x: 60,
-        y: height - 110,
-      });
-    }
+    page.drawText('EVN BATTERY MARKETPLACE', {
+      x: 40,
+      y: height - 38,
+      size: 20,
+      font: fontBold,
+      color: rgb(1, 1, 1),
+    });
 
-    const summaryPage = pdfDoc.addPage([595.28, 841.89]);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    summaryPage.setFont(font);
-    summaryPage.setFontSize(12);
+    page.drawText('Nền tảng mua bán pin xe điện cũ uy tín nhất Việt Nam', {
+      x: 40,
+      y: height - 52,
+      size: 9,
+      font: fontRegular,
+      color: rgb(0.9, 0.9, 0.9),
+    });
 
-    const { height } = summaryPage.getSize();
-    let cursorY = height - 60;
-
-    summaryPage.drawText(`Mã giao dịch: ${contract.transactionId}`, {
-      x: 50,
+    // 2. Title
+    let cursorY = height - 100;
+    page.drawText('HỢP ĐỒNG MUA BÁN & CHỨNG NHẬN GIAO DỊCH', {
+      x: width / 2 - 140,
       y: cursorY,
+      size: 14,
+      font: fontBold,
+      color: rgb(0.1, 0.1, 0.1),
     });
     cursorY -= 20;
-
-    const seller = contract.transaction.seller;
-    summaryPage.drawText(
-      `Người bán: ${seller.fullName ?? ''} (${seller.email ?? 'Không có email'})`,
-      {
-        x: 50,
-        y: cursorY,
-      },
-    );
-    cursorY -= 20;
-
-    const buyer = this.extractBuyer(contract);
-    summaryPage.drawText(
-      `Người mua: ${buyer?.fullName ?? ''} (${buyer?.email ?? 'Không có email'})`,
-      {
-        x: 50,
-        y: cursorY,
-      },
-    );
-    cursorY -= 20;
-
-    const assetDescription = this.buildAssetDescription(contract);
-    summaryPage.drawText(`Sản phẩm: ${assetDescription}`, {
-      x: 50,
+    page.drawText(`Số (ID): ${contract.id}`, {
+      x: width / 2 - 60,
       y: cursorY,
+      size: 8,
+      font: fontRegular,
+      color: rgb(0.5, 0.5, 0.5),
     });
+
     cursorY -= 40;
 
-    const buyerSignature = contract.signatures.find(
-      (item) => item.role === ContractPartyRole.BUYER,
-    );
-    const sellerSignature = contract.signatures.find(
-      (item) => item.role === ContractPartyRole.SELLER,
-    );
+    // 3. Info Sections
+    const drawSection = (title: string, y: number) => {
+      page.drawText(title.toUpperCase(), {
+        x: 40,
+        y,
+        size: 11,
+        font: fontBold,
+        color: rgb(0.1, 0.45, 0.25),
+      });
+      page.drawLine({
+        start: { x: 40, y: y - 5 },
+        end: { x: width - 40, y: y - 5 },
+        thickness: 1,
+        color: rgb(0.1, 0.45, 0.25),
+        opacity: 0.2,
+      });
+    };
+
+    // --- BÊN BÁN ---
+    drawSection('Bên bán (Seller)', cursorY);
+    cursorY -= 25;
+    const seller = contract.transaction.seller;
+    page.drawText(`Họ và tên: ${seller.fullName ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    cursorY -= 15;
+    page.drawText(`Email: ${seller.email ?? '...' } | SĐT: ${seller.phone ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    
+    cursorY -= 35;
+
+    // --- BÊN MUA ---
+    drawSection('Bên mua (Buyer)', cursorY);
+    cursorY -= 25;
+    const buyer = this.extractBuyer(contract);
+    page.drawText(`Họ và tên: ${buyer?.fullName ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    cursorY -= 15;
+    page.drawText(`Email: ${buyer?.email ?? '...' } | SĐT: ${buyer?.phone ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+
+    cursorY -= 35;
+
+    // --- THÔNG TIN TÀI SẢN ---
+    drawSection('Thông tin sản phẩm & Giao dịch', cursorY);
+    cursorY -= 25;
+
+    // Table Header
+    page.drawRectangle({ x: 40, y: cursorY - 5, width: width - 80, height: 20, color: rgb(0.95, 0.95, 0.95) });
+    page.drawText('Hạng mục', { x: 50, y: cursorY, size: 10, font: fontBold });
+    page.drawText('Chi tiết', { x: 200, y: cursorY, size: 10, font: fontBold });
+    
+    cursorY -= 20;
+    const assetDescription = this.buildAssetDescription(contract);
+    page.drawText('Tên tài sản:', { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText(assetDescription.toUpperCase(), { x: 200, y: cursorY, size: 10, font: fontBold });
+    
+    cursorY -= 20;
+    page.drawText('Giá thỏa thuận:', { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText(`${Number(contract.transaction.amount).toLocaleString('vi-VN')} VNĐ`, { x: 200, y: cursorY, size: 10, font: fontBold, color: rgb(0.8, 0.1, 0.1) });
+
+    cursorY -= 20;
+    page.drawText('Trạng thái thanh toán:', { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText('Đã thanh toán cọc 50% - Chờ thanh toán hoàn tất', { x: 200, y: cursorY, size: 10, font: fontRegular });
+
+    // 4. Signatures Section
+    cursorY = 250;
+    page.drawText('BÊN MUA KÝ TÊN', { x: 80, y: cursorY, size: 11, font: fontBold });
+    page.drawText('BÊN BÁN KÝ TÊN', { x: width - 200, y: cursorY, size: 11, font: fontBold });
+
+    const buyerSignature = contract.signatures.find(item => item.role === ContractPartyRole.BUYER);
+    const sellerSignature = contract.signatures.find(item => item.role === ContractPartyRole.SELLER);
 
     if (buyerSignature) {
-      const buyerImage = await this.embedSignatureImage(
-        pdfDoc,
-        buyerSignature.signaturePath,
-      );
-      const targetWidth = 160;
-      const scale = buyerImage.height / buyerImage.width;
-      const targetHeight = targetWidth * scale;
-      summaryPage.drawImage(buyerImage, {
-        x: 60,
-        y: 140,
-        width: targetWidth,
-        height: targetHeight,
-      });
-      summaryPage.drawText('Người mua', { x: 60, y: 130 });
+      const buyerImage = await this.embedSignatureImage(pdfDoc, buyerSignature.signaturePath);
+      page.drawImage(buyerImage, { x: 60, y: 150, width: 140, height: 70 });
+      page.drawText(`Ký ngày: ${buyerSignature.signedAt.toLocaleDateString('vi-VN')}`, { x: 80, y: 135, size: 9, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
     }
 
     if (sellerSignature) {
-      const sellerImage = await this.embedSignatureImage(
-        pdfDoc,
-        sellerSignature.signaturePath,
-      );
-      const targetWidth = 160;
-      const scale = sellerImage.height / sellerImage.width;
-      const targetHeight = targetWidth * scale;
-      summaryPage.drawImage(sellerImage, {
-        x: 320,
-        y: 140,
-        width: targetWidth,
-        height: targetHeight,
-      });
-      summaryPage.drawText('Người bán', { x: 320, y: 130 });
+      const sellerImage = await this.embedSignatureImage(pdfDoc, sellerSignature.signaturePath);
+      page.drawImage(sellerImage, { x: width - 220, y: 150, width: 140, height: 70 });
+      page.drawText(`Ký ngày: ${sellerSignature.signedAt.toLocaleDateString('vi-VN')}`, { x: width - 200, y: 135, size: 9, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
     }
+
+    // 5. Footer
+    page.drawRectangle({ x: 0, y: 0, width, height: 30, color: rgb(0.95, 0.95, 0.95) });
+    page.drawText('© 2026 EVN Battery Marketplace. Mọi quyền được bảo lưu.', {
+      x: width / 2 - 130,
+      y: 10,
+      size: 8,
+      font: fontRegular,
+      color: rgb(0.4, 0.4, 0.4),
+    });
 
     return Buffer.from(await pdfDoc.save());
   }
@@ -796,6 +851,14 @@ export class ContractsService {
         status: true,
         buyerId: true,
         sellerId: true,
+        transactionId: true,
+        transaction: {
+          select: {
+            status: true,
+            depositAmount: true,
+            balanceAmount: true,
+          },
+        },
       },
     });
 
@@ -807,7 +870,13 @@ export class ContractsService {
       throw new ForbiddenException('Bạn không có quyền xem hợp đồng này.');
     }
 
-    return { contractId: contract.id, status: contract.status };
+    return {
+      contractId: contract.id,
+      status: contract.status,
+      transactionStatus: contract.transaction.status,
+      depositAmount: contract.transaction.depositAmount,
+      balanceAmount: contract.transaction.balanceAmount,
+    };
   }
 
   /**
@@ -890,6 +959,16 @@ export class ContractsService {
       newStatus = ContractStatus.SELLER_SIGNED;
     }
 
+    if (
+      contract.transaction.status !== TransactionStatus.DEPOSIT_PAID &&
+      contract.transaction.status !== TransactionStatus.CONTRACT_SIGNED &&
+      contract.transaction.status !== TransactionStatus.AWAITING_BALANCE
+    ) {
+      throw new BadRequestException(
+        'Bạn chỉ có thể ký hợp đồng sau khi đã thanh toán tiền cọc.',
+      );
+    }
+
     const updatedContract = await this.prisma.contract.update({
       where: { id: contractId },
       data: { status: newStatus },
@@ -897,7 +976,11 @@ export class ContractsService {
     });
 
     if (newStatus === ContractStatus.COMPLETED) {
-      await this.generateAndSendFinalPdf(contractId, updatedContract);
+      await this.prisma.transaction.update({
+        where: { id: contract.transactionId },
+        data: { status: TransactionStatus.AWAITING_BALANCE },
+      });
+      await this.generateAndSendFinalContract(updatedContract);
     }
 
   }

@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // User model for authentication and user management
@@ -158,6 +159,12 @@ model Battery {
   approvalNotes    String?
   approvedAt       DateTime?
   approvedById     String?
+
+  // Technical/IoT fields
+  current          Decimal?       @db.Decimal(8, 2) // A
+  temperature      Decimal?       @db.Decimal(5, 2) // °C
+  soc              Int?           // State of Charge (0-100)
+  soh              Int?           // State of Health (0-100)
 
   // Foreign keys
   sellerId   String
@@ -425,6 +432,8 @@ model Transaction {
   chatRoomId       String?
   buyerAccepted    Boolean?
   buyerRespondedAt DateTime?
+  depositAmount    Decimal?          @db.Decimal(12, 2)
+  balanceAmount    Decimal?          @db.Decimal(12, 2)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 
@@ -458,6 +467,18 @@ enum ContractStatus {
   SELLER_SIGNED
   COMPLETED
   CANCELLED
+}
+
+enum TransactionStatus {
+  PENDING
+  AWAITING_DEPOSIT
+  DEPOSIT_PAID
+  AWAITING_CONTRACT
+  CONTRACT_SIGNED
+  AWAITING_BALANCE
+  COMPLETED
+  CANCELLED
+  REFUNDED
 }
 
 enum ContractPartyRole {
@@ -504,12 +525,6 @@ model ContractSignature {
   @@map("contract_signatures")
 }
 
-enum TransactionStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
-  REFUNDED
-}
 
 enum TransactionPartyRole {
   BUYER
@@ -627,6 +642,12 @@ enum PaymentGateway {
   VNPAY
 }
 
+enum PaymentType {
+  DEPOSIT
+  BALANCE
+  FULL
+}
+
 enum PaymentAttemptStatus {
   PENDING
   SUCCESS
@@ -678,6 +699,7 @@ model PaymentAttempt {
   ipAddress     String?
   vnpSecureHash String?
   vnpParams     Json?
+  paymentType   PaymentType          @default(FULL)
   responseCode  String?
   callbackAt    DateTime?
   createdAt     DateTime             @default(now())

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../screens/signature_pad_screen.dart';
@@ -125,15 +126,42 @@ class ContractMessageCard extends ConsumerWidget {
                 contractStatus.when(
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
-                  data: (status) {
-                    if (status == 'COMPLETED') {
+                  data: (data) {
+                    final status = data['status'];
+                    final txStatus = data['transactionStatus'];
+                    final transactionId = data['transactionId'] ?? transactionId;
+
+                    if (txStatus == 'AWAITING_DEPOSIT') {
+                      return _PaymentButton(
+                        label: 'Thanh toán đặt cọc (50%)',
+                        transactionId: transactionId,
+                        paymentType: 'DEPOSIT',
+                        onPaid: () => ref.invalidate(_contractStatusProvider(contractId)),
+                      );
+                    }
+
+                    if (txStatus == 'DEPOSIT_PAID') {
+                      return _SignButton(
+                        contractId: contractId,
+                        currentUserId: currentUserId,
+                        onSigned: () => ref.invalidate(_contractStatusProvider(contractId)),
+                      );
+                    }
+
+                    if (txStatus == 'AWAITING_BALANCE') {
+                      return _PaymentButton(
+                        label: 'Thanh toán nốt còn lại (50%)',
+                        transactionId: transactionId,
+                        paymentType: 'BALANCE',
+                        onPaid: () => ref.invalidate(_contractStatusProvider(contractId)),
+                      );
+                    }
+
+                    if (status == 'COMPLETED' || txStatus == 'COMPLETED') {
                       return const _CompletedBanner();
                     }
-                    return _SignButton(
-                      contractId: contractId,
-                      currentUserId: currentUserId,
-                      onSigned: () => ref.invalidate(_contractStatusProvider(contractId)),
-                    );
+                    
+                    return const SizedBox.shrink();
                   },
                 ),
               ],
@@ -160,11 +188,10 @@ class ContractMessageCard extends ConsumerWidget {
 // ─── Providers ────────────────────────────────────────────────────────────────
 
 final _contractStatusProvider =
-    FutureProvider.autoDispose.family<String, String>((ref, contractId) async {
+    FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, contractId) async {
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/contracts/$contractId/status');
-  final data = res.data as Map<String, dynamic>;
-  return data['status'] as String? ?? 'PENDING';
+  return Map<String, dynamic>.from(res.data);
 });
 
 // ─── Sub-widgets ──────────────────────────────────────────────────────────────
@@ -344,6 +371,92 @@ class _SignButtonState extends ConsumerState<_SignButton> {
             fontWeight: FontWeight.w600,
             fontSize: 14,
             color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PaymentButton extends StatefulWidget {
+  final String label;
+  final String transactionId;
+  final String paymentType;
+  final VoidCallback onPaid;
+
+  const _PaymentButton({
+    required this.label,
+    required this.transactionId,
+    required this.paymentType,
+    required this.onPaid,
+  });
+
+  @override
+  State<_PaymentButton> createState() => _PaymentButtonState();
+}
+
+class _PaymentButtonState extends State<_PaymentButton> {
+  bool _isLoading = false;
+
+  Future<void> _startPayment(BuildContext context, WidgetRef ref) async {
+    setState(() => _isLoading = true);
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.post(
+        '/payments/create-vnpay',
+        data: {
+          'transactionId': widget.transactionId,
+          'paymentType': widget.paymentType,
+        },
+      );
+      
+      final paymentUrl = res.data['paymentUrl'] as String?;
+      if (paymentUrl != null) {
+        final uri = Uri.parse(paymentUrl);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Vui lòng hoàn tất thanh toán trên trình duyệt và quay lại ứng dụng.'),
+                duration: Duration(seconds: 10),
+              ),
+            );
+          }
+        }
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(parseApiError(e)),
+            backgroundColor: AppTheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) => SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _isLoading ? null : () => _startPayment(context, ref),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryGreen,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          icon: _isLoading
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.payment, color: Colors.white, size: 18),
+          label: Text(
+            widget.label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.white),
           ),
         ),
       ),

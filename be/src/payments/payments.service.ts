@@ -11,12 +11,14 @@ import {
   Prisma,
   PurchaseStatus,
   TransactionStatus,
+  PaymentType,
 } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { createHmac } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
+import { ContractsService } from '../contracts/contracts.service';
 import { CreateVnpayPaymentDto } from './dto/create-vnpay-payment.dto';
 
 type VnpayQuery = Record<string, string | string[] | undefined>;
@@ -51,6 +53,7 @@ export class PaymentsService {
     private readonly configService: ConfigService,
     private readonly chatService: ChatService,
     private readonly chatGateway: ChatGateway,
+    private readonly contractsService: ContractsService,
   ) {}
 
   async createVnpayPayment(
@@ -99,14 +102,22 @@ export class PaymentsService {
     const orderType =
       this.configService.get<string>('VNPAY_DEFAULT_ORDER_TYPE') ?? 'other';
 
-    const totalAmount = this.calculateTotalAmount(transaction);
+    const paymentType = dto.paymentType ?? PaymentType.FULL;
+    let totalAmount = this.calculateTotalAmount(transaction);
+
+    if (paymentType === PaymentType.DEPOSIT) {
+      totalAmount = Math.round(totalAmount / 2);
+    } else if (paymentType === PaymentType.BALANCE) {
+      totalAmount = totalAmount - Math.round(totalAmount / 2); // 50% còn lại
+    }
 
     if (totalAmount <= 0) {
       throw new BadRequestException('Số tiền giao dịch không hợp lệ.');
     }
 
     const txnRef = await this.generateUniqueTxnRef();
-    const orderInfo = dto.orderInfo ?? `Thanh toan giao dich ${transaction.id}`;
+    const orderTypeStr = paymentType === PaymentType.DEPOSIT ? ' (Coc 50%)' : paymentType === PaymentType.BALANCE ? ' (Thanh toan not 50%)' : '';
+    const orderInfo = (dto.orderInfo ?? `Thanh toan giao dich ${transaction.id}`) + orderTypeStr;
     const returnUrl = dto.returnUrl ?? defaultReturnUrl;
 
     const createDate = this.formatVnpayDate(new Date());
@@ -152,6 +163,7 @@ export class PaymentsService {
         ipAddress: clientIp || null,
         vnpSecureHash: secureHash,
         vnpParams: sortedParams,
+        paymentType,
       },
     });
 
@@ -277,10 +289,15 @@ export class PaymentsService {
       });
 
       if (isSuccess) {
+        let nextStatus: TransactionStatus = TransactionStatus.COMPLETED;
+        if (attempt.paymentType === PaymentType.DEPOSIT) {
+          nextStatus = TransactionStatus.DEPOSIT_PAID;
+        }
+
         completedTransaction = await this.prisma.transaction.update({
           where: { id: attempt.transactionId },
           data: {
-            status: TransactionStatus.COMPLETED,
+            status: nextStatus,
             paymentMethod: 'VNPAY',
           },
           include: {
@@ -325,7 +342,14 @@ export class PaymentsService {
             completedTransaction,
             attempt.id,
             attempt.amount,
+            attempt.paymentType,
           );
+
+          if (attempt.paymentType === PaymentType.DEPOSIT) {
+            await this.contractsService.handleTransactionCompleted(
+              completedTransaction.id,
+            );
+          }
         }
       }
     }
@@ -347,6 +371,7 @@ export class PaymentsService {
     transaction: TransactionWithPaymentRelations,
     paymentAttemptId: string,
     amount: Prisma.Decimal | number,
+    paymentType: PaymentType,
   ) {
     const chatRoom = transaction.chatRoom;
     if (!chatRoom || !chatRoom.id || !chatRoom.buyerId) {
@@ -357,10 +382,11 @@ export class PaymentsService {
       this.toPlainNumber(amount) ?? this.calculateTotalAmount(transaction);
 
     try {
+      const typeLabel = paymentType === PaymentType.DEPOSIT ? 'đặt cọc 50%' : paymentType === PaymentType.BALANCE ? 'thanh toán nốt 50%' : 'thanh toán';
       const message = await this.chatService.createMessage({
         roomId: chatRoom.id,
         senderId: chatRoom.buyerId,
-        content: 'Người mua đã thanh toán thành công qua VNPay.',
+        content: `Người mua đã ${typeLabel} thành công qua VNPay.`,
         metadata: {
           kind: 'payment-status',
           gateway: 'vnpay',

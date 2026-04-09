@@ -1,9 +1,14 @@
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength, IsEnum } from 'class-validator';
+import { PaymentType } from '@prisma/client';
 
 export class CreateVnpayPaymentDto {
   @IsUUID()
   @IsString()
   transactionId!: string;
+
+  @IsOptional()
+  @IsEnum(PaymentType)
+  paymentType?: PaymentType = PaymentType.FULL;
 
   @IsOptional()
   @IsString()

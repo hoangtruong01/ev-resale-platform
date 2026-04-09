@@ -1002,8 +1002,17 @@ export class TransactionsService {
 
     const buyerAccepted = action === 'accept';
     const nextStatus = buyerAccepted
-      ? TransactionStatus.PENDING
+      ? TransactionStatus.AWAITING_DEPOSIT
       : TransactionStatus.CANCELLED;
+
+    let depositAmount: number | undefined;
+    let balanceAmount: number | undefined;
+
+    if (buyerAccepted) {
+      const total = this.calculateTotalAmount(transaction);
+      depositAmount = Math.round(total / 2);
+      balanceAmount = total - depositAmount;
+    }
 
     const updatedTransaction = await this.prisma.transaction.update({
       where: { id },
@@ -1011,6 +1020,8 @@ export class TransactionsService {
         buyerAccepted,
         buyerRespondedAt: new Date(),
         status: nextStatus,
+        depositAmount,
+        balanceAmount,
       },
       include: this.transactionInclude,
     });
@@ -1380,5 +1391,21 @@ export class TransactionsService {
       return;
     }
     server.to(roomId).emit('chat:message', payload);
+  }
+
+  private calculateTotalAmount(transaction: {
+    amount: Prisma.Decimal | number;
+    fee?: Prisma.Decimal | number | null;
+    commission?: Prisma.Decimal | number | null;
+  }): number {
+    const values = [
+      transaction.amount,
+      transaction.fee,
+      transaction.commission,
+    ];
+    return values.reduce<number>((sum, value) => {
+      const numeric = this.toPlainNumber(value);
+      return sum + (numeric ?? 0);
+    }, 0);
   }
 }
