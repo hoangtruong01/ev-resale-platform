@@ -66,7 +66,7 @@
                   @click="triggerAvatarUpload"
                 >
                   <UiAvatarImage
-                    :src="user.avatar || '/placeholder.svg'"
+                    :src="resolveAssetUrl(user.avatar || '/placeholder.svg')"
                     :alt="user.name"
                   />
                   <UiAvatarFallback

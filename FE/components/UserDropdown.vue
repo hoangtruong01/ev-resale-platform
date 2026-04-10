@@ -4,7 +4,7 @@
       class="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-green-500 transition-all" 
       @click="toggleDropdown"
     >
-      <UiAvatarImage :src="user?.avatar || '/professional-avatar.svg'" :alt="user?.name || 'User'" />
+      <UiAvatarImage :src="resolveAsset(user?.avatar || '/professional-avatar.svg')" :alt="user?.name || 'User'" />
       <UiAvatarFallback>{{ getInitials(user?.name || user?.fullName || 'User') }}</UiAvatarFallback>
     </UiAvatar>
     
@@ -44,6 +44,8 @@ const props = defineProps({
     required: true
   }
 })
+
+const { resolve: resolveAsset } = useAssetUrl();
 
 const emit = defineEmits(['logout'])
 

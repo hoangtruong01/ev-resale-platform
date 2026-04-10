@@ -573,6 +573,7 @@ const handleAvatarChange = async (event: Event) => {
     formDataUpload.append('avatar', file)
 
     const api = useApi()
+    const { resolve: resolveAssetUrl } = useAssetUrl();
     const response = await api.post(`/admin/users/${userId}/upload-avatar`, formDataUpload, {
       headers: {
         'Content-Type': 'multipart/form-data'
@@ -580,8 +581,9 @@ const handleAvatarChange = async (event: Event) => {
     })
 
     if (response?.avatar) {
-      formData.value.avatar = response.avatar
-      user.value.avatar = response.avatar
+      const resolved = resolveAssetUrl(response.avatar)
+      formData.value.avatar = resolved
+      user.value.avatar = resolved
       
       useToast().add({
         title: 'Thành công',
@@ -731,9 +733,13 @@ const fetchUserData = async () => {
     loading.value = true
     
     const api = useApi()
+    const { resolve: resolveAssetUrl } = useAssetUrl();
     const response = await api.get(`/admin/users/${userId}`)
     
     if (response) {
+      if (response.avatar) {
+        response.avatar = resolveAssetUrl(response.avatar)
+      }
       user.value = response
       userStats.value = response._count || {
         batteries: 0,

@@ -226,14 +226,21 @@
               @click="goToVehicleDetail(item.id)"
             >
               <div
-                class="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 relative"
+                class="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 relative overflow-hidden"
               >
+                <img
+                  v-if="item.image"
+                  :src="item.image"
+                  :alt="item.name"
+                  class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                />
                 <div
+                  v-else
                   class="absolute inset-0 flex items-center justify-center text-4xl"
                 >
                   🚗
                 </div>
-                <UiBadge class="absolute top-3 left-3 bg-primary">{{
+                <UiBadge class="absolute top-3 left-3 bg-primary/90">{{
                   $t("vehicles")
                 }}</UiBadge>
               </div>
@@ -395,6 +402,7 @@ interface FeaturedVehicle {
   name: string;
   price: number;
   location: string;
+  image?: string;
   year?: number | null;
   rating?: number | null;
   reviewCount?: number | null;
@@ -408,6 +416,7 @@ const hasMore = ref(true);
 const errorMessage = ref<string | null>(null);
 
 const { get } = useApi();
+const { resolve: resolveAsset } = useAssetUrl();
 
 const visibleItems = computed(() => items.value);
 
@@ -434,6 +443,10 @@ const fetchFeaturedVehicles = async () => {
       id: item.id,
       name: item.name,
       price: Number(item.price ?? 0),
+      image:
+        Array.isArray(item.images) && item.images.length
+          ? resolveAsset(item.images[0])
+          : undefined,
       location: item.location || t("location"),
       year: item.year ?? null,
       rating: null,

@@ -14,7 +14,7 @@
           </div>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-              <img v-if="user.avatar" :src="user.avatar" :alt="user.fullName" class="w-full h-full object-cover" />
+              <img v-if="user.avatar" :src="resolveAsset(user.avatar)" :alt="user.fullName" class="w-full h-full object-cover" />
               <span v-else class="text-sm font-medium text-gray-600">
                 {{ getInitials(user.fullName || 'U') }}
               </span>
@@ -48,7 +48,7 @@
           <div class="flex items-center gap-6">
             <div class="relative">
               <div class="h-24 w-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                <img v-if="formData.avatar" :src="formData.avatar" :alt="formData.fullName" class="h-full w-full object-cover" />
+                <img v-if="formData.avatar" :src="resolveAsset(formData.avatar)" :alt="formData.fullName" class="h-full w-full object-cover" />
                 <span v-else class="text-xl font-bold text-gray-400">
                   {{ getInitials(formData.fullName) }}
                 </span>
@@ -367,6 +367,7 @@ const formData = ref({
 // Use composables
 const { logout } = useAuth()
 const toast = useToast()
+const { resolve: resolveAsset } = useAssetUrl()
 
 // Helper functions
 const getInitials = (name) => {

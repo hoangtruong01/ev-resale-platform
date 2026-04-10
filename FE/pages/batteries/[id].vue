@@ -479,6 +479,7 @@ interface BatteryApiSeller {
   rating?: number | null;
   totalRatings?: number | null;
   createdAt?: string | null;
+  avatar?: string | null;
 }
 
 interface BatteryApiReview {
@@ -793,7 +794,7 @@ const mapBatteryToView = (item: BatteryApiResponse): BatteryView => {
     seller: {
       id: seller?.id ?? "",
       name: sellerName,
-      avatar: defaultSellerAvatar,
+      avatar: resolveAsset(seller?.avatar) || defaultSellerAvatar,
       rating: Number(sellerRating.toFixed(1)),
       reviews: sellerReviews ?? 0,
       verified: (seller?.totalRatings ?? 0) > 5 || Boolean(seller?.rating),

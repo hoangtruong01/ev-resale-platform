@@ -470,6 +470,7 @@ interface VehicleApiSeller {
   fullName?: string | null;
   email?: string | null;
   phone?: string | null;
+  avatar?: string | null;
 }
 
 interface VehicleApiResponse {
@@ -759,7 +760,7 @@ const mapVehicleToView = (item: VehicleApiResponse): VehicleView => {
     seller: {
       id: seller?.id ?? "",
       name: sellerName,
-      avatar: defaultSellerAvatar,
+      avatar: resolveAsset(seller?.avatar) || defaultSellerAvatar,
       rating: rating ? Number(rating.toFixed(1)) : 0,
       reviews: reviewCount,
       verified: Boolean(seller?.email),

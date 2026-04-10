@@ -154,12 +154,12 @@
                   :alt="vehicle.name"
                   class="h-full w-full object-cover"
                 />
-                <div
+                <img
                   v-else
-                  class="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
-                >
-                  {{ t("vehicles") }}
-                </div>
+                  src="/placeholder.svg"
+                  :alt="t('vehicles')"
+                  class="h-full w-full object-cover opacity-50"
+                />
                 <UiBadge
                   class="absolute left-3 top-3 rounded-full bg-primary/90 px-2 py-1 text-xs font-medium text-white shadow-sm"
                 >

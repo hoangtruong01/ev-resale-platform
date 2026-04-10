@@ -191,12 +191,12 @@
                     :alt="auction.title"
                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
-                  <div
+                  <img
                     v-else
-                    class="flex h-full items-center justify-center text-6xl"
-                  >
-                    {{ auction.type === "battery" ? "🔋" : "🚗" }}
-                  </div>
+                    src="/placeholder.svg"
+                    :alt="auction.title"
+                    class="h-full w-full object-cover opacity-50"
+                  />
                 </div>
                 <div
                   class="absolute left-4 top-4 rounded-full px-3 py-1 text-sm font-semibold text-white"

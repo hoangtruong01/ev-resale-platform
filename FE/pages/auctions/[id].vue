@@ -61,12 +61,12 @@
                 :alt="auction.title"
                 class="h-full w-full object-contain bg-black/5"
               />
-              <div
+              <img
                 v-else
-                class="flex h-full w-full items-center justify-center text-7xl text-muted-foreground"
-              >
-                🚗
-              </div>
+                src="/placeholder.svg"
+                :alt="auction.title"
+                class="h-full w-full object-cover opacity-50"
+              />
 
               <button
                 v-if="auction.images?.length > 1"
@@ -111,15 +111,13 @@
                   />
                 </button>
               </div>
-              <div v-else class="flex gap-2">
-                <div
+                <img
                   v-for="i in 3"
                   :key="i"
-                  class="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-muted-foreground/40 text-2xl text-muted-foreground"
-                >
-                  🚗
-                </div>
-              </div>
+                  src="/placeholder.svg"
+                  alt="placeholder"
+                  class="h-20 w-24 shrink-0 overflow-hidden rounded-xl border object-cover opacity-50"
+                />
             </UiCardContent>
           </UiCard>
 
@@ -355,9 +353,10 @@
             </h3>
             <div class="flex items-center gap-3 mb-4">
               <div
-                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+                class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center overflow-hidden"
               >
-                <span class="text-green-600 font-bold">
+                <img v-if="auction.seller.avatar" :src="resolveAsset(auction.seller.avatar)" :alt="auction.seller.name" class="w-full h-full object-cover" />
+                <span v-else class="text-green-600 font-bold">
                   {{ auction.seller.name?.charAt?.(0)?.toUpperCase?.() || "?" }}
                 </span>
               </div>
@@ -504,12 +503,12 @@
                   :alt="`${auction.title} ${activeImageIndex + 1}`"
                   class="max-h-full max-w-full object-contain"
                 />
-                <div
-                  v-else
-                  class="h-full w-full flex items-center justify-center text-4xl text-gray-400"
-                >
-                  🚗
-                </div>
+                  <img
+                    v-else
+                    src="/placeholder.svg"
+                    :alt="auction.title"
+                    class="h-full w-full object-cover opacity-50"
+                  />
 
                 <button
                   v-if="auction.images?.length > 1"
@@ -744,6 +743,7 @@ interface AuctionViewSeller {
   location?: string | null;
   rating?: number | null;
   reviewCount?: number | null;
+  avatar?: string | null;
   soldItems?: number | null;
 }
 
@@ -954,6 +954,7 @@ const buildSellerInfo = (detail: AuctionDetail): AuctionViewSeller => {
     rating,
     reviewCount,
     soldItems,
+    avatar: normalizeString(seller?.avatar),
   };
 };
 

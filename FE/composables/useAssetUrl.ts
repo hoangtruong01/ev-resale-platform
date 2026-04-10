@@ -15,24 +15,16 @@ export const useAssetUrl = () => {
       return value;
     }
 
-    const normalized = value.startsWith("/") ? value : `/${value}`;
-    
-    // 1. If it's a known local asset in /public, return as is
-    if (
-      normalized === "/placeholder.svg" ||
-      normalized === "/professional-avatar.svg" ||
-      normalized === "/favicon.ico"
-    ) {
-      return normalized;
+    // Normalize leading slash
+    const path = value.startsWith("/") ? value : `/${value}`;
+
+    // 1. If it's an upload path, it will be handled by the Nuxt proxy at /uploads
+    if (path.startsWith("/uploads/")) {
+      return path;
     }
 
-    // 2. If it's an upload, return as is (to be handled by Nuxt proxy)
-    if (normalized.startsWith("/uploads/")) {
-      return normalized;
-    }
-
-    // 3. Otherwise, prefix with apiOrigin (likely an API asset)
-    return `${apiOrigin}${normalized}`;
+    // 2. Otherwise, treat it as a local asset in the public/ folder
+    return path;
   };
 
   return {
