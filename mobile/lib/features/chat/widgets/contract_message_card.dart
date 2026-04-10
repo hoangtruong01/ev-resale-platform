@@ -98,7 +98,9 @@ class ContractMessageCard extends ConsumerWidget {
                   ),
                   error: (_, __) => const Icon(Icons.error_outline,
                       color: AppTheme.error, size: 20),
-                  data: (status) => _StatusChip(status: status),
+                  data: (data) => _StatusChip(
+                    status: (data['status'] as String?) ?? 'PENDING',
+                  ),
                 ),
               ],
             ),
@@ -127,14 +129,15 @@ class ContractMessageCard extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                   data: (data) {
-                    final status = data['status'];
-                    final txStatus = data['transactionStatus'];
-                    final transactionId = data['transactionId'] ?? transactionId;
+                    final status = data['status'] as String?;
+                    final txStatus = data['transactionStatus'] as String?;
+                    final resolvedTransactionId =
+                        (data['transactionId'] as String?) ?? transactionId;
 
                     if (txStatus == 'AWAITING_DEPOSIT') {
                       return _PaymentButton(
                         label: 'Thanh toán đặt cọc (50%)',
-                        transactionId: transactionId,
+                        transactionId: resolvedTransactionId,
                         paymentType: 'DEPOSIT',
                         onPaid: () => ref.invalidate(_contractStatusProvider(contractId)),
                       );
@@ -151,7 +154,7 @@ class ContractMessageCard extends ConsumerWidget {
                     if (txStatus == 'AWAITING_BALANCE') {
                       return _PaymentButton(
                         label: 'Thanh toán nốt còn lại (50%)',
-                        transactionId: transactionId,
+                        transactionId: resolvedTransactionId,
                         paymentType: 'BALANCE',
                         onPaid: () => ref.invalidate(_contractStatusProvider(contractId)),
                       );
