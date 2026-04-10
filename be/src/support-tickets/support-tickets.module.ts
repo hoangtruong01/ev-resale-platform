@@ -10,5 +10,6 @@ import { SmsModule } from '../sms/sms.module';
   imports: [PrismaModule, NotificationsModule, MailModule, SmsModule],
   controllers: [SupportTicketsController],
   providers: [SupportTicketsService],
+  exports: [SupportTicketsService],
 })
 export class SupportTicketsModule {}

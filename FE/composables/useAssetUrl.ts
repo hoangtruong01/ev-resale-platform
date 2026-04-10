@@ -16,12 +16,22 @@ export const useAssetUrl = () => {
     }
 
     const normalized = value.startsWith("/") ? value : `/${value}`;
-    const isRelativeOrigin = !/^https?:/i.test(apiOrigin);
-
-    if (isRelativeOrigin && normalized.startsWith("/uploads/")) {
+    
+    // 1. If it's a known local asset in /public, return as is
+    if (
+      normalized === "/placeholder.svg" ||
+      normalized === "/professional-avatar.svg" ||
+      normalized === "/favicon.ico"
+    ) {
       return normalized;
     }
 
+    // 2. If it's an upload, return as is (to be handled by Nuxt proxy)
+    if (normalized.startsWith("/uploads/")) {
+      return normalized;
+    }
+
+    // 3. Otherwise, prefix with apiOrigin (likely an API asset)
     return `${apiOrigin}${normalized}`;
   };
 
