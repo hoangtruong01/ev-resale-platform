@@ -305,7 +305,7 @@
                         Math.max(
                           dashboardStats.totalOrders -
                             dashboardStats.pendingOrders,
-                          0
+                          0,
                         )
                       }}
                     </p>
@@ -839,8 +839,8 @@
               profileStatus.type === 'success'
                 ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600'
                 : profileStatus.type === 'error'
-                ? 'border-red-500/40 bg-red-500/10 text-red-600'
-                : 'border-border bg-muted/40 text-muted-foreground',
+                  ? 'border-red-500/40 bg-red-500/10 text-red-600'
+                  : 'border-border bg-muted/40 text-muted-foreground',
             ]"
           >
             {{ profileStatus.message }}
@@ -953,7 +953,7 @@ const fullAddress = computed(
     ]
       .map((value) => (typeof value === "string" ? value.trim() : ""))
       .filter((value) => value.length > 0)
-      .join(", ")
+      .join(", "),
 );
 
 const defaultStats = {
@@ -978,13 +978,12 @@ const recentOrderEntries = computed(() => {
   return Array.isArray(source) ? source.slice(0, 3) : [];
 });
 
+const { formatCurrency: formatLocaleCurrency, formatDate: formatLocaleDate } =
+  useLocaleFormat();
+
 const formatCurrency = (value) => {
   const amount = Number(value || 0);
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(amount);
+  return formatLocaleCurrency(amount, "VND", { minimumFractionDigits: 0 });
 };
 
 const formatDate = (value) => {
@@ -995,7 +994,7 @@ const formatDate = (value) => {
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-  return date.toLocaleDateString("vi-VN");
+  return formatLocaleDate(date);
 };
 
 const statusLabels = {
@@ -1293,7 +1292,7 @@ const handleAvatarSelection = async (event) => {
     const response = await api.patch("/users/profile/avatar", formData);
 
     const resolvedAvatar = resolveAssetUrl(
-      response?.user?.avatar || response?.avatar
+      response?.user?.avatar || response?.avatar,
     );
 
     if (resolvedAvatar) {
@@ -1342,7 +1341,7 @@ const handleAvatarSelection = async (event) => {
 };
 
 // Use i18n for head
-const { t } = useI18n();
+const { t } = useI18n({ useScope: "global" });
 
 // Set head
 useHead({
@@ -1385,7 +1384,7 @@ const fetchUserProfile = async () => {
         email: response.email,
         avatar: resolvedAvatar,
         joinDate: response.createdAt
-          ? new Date(response.createdAt).toLocaleDateString("vi-VN")
+          ? formatLocaleDate(new Date(response.createdAt))
           : "Mới",
         totalOrders: response.totalOrders || 0,
         totalSpent: Number(response.totalSpent || 0),

@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-background">
     <AppHeader />
 
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 mt-2">
       <div class="mb-8">
         <h1 class="text-3xl font-bold mb-2">{{ t("batteryList") }}</h1>
         <p class="text-muted-foreground">{{ t("findBatteries") }}</p>
@@ -284,7 +284,7 @@ const MAX_PRICE = 300_000_000;
 const PAGE_LIMIT = 60;
 
 const router = useRouter();
-const { t, locale } = useI18n();
+const { t, locale } = useI18n({ useScope: "global" });
 const { get } = useApi();
 const { resolve: resolveAsset } = useAssetUrl();
 const { isLoggedIn } = useAuth();
@@ -369,7 +369,7 @@ const fetchBatteries = async () => {
     });
 
     const response = await get<BatteryListResponse>(
-      `/batteries?${params.toString()}`
+      `/batteries?${params.toString()}`,
     );
 
     if (token !== fetchToken) {
@@ -476,7 +476,7 @@ const filteredBatteries = computed(() => {
     })
     .sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
 });
 
@@ -532,25 +532,18 @@ const handleToggleBatteryFavorite = async (battery: BatteryCardItem) => {
   }
 };
 
+const { formatCurrency } = useLocaleFormat();
+
 const formatPrice = (amount: number) => {
   if (locale.value === "vi") {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-      maximumFractionDigits: 0,
-    })
-      .format(amount)
+    return formatCurrency(amount, "VND", { maximumFractionDigits: 0 })
       .replace("₫", "")
       .trim()
       .concat(" ₫");
   }
 
   const usdAmount = amount / 24_000;
-  return new Intl.NumberFormat(locale.value, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(usdAmount);
+  return formatCurrency(usdAmount, "USD", { maximumFractionDigits: 0 });
 };
 
 useHead(() => ({
@@ -574,6 +567,6 @@ watch(
     if (loggedIn) {
       await loadFavorites(true);
     }
-  }
+  },
 );
 </script>

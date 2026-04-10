@@ -198,8 +198,8 @@
                         entry.status === "pending"
                           ? "Chờ người mua xác nhận."
                           : entry.status === "accepted"
-                          ? "Người mua đã xác nhận đơn giao dịch."
-                          : "Người mua đã từ chối đơn giao dịch."
+                            ? "Người mua đã xác nhận đơn giao dịch."
+                            : "Người mua đã từ chối đơn giao dịch."
                       }}
                     </p>
 
@@ -221,8 +221,8 @@
                               formatCurrency(
                                 calculatePaymentTotal(
                                   entry.offer,
-                                  entry.transaction
-                                )
+                                  entry.transaction,
+                                ),
                               )
                             }}
                           </p>
@@ -233,7 +233,7 @@
                             Trạng thái:
                             {{
                               resolveTransactionStatusLabel(
-                                entry.transaction.status
+                                entry.transaction.status,
                               )
                             }}
                             <span v-if="entry.transaction.paymentMethod">
@@ -297,7 +297,7 @@
                             "
                             @click="
                               refreshTransactionDetail(
-                                entry.offer.transactionId
+                                entry.offer.transactionId,
                               )
                             "
                           >
@@ -322,8 +322,8 @@
                               formatCurrency(
                                 resolveOfferAmount(
                                   entry.offer,
-                                  entry.transaction
-                                )
+                                  entry.transaction,
+                                ),
                               )
                             }}
                           </span>
@@ -333,7 +333,7 @@
                           <span>
                             {{
                               formatCurrency(
-                                resolveOfferFee(entry.offer, entry.transaction)
+                                resolveOfferFee(entry.offer, entry.transaction),
                               )
                             }}
                           </span>
@@ -345,8 +345,8 @@
                               formatCurrency(
                                 resolveOfferCommission(
                                   entry.offer,
-                                  entry.transaction
-                                )
+                                  entry.transaction,
+                                ),
                               )
                             }}
                           </span>
@@ -372,7 +372,7 @@
                         @click="
                           respondToTransaction(
                             entry.offer.transactionId,
-                            'accept'
+                            'accept',
                           )
                         "
                       >
@@ -393,7 +393,7 @@
                         @click="
                           respondToTransaction(
                             entry.offer.transactionId,
-                            'reject'
+                            'reject',
                           )
                         "
                       >
@@ -582,7 +582,7 @@ const { resolve: resolveAssetUrl } = useAssetUrl();
 const toast = useCustomToast();
 
 const conversationId = computed(() =>
-  String(route.params.conversationId || "")
+  String(route.params.conversationId || ""),
 );
 const room = ref<ChatRoomResponse | null>(null);
 const messages = ref<ChatMessageResponse[]>([]);
@@ -662,11 +662,11 @@ const productImage = computed(() => {
 });
 
 const otherParticipantAvatar = computed(() =>
-  resolveAvatarUrl(otherParticipant.value?.avatar ?? null)
+  resolveAvatarUrl(otherParticipant.value?.avatar ?? null),
 );
 
 const currentUserAvatar = computed(() =>
-  resolveAvatarUrl(currentUser.value?.avatar ?? null)
+  resolveAvatarUrl(currentUser.value?.avatar ?? null),
 );
 
 const resolveMessageAvatar = (message: ChatMessageResponse) => {
@@ -679,14 +679,14 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const isTransactionOfferMetadata = (
-  metadata: unknown
+  metadata: unknown,
 ): metadata is TransactionOfferMetadata =>
   isObject(metadata) &&
   metadata.kind === "transaction-offer" &&
   typeof metadata.transactionId === "string";
 
 const isTransactionResponseMetadata = (
-  metadata: unknown
+  metadata: unknown,
 ): metadata is TransactionResponseMetadata =>
   isObject(metadata) &&
   metadata.kind === "transaction-response" &&
@@ -694,22 +694,22 @@ const isTransactionResponseMetadata = (
   (metadata.action === "accept" || metadata.action === "reject");
 
 const getTransactionOfferMetadata = (
-  message: ChatMessageResponse
+  message: ChatMessageResponse,
 ): TransactionOfferMetadata | null =>
   isTransactionOfferMetadata(message.metadata) ? message.metadata : null;
 
 const getTransactionResponseMetadata = (
-  message: ChatMessageResponse
+  message: ChatMessageResponse,
 ): TransactionResponseMetadata | null =>
   isTransactionResponseMetadata(message.metadata) ? message.metadata : null;
 
 const isPaymentStatusMetadata = (
-  metadata: unknown
+  metadata: unknown,
 ): metadata is PaymentStatusMetadata =>
   isObject(metadata) && metadata.kind === "payment-status";
 
 const getPaymentStatusMetadata = (
-  message: ChatMessageResponse
+  message: ChatMessageResponse,
 ): PaymentStatusMetadata | null =>
   isPaymentStatusMetadata(message.metadata) ? message.metadata : null;
 
@@ -737,7 +737,7 @@ const getResponseForTransaction = (transactionId: string) =>
 
 const resolveOfferStatus = (
   offer: TransactionOfferMetadata,
-  response: TransactionResponseMetadata | null
+  response: TransactionResponseMetadata | null,
 ): "pending" | "accepted" | "rejected" => {
   if (response) {
     return response.action === "accept" ? "accepted" : "rejected";
@@ -772,6 +772,9 @@ const resolveStatusBadgeLabel = (status: "pending" | "accepted" | "rejected") =>
 const resolveStatusBadgeClass = (status: "pending" | "accepted" | "rejected") =>
   statusClasses[status];
 
+const { formatCurrency: formatLocaleCurrency, formatDateTime } =
+  useLocaleFormat();
+
 const hasPendingOffer = computed(() =>
   messages.value.some((message) => {
     const offer = getTransactionOfferMetadata(message);
@@ -780,18 +783,16 @@ const hasPendingOffer = computed(() =>
     }
     const response = getResponseForTransaction(offer.transactionId);
     return resolveOfferStatus(offer, response) === "pending";
-  })
+  }),
 );
 
 const formatCurrency = (value?: number | null) => {
   if (value === null || value === undefined || Number.isNaN(Number(value))) {
     return "—";
   }
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
+  return formatLocaleCurrency(Number(value), "VND", {
     maximumFractionDigits: 0,
-  }).format(Number(value));
+  });
 };
 
 const toPlainNumber = (value?: number | null) => {
@@ -812,7 +813,7 @@ const toOptionalNumber = (value?: unknown): number | null => {
 
 const resolveOfferAmount = (
   offer: TransactionOfferMetadata,
-  transaction?: TransactionDetail | null
+  transaction?: TransactionDetail | null,
 ): number => {
   const source =
     offer.amount !== undefined && offer.amount !== null
@@ -823,7 +824,7 @@ const resolveOfferAmount = (
 
 const resolveOfferFee = (
   offer: TransactionOfferMetadata,
-  transaction?: TransactionDetail | null
+  transaction?: TransactionDetail | null,
 ): number | null => {
   const source =
     offer.fee !== undefined && offer.fee !== null
@@ -835,7 +836,7 @@ const resolveOfferFee = (
 
 const resolveOfferCommission = (
   offer: TransactionOfferMetadata,
-  transaction?: TransactionDetail | null
+  transaction?: TransactionDetail | null,
 ): number | null => {
   const source =
     offer.commission !== undefined && offer.commission !== null
@@ -847,7 +848,7 @@ const resolveOfferCommission = (
 
 const calculatePaymentTotal = (
   offer: TransactionOfferMetadata,
-  transaction?: TransactionDetail | null
+  transaction?: TransactionDetail | null,
 ) => {
   const amount = resolveOfferAmount(offer, transaction);
   const fee = resolveOfferFee(offer, transaction) ?? 0;
@@ -877,7 +878,7 @@ const isTransactionCompleted = (transaction?: TransactionDetail | null) =>
 
 const markOfferStatus = (
   transactionId: string,
-  status: "accepted" | "rejected"
+  status: "accepted" | "rejected",
 ) => {
   messages.value = messages.value.map((message) => {
     const offer = getTransactionOfferMetadata(message);
@@ -931,7 +932,7 @@ const decoratedMessages = computed<DecoratedChatMessage[]>(() =>
       status,
       transaction,
     };
-  })
+  }),
 );
 
 const setTransactionDetail = (detail: TransactionDetail) => {
@@ -955,7 +956,7 @@ const normalizeTransactionDetail = (payload: any): TransactionDetail => ({
   fee: toOptionalNumber(payload?.fee ?? payload?.platformFee ?? null) ?? null,
   commission:
     toOptionalNumber(
-      payload?.commission ?? payload?.platformCommission ?? null
+      payload?.commission ?? payload?.platformCommission ?? null,
     ) ?? null,
   paymentMethod: payload?.paymentMethod ?? null,
 });
@@ -967,7 +968,7 @@ type TransactionFetchOptions = {
 
 const fetchTransactionDetail = async (
   transactionId: string,
-  options: TransactionFetchOptions = {}
+  options: TransactionFetchOptions = {},
 ) => {
   if (!transactionId) {
     return;
@@ -1018,7 +1019,7 @@ const refreshTransactionDetail = (transactionId: string) =>
   });
 
 const synchronizeTransactionsFromMessages = (
-  incoming: ChatMessageResponse[]
+  incoming: ChatMessageResponse[],
 ) => {
   for (const message of incoming) {
     const offer = getTransactionOfferMetadata(message);
@@ -1088,7 +1089,7 @@ const initiateVnpayPayment = async (transactionId: string) => {
       {
         transactionId,
         returnUrl,
-      }
+      },
     );
 
     if (!response?.paymentUrl) {
@@ -1112,7 +1113,7 @@ const initiateVnpayPayment = async (transactionId: string) => {
 
 const respondToTransaction = async (
   transactionId: string,
-  action: TransactionAction
+  action: TransactionAction,
 ) => {
   if (!isBuyer.value || respondingTransactionId.value) {
     return;
@@ -1126,7 +1127,7 @@ const respondToTransaction = async (
 
     markOfferStatus(
       transactionId,
-      action === "accept" ? "accepted" : "rejected"
+      action === "accept" ? "accepted" : "rejected",
     );
 
     if (action === "accept") {
@@ -1200,12 +1201,12 @@ const formatTimestamp = (value: string) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat("vi-VN", {
+  return formatDateTime(date, {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
-  }).format(date);
+  });
 };
 
 const scrollToBottom = async () => {
@@ -1220,7 +1221,7 @@ watch(
   () => messages.value.length,
   () => {
     void scrollToBottom();
-  }
+  },
 );
 
 const resolveSocketBaseUrl = () => {
@@ -1240,7 +1241,7 @@ const hydrateRoom = async () => {
     const [roomResponse, initialMessages] = await Promise.all([
       get<ChatRoomResponse>(`/chat/rooms/${conversationId.value}`),
       get<ChatMessageResponse[]>(
-        `/chat/rooms/${conversationId.value}/messages?limit=100`
+        `/chat/rooms/${conversationId.value}/messages?limit=100`,
       ),
     ]);
     room.value = roomResponse;
@@ -1302,7 +1303,7 @@ const connectSocket = () => {
       }
       messages.value = payload.messages;
       synchronizeTransactionsFromMessages(payload.messages);
-    }
+    },
   );
 
   socket.on("chat:message", (message: ChatMessageResponse) => {
@@ -1364,7 +1365,7 @@ const sendMessage = () => {
       } else {
         void fetchRooms();
       }
-    }
+    },
   );
   newMessage.value = "";
 };

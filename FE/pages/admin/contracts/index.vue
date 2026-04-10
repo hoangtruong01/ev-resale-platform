@@ -324,13 +324,12 @@ const timelineLabel = (item: ContractRecord) => {
   return "Đang chờ các bên ký";
 };
 
+const { formatDateTime } = useLocaleFormat();
+
 const formatDate = (value?: string | null) => {
   if (!value) return "";
-  try {
-    return new Date(value).toLocaleString("vi-VN");
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatDateTime(value);
+  return formatted === "-" ? value : formatted;
 };
 
 const filteredContracts = computed(() => {
@@ -338,7 +337,7 @@ const filteredContracts = computed(() => {
     return contractList.value;
   }
   return contractList.value.filter(
-    (item) => item.status === statusFilter.value
+    (item) => item.status === statusFilter.value,
   );
 });
 
@@ -348,7 +347,7 @@ const fetchContracts = async () => {
 
   try {
     const data = await contracts.listAdmin(
-      statusFilter.value === "ALL" ? undefined : statusFilter.value
+      statusFilter.value === "ALL" ? undefined : statusFilter.value,
     );
     contractList.value = data;
   } catch (error: any) {

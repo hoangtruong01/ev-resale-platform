@@ -66,8 +66,8 @@
                     room.vehicle
                       ? 'mdi:car-electric'
                       : room.battery
-                      ? 'mdi:battery'
-                      : 'mdi:account-circle'
+                        ? 'mdi:battery'
+                        : 'mdi:account-circle'
                   "
                   class="h-6 w-6"
                 />
@@ -124,9 +124,10 @@ definePageMeta({
 });
 
 const router = useRouter();
-const { t } = useI18n();
+const { t } = useI18n({ useScope: "global" });
 const { currentUser, isLoggedIn } = useAuth();
 const { rooms, loading, fetchRooms } = useChatRooms();
+const { formatDateTime } = useLocaleFormat();
 
 const refreshRooms = () => {
   void fetchRooms();
@@ -167,12 +168,12 @@ const formatTimestamp = (value: string) => {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat("vi-VN", {
+  return formatDateTime(date, {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
-  }).format(date);
+  });
 };
 
 const extractImage = (images?: string[] | string | null) => {

@@ -81,7 +81,7 @@
               <div
                 class="absolute top-6 right-6 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium"
               >
-                👁 {{ battery.views.toLocaleString() }} lượt xem
+                👁 {{ formatNumber(battery.views) }} lượt xem
               </div>
 
               <button
@@ -562,13 +562,14 @@ const route = useRoute();
 const router = useRouter();
 const batteryId = computed(() => {
   const param = route.params.id;
-  return Array.isArray(param) ? param[0] : param ?? "";
+  return Array.isArray(param) ? param[0] : (param ?? "");
 });
 
 const { get, post } = useApi();
 const { resolve: resolveAsset } = useAssetUrl();
 const { currentUser } = useAuth();
 const toast = useCustomToast();
+const { formatNumber, formatDate, formatCurrency } = useLocaleFormat();
 
 const currentImageIndex = ref(0);
 const isLiked = ref(false);
@@ -580,7 +581,7 @@ const battery = ref<BatteryView | null>(null);
 const defaultImage = "/placeholder.svg";
 const defaultSellerAvatar = "/professional-avatar.svg";
 
-const ensureArray = <T>(value: T[] | null | undefined): T[] =>
+const ensureArray = <T,>(value: T[] | null | undefined): T[] =>
   Array.isArray(value) ? value : [];
 
 const toTitleCase = (value: string) =>
@@ -620,7 +621,7 @@ const formatRelativeTime = (value?: string | Date | null) => {
     const days = Math.max(1, Math.floor(diff / day));
     return `${days} ngày trước`;
   }
-  return date.toLocaleDateString("vi-VN");
+  return formatDate(date);
 };
 
 const stripTrailingZeros = (value: string) =>
@@ -673,7 +674,7 @@ const buildFeatures = (
   health: number,
   location: string,
   warranty: string,
-  statusLabel: string
+  statusLabel: string,
 ) => {
   const features = new Set<string>();
   if (capacityText !== "Đang cập nhật") {
@@ -703,7 +704,7 @@ const buildFeatures = (
 const buildTestResults = (
   health: number,
   capacityText: string,
-  voltageText: string
+  voltageText: string,
 ) => {
   const resistance = health >= 85 ? "≤ 3mΩ (Tốt)" : "Cần kiểm tra";
   return {
@@ -725,7 +726,7 @@ const buildSpecifications = (
   name: string,
   typeLabel: string,
   capacityText: string,
-  voltageText: string
+  voltageText: string,
 ) => {
   const { brand, model } = extractBrandAndModel(name);
   return {
@@ -812,7 +813,7 @@ const mapBatteryToView = (item: BatteryApiResponse): BatteryView => {
       health,
       location,
       warranty,
-      statusLabel
+      statusLabel,
     ),
     views: computeViews(health, reviewCount),
     posted: formatRelativeTime(item.createdAt),
@@ -821,7 +822,7 @@ const mapBatteryToView = (item: BatteryApiResponse): BatteryView => {
       item.name,
       typeLabel,
       capacityText,
-      voltageText
+      voltageText,
     ),
     reviewCount,
     rating,
@@ -865,7 +866,7 @@ watch(batteryId, (newId, oldId) => {
 });
 
 const pageTitle = computed(() =>
-  battery.value ? `${battery.value.title} - EVN Market` : "EVN Market"
+  battery.value ? `${battery.value.title} - EVN Market` : "EVN Market",
 );
 
 const pageDescription = computed(() => {
@@ -886,11 +887,7 @@ useHead(() => ({
 }));
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(price);
+  return formatCurrency(price, "VND", { minimumFractionDigits: 0 });
 }
 
 function nextImage() {

@@ -85,7 +85,7 @@
               </div>
               <div class="metric-info">
                 <p class="metric-value">
-                  {{ metrics.totalTransactions.toLocaleString() }}
+                  {{ formatNumber(metrics.totalTransactions) }}
                 </p>
                 <p class="metric-label">Tổng giao dịch</p>
                 <div
@@ -114,7 +114,7 @@
               </div>
               <div class="metric-info">
                 <p class="metric-value">
-                  {{ metrics.activeUsers.toLocaleString() }}
+                  {{ formatNumber(metrics.activeUsers) }}
                 </p>
                 <p class="metric-label">Người dùng hoạt động</p>
                 <div
@@ -141,7 +141,7 @@
               </div>
               <div class="metric-info">
                 <p class="metric-value">
-                  {{ metrics.totalPosts.toLocaleString() }}
+                  {{ formatNumber(metrics.totalPosts) }}
                 </p>
                 <p class="metric-label">Tin đăng mới</p>
                 <div
@@ -598,31 +598,37 @@ const defaultSystemHealth: SystemHealth = {
 const metrics = computed(() => analyticsData.value?.metrics ?? defaultMetrics);
 const revenueChart = computed<RevenueChart>(
   () =>
-    analyticsData.value?.revenueChart ?? { labels: [], revenue: [], profit: [] }
+    analyticsData.value?.revenueChart ?? {
+      labels: [],
+      revenue: [],
+      profit: [],
+    },
 );
 const transactionStats = computed(
-  () => analyticsData.value?.transactionStats ?? defaultTransactionStats
+  () => analyticsData.value?.transactionStats ?? defaultTransactionStats,
 );
 const categoryPerformance = computed(
-  () => analyticsData.value?.categoryPerformance ?? []
+  () => analyticsData.value?.categoryPerformance ?? [],
 );
 const topUsers = computed(() => analyticsData.value?.topUsers ?? []);
 const recentActivities = computed(
-  () => analyticsData.value?.recentActivities ?? []
+  () => analyticsData.value?.recentActivities ?? [],
 );
 const marketTrends = computed(() => analyticsData.value?.marketTrends ?? []);
 const systemHealth = computed(
-  () => analyticsData.value?.systemHealth ?? defaultSystemHealth
+  () => analyticsData.value?.systemHealth ?? defaultSystemHealth,
 );
+
+const { formatNumber, formatDateTime, formatCurrency } = useLocaleFormat();
 
 const lastUpdated = computed(() =>
   analyticsData.value?.generatedAt
     ? new Date(analyticsData.value.generatedAt)
-    : null
+    : null,
 );
 
 const formattedLastUpdated = computed(() =>
-  lastUpdated.value ? lastUpdated.value.toLocaleString("vi-VN") : null
+  lastUpdated.value ? formatDateTime(lastUpdated.value) : null,
 );
 
 const revenueChartPreview = computed(() => {
@@ -660,7 +666,7 @@ const fetchAnalytics = async () => {
   try {
     const params = new URLSearchParams({ period: selectedPeriod.value });
     const response = await get<AdminAnalyticsResponse>(
-      `/admin/analytics?${params.toString()}`
+      `/admin/analytics?${params.toString()}`,
     );
 
     if (token !== fetchToken) {
@@ -717,7 +723,7 @@ const exportReport = async () => {
       {
         headers,
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -757,18 +763,14 @@ const exportReport = async () => {
 };
 
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(price);
+  return formatCurrency(price, "VND", { maximumFractionDigits: 0 });
 };
 
 const formatRelativeTime = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInHours = Math.floor(
-    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60),
   );
 
   if (diffInHours < 1) {

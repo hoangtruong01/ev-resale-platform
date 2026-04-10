@@ -93,12 +93,36 @@
   --admin-info-900: #1e3a8a;
 
   /* === GRADIENT COLORS === */
-  --admin-gradient-primary: linear-gradient(135deg, var(--admin-primary-600) 0%, var(--admin-primary-700) 100%);
-  --admin-gradient-secondary: linear-gradient(135deg, var(--admin-secondary-600) 0%, var(--admin-secondary-700) 100%);
-  --admin-gradient-success: linear-gradient(135deg, var(--admin-success-500) 0%, var(--admin-success-600) 100%);
-  --admin-gradient-warning: linear-gradient(135deg, var(--admin-warning-500) 0%, var(--admin-warning-600) 100%);
-  --admin-gradient-error: linear-gradient(135deg, var(--admin-error-500) 0%, var(--admin-error-600) 100%);
-  --admin-gradient-info: linear-gradient(135deg, var(--admin-info-500) 0%, var(--admin-info-600) 100%);
+  --admin-gradient-primary: linear-gradient(
+    135deg,
+    var(--admin-primary-600) 0%,
+    var(--admin-primary-700) 100%
+  );
+  --admin-gradient-secondary: linear-gradient(
+    135deg,
+    var(--admin-secondary-600) 0%,
+    var(--admin-secondary-700) 100%
+  );
+  --admin-gradient-success: linear-gradient(
+    135deg,
+    var(--admin-success-500) 0%,
+    var(--admin-success-600) 100%
+  );
+  --admin-gradient-warning: linear-gradient(
+    135deg,
+    var(--admin-warning-500) 0%,
+    var(--admin-warning-600) 100%
+  );
+  --admin-gradient-error: linear-gradient(
+    135deg,
+    var(--admin-error-500) 0%,
+    var(--admin-error-600) 100%
+  );
+  --admin-gradient-info: linear-gradient(
+    135deg,
+    var(--admin-info-500) 0%,
+    var(--admin-info-600) 100%
+  );
 
   /* Premium gradients for special elements */
   --admin-gradient-premium: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -115,12 +139,12 @@
   --admin-bg-sidebar: var(--admin-gradient-premium);
 
   /* Text colors - Enhanced for better readability with higher contrast */
-  --admin-text-primary: #0f172a;          /* Much darker for maximum contrast */
-  --admin-text-secondary: #1e293b;        /* Dark slate for strong readability */
-  --admin-text-tertiary: #475569;         /* Medium slate for good contrast */
-  --admin-text-inverse: #ffffff;          /* Pure white for dark backgrounds */
-  --admin-text-muted: #64748b;           /* Darker muted text for better visibility */
-  --admin-text-link: var(--admin-primary-700);     /* Darker link color */
+  --admin-text-primary: #0f172a; /* Much darker for maximum contrast */
+  --admin-text-secondary: #1e293b; /* Dark slate for strong readability */
+  --admin-text-tertiary: #475569; /* Medium slate for good contrast */
+  --admin-text-inverse: #ffffff; /* Pure white for dark backgrounds */
+  --admin-text-muted: #64748b; /* Darker muted text for better visibility */
+  --admin-text-link: var(--admin-primary-700); /* Darker link color */
   --admin-text-link-hover: var(--admin-primary-800); /* Even darker on hover */
 
   /* Border colors */
@@ -131,26 +155,36 @@
 
   /* Shadow colors */
   --admin-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --admin-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --admin-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --admin-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --admin-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --admin-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --admin-shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --admin-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --admin-shadow-colored: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  --admin-shadow-colored:
+    0 10px 15px -3px rgba(59, 130, 246, 0.1),
+    0 4px 6px -2px rgba(59, 130, 246, 0.05);
 
   /* === COMPONENT SPECIFIC COLORS === */
   /* Sidebar - Improved text contrast */
   --admin-sidebar-bg: var(--admin-gradient-premium);
-  --admin-sidebar-text: #ffffff;           /* Pure white for better contrast */
+  --admin-sidebar-text: #ffffff; /* Pure white for better contrast */
   --admin-sidebar-text-muted: rgba(255, 255, 255, 0.85); /* Higher opacity */
   --admin-sidebar-hover: rgba(255, 255, 255, 0.15);
-  --admin-sidebar-active: rgba(255, 255, 255, 0.25);     /* More visible active state */
+  --admin-sidebar-active: rgba(
+    255,
+    255,
+    255,
+    0.25
+  ); /* More visible active state */
   --admin-sidebar-border: rgba(255, 255, 255, 0.15);
-  --admin-sidebar-accent: #fbbf24;         /* Gold accent for better visibility */
+  --admin-sidebar-accent: #fbbf24; /* Gold accent for better visibility */
 
   /* Header */
   --admin-header-bg: var(--admin-bg-primary);
-  --admin-header-text: #0f172a;            /* Much darker text for header */
-  --admin-header-text-secondary: #1e293b;  /* Darker secondary header text */
+  --admin-header-text: #0f172a; /* Much darker text for header */
+  --admin-header-text-secondary: #1e293b; /* Darker secondary header text */
   --admin-header-border: var(--admin-border-light);
   --admin-header-shadow: var(--admin-shadow-sm);
 
@@ -165,7 +199,7 @@
   --admin-btn-primary-bg: var(--admin-primary-600);
   --admin-btn-primary-bg-hover: var(--admin-primary-700);
   --admin-btn-primary-text: #ffffff;
-  
+
   --admin-btn-secondary-bg: var(--admin-neutral-600);
   --admin-btn-secondary-bg-hover: var(--admin-neutral-700);
   --admin-btn-secondary-text: #ffffff;
@@ -194,20 +228,20 @@
   --admin-table-bg: var(--admin-bg-primary);
   --admin-table-border: var(--admin-border-light);
   --admin-table-header-bg: var(--admin-bg-secondary);
-  --admin-table-header-text: #0f172a;      /* Much darker text for table headers */
+  --admin-table-header-text: #0f172a; /* Much darker text for table headers */
   --admin-table-row-hover: var(--admin-bg-secondary);
   --admin-table-stripe: var(--admin-bg-tertiary);
 
   /* Badges */
   --admin-badge-primary-bg: var(--admin-primary-100);
   --admin-badge-primary-text: var(--admin-primary-800);
-  
+
   --admin-badge-success-bg: var(--admin-success-100);
   --admin-badge-success-text: var(--admin-success-800);
-  
+
   --admin-badge-warning-bg: var(--admin-warning-100);
   --admin-badge-warning-text: var(--admin-warning-800);
-  
+
   --admin-badge-error-bg: var(--admin-error-100);
   --admin-badge-error-text: var(--admin-error-800);
 
@@ -222,7 +256,7 @@
   --admin-hover-bg: var(--admin-secondary-200);
   --admin-active-bg: var(--admin-secondary-300);
   --admin-hover-light: var(--admin-secondary-50);
-  
+
   /* Color shortcuts for components */
   --admin-primary-color: var(--admin-primary-600);
   --admin-primary-light: var(--admin-primary-50);
@@ -297,21 +331,21 @@
     --admin-bg-primary: var(--admin-neutral-900);
     --admin-bg-secondary: var(--admin-neutral-800);
     --admin-bg-tertiary: var(--admin-neutral-700);
-    
+
     --admin-text-primary: var(--admin-neutral-100);
     --admin-text-secondary: var(--admin-neutral-300);
     --admin-text-tertiary: var(--admin-neutral-400);
-    
+
     --admin-border-light: var(--admin-neutral-700);
     --admin-border-medium: var(--admin-neutral-600);
     --admin-border-strong: var(--admin-neutral-500);
-    
+
     --admin-card-bg: var(--admin-neutral-800);
     --admin-card-header-bg: var(--admin-neutral-700);
-    
+
     --admin-input-bg: var(--admin-neutral-800);
     --admin-input-border: var(--admin-neutral-600);
-    
+
     --admin-table-bg: var(--admin-neutral-800);
     --admin-table-header-bg: var(--admin-neutral-700);
     --admin-table-row-hover: var(--admin-neutral-700);
@@ -319,51 +353,139 @@
   }
 }
 
+:root.dark {
+  /* Dark mode overrides */
+  --admin-bg-primary: var(--admin-neutral-900);
+  --admin-bg-secondary: var(--admin-neutral-800);
+  --admin-bg-tertiary: var(--admin-neutral-700);
+
+  --admin-text-primary: var(--admin-neutral-100);
+  --admin-text-secondary: var(--admin-neutral-300);
+  --admin-text-tertiary: var(--admin-neutral-400);
+
+  --admin-border-light: var(--admin-neutral-700);
+  --admin-border-medium: var(--admin-neutral-600);
+  --admin-border-strong: var(--admin-neutral-500);
+
+  --admin-card-bg: var(--admin-neutral-800);
+  --admin-card-header-bg: var(--admin-neutral-700);
+
+  --admin-input-bg: var(--admin-neutral-800);
+  --admin-input-border: var(--admin-neutral-600);
+
+  --admin-table-bg: var(--admin-neutral-800);
+  --admin-table-header-bg: var(--admin-neutral-700);
+  --admin-table-row-hover: var(--admin-neutral-700);
+  --admin-table-stripe: var(--admin-neutral-750);
+}
+
 /* === UTILITY CLASSES === */
 /* Background utilities */
-.admin-bg-primary { background-color: var(--admin-bg-primary); }
-.admin-bg-secondary { background-color: var(--admin-bg-secondary); }
-.admin-bg-tertiary { background-color: var(--admin-bg-tertiary); }
+.admin-bg-primary {
+  background-color: var(--admin-bg-primary);
+}
+.admin-bg-secondary {
+  background-color: var(--admin-bg-secondary);
+}
+.admin-bg-tertiary {
+  background-color: var(--admin-bg-tertiary);
+}
 
 /* Text utilities */
-.admin-text-primary { color: var(--admin-text-primary) !important; }
-.admin-text-secondary { color: var(--admin-text-secondary) !important; }
-.admin-text-tertiary { color: var(--admin-text-tertiary) !important; }
-.admin-text-inverse { color: var(--admin-text-inverse) !important; }
-.admin-text-muted { color: var(--admin-text-muted) !important; }
-.admin-text-link { color: var(--admin-text-link) !important; }
-.admin-text-link:hover { color: var(--admin-text-link-hover) !important; }
+.admin-text-primary {
+  color: var(--admin-text-primary) !important;
+}
+.admin-text-secondary {
+  color: var(--admin-text-secondary) !important;
+}
+.admin-text-tertiary {
+  color: var(--admin-text-tertiary) !important;
+}
+.admin-text-inverse {
+  color: var(--admin-text-inverse) !important;
+}
+.admin-text-muted {
+  color: var(--admin-text-muted) !important;
+}
+.admin-text-link {
+  color: var(--admin-text-link) !important;
+}
+.admin-text-link:hover {
+  color: var(--admin-text-link-hover) !important;
+}
 
 /* Status text colors */
-.admin-text-success { color: var(--admin-success-600) !important; }
-.admin-text-warning { color: var(--admin-warning-600) !important; }
-.admin-text-error { color: var(--admin-error-600) !important; }
-.admin-text-info { color: var(--admin-info-600) !important; }
+.admin-text-success {
+  color: var(--admin-success-600) !important;
+}
+.admin-text-warning {
+  color: var(--admin-warning-600) !important;
+}
+.admin-text-error {
+  color: var(--admin-error-600) !important;
+}
+.admin-text-info {
+  color: var(--admin-info-600) !important;
+}
 
 /* Border utilities */
-.admin-border { border: 1px solid var(--admin-border-light); }
-.admin-border-medium { border: 1px solid var(--admin-border-medium); }
-.admin-border-strong { border: 1px solid var(--admin-border-strong); }
+.admin-border {
+  border: 1px solid var(--admin-border-light);
+}
+.admin-border-medium {
+  border: 1px solid var(--admin-border-medium);
+}
+.admin-border-strong {
+  border: 1px solid var(--admin-border-strong);
+}
 
 /* Shadow utilities */
-.admin-shadow-sm { box-shadow: var(--admin-shadow-sm); }
-.admin-shadow-md { box-shadow: var(--admin-shadow-md); }
-.admin-shadow-lg { box-shadow: var(--admin-shadow-lg); }
-.admin-shadow-xl { box-shadow: var(--admin-shadow-xl); }
-.admin-shadow-2xl { box-shadow: var(--admin-shadow-2xl); }
+.admin-shadow-sm {
+  box-shadow: var(--admin-shadow-sm);
+}
+.admin-shadow-md {
+  box-shadow: var(--admin-shadow-md);
+}
+.admin-shadow-lg {
+  box-shadow: var(--admin-shadow-lg);
+}
+.admin-shadow-xl {
+  box-shadow: var(--admin-shadow-xl);
+}
+.admin-shadow-2xl {
+  box-shadow: var(--admin-shadow-2xl);
+}
 
 /* Gradient utilities */
-.admin-gradient-primary { background: var(--admin-gradient-primary); }
-.admin-gradient-secondary { background: var(--admin-gradient-secondary); }
-.admin-gradient-success { background: var(--admin-gradient-success); }
-.admin-gradient-warning { background: var(--admin-gradient-warning); }
-.admin-gradient-error { background: var(--admin-gradient-error); }
-.admin-gradient-premium { background: var(--admin-gradient-premium); }
+.admin-gradient-primary {
+  background: var(--admin-gradient-primary);
+}
+.admin-gradient-secondary {
+  background: var(--admin-gradient-secondary);
+}
+.admin-gradient-success {
+  background: var(--admin-gradient-success);
+}
+.admin-gradient-warning {
+  background: var(--admin-gradient-warning);
+}
+.admin-gradient-error {
+  background: var(--admin-gradient-error);
+}
+.admin-gradient-premium {
+  background: var(--admin-gradient-premium);
+}
 
 /* Animation utilities */
-.admin-transition-fast { transition: all var(--admin-transition-fast); }
-.admin-transition-normal { transition: all var(--admin-transition-normal); }
-.admin-transition-slow { transition: all var(--admin-transition-slow); }
+.admin-transition-fast {
+  transition: all var(--admin-transition-fast);
+}
+.admin-transition-normal {
+  transition: all var(--admin-transition-normal);
+}
+.admin-transition-slow {
+  transition: all var(--admin-transition-slow);
+}
 
 /* === COMPONENT BASE STYLES === */
 /* These classes can be used to quickly style admin components */

@@ -78,7 +78,7 @@
               <div
                 class="absolute top-6 right-6 bg-black/60 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium"
               >
-                👁 {{ vehicle.views.toLocaleString() }} lượt xem
+                👁 {{ formatNumber(vehicle.views) }} lượt xem
               </div>
 
               <button
@@ -543,13 +543,14 @@ const route = useRoute();
 const router = useRouter();
 const vehicleId = computed(() => {
   const param = route.params.id;
-  return Array.isArray(param) ? param[0] : param ?? "";
+  return Array.isArray(param) ? param[0] : (param ?? "");
 });
 
 const { get, post } = useApi();
 const { resolve: resolveAsset } = useAssetUrl();
 const { currentUser } = useAuth();
 const toast = useCustomToast();
+const { formatNumber, formatCurrency, formatDate } = useLocaleFormat();
 
 const currentImageIndex = ref(0);
 const isLiked = ref(false);
@@ -561,7 +562,7 @@ const vehicle = ref<VehicleView | null>(null);
 const defaultImage = "/placeholder.svg";
 const defaultSellerAvatar = "/professional-avatar.svg";
 
-const ensureArray = <T>(value: T[] | null | undefined): T[] =>
+const ensureArray = <T,>(value: T[] | null | undefined): T[] =>
   Array.isArray(value) ? value : [];
 
 const toTitleCase = (value: string) =>
@@ -603,7 +604,7 @@ const formatMileage = (value?: number | null) => {
   if (!Number.isFinite(numeric)) {
     return "Đang cập nhật";
   }
-  return `${new Intl.NumberFormat("vi-VN").format(numeric)} km`;
+  return `${formatNumber(numeric)} km`;
 };
 
 const formatLocation = (value?: string | null) => {
@@ -617,7 +618,7 @@ const formatLocation = (value?: string | null) => {
 const buildFeatures = (
   item: VehicleApiResponse,
   mileageText: string,
-  location: string
+  location: string,
 ) => {
   const features = new Set<string>();
 
@@ -711,7 +712,7 @@ const formatRelativeTime = (value?: string | Date | null) => {
     const days = Math.max(1, Math.floor(diff / day));
     return `${days} ngày trước`;
   }
-  return date.toLocaleDateString("vi-VN");
+  return formatDate(date);
 };
 
 const mapVehicleToView = (item: VehicleApiResponse): VehicleView => {
@@ -818,14 +819,14 @@ watch(vehicleId, (newId, oldId) => {
 const marketPriceMin = computed(() => vehicle.value?.marketPriceRange.min ?? 0);
 
 const marketPriceMax = computed(
-  () => vehicle.value?.marketPriceRange.max ?? marketPriceMin.value
+  () => vehicle.value?.marketPriceRange.max ?? marketPriceMin.value,
 );
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
 const sliderTrackSpan = computed(() =>
-  Math.max(marketPriceMax.value - marketPriceMin.value, 1)
+  Math.max(marketPriceMax.value - marketPriceMin.value, 1),
 );
 
 const sliderFillWidth = computed(() => {
@@ -835,7 +836,7 @@ const sliderFillWidth = computed(() => {
   const clampedPrice = clamp(
     vehicle.value.price,
     marketPriceMin.value,
-    marketPriceMax.value
+    marketPriceMax.value,
   );
   return ((clampedPrice - marketPriceMin.value) / sliderTrackSpan.value) * 100;
 });
@@ -847,7 +848,7 @@ const sliderPointerPosition = computed(() => {
   const clampedPrice = clamp(
     vehicle.value.price,
     marketPriceMin.value,
-    marketPriceMax.value
+    marketPriceMax.value,
   );
   return ((clampedPrice - marketPriceMin.value) / sliderTrackSpan.value) * 100;
 });
@@ -875,7 +876,7 @@ const priceDeltaMessage = computed(() => {
 });
 
 const pageTitle = computed(() =>
-  vehicle.value ? `${vehicle.value.title} - EVN Market` : "EVN Market"
+  vehicle.value ? `${vehicle.value.title} - EVN Market` : "EVN Market",
 );
 
 const pageDescription = computed(() => {
@@ -896,11 +897,7 @@ useHead(() => ({
 }));
 
 function formatPrice(price: number) {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(price);
+  return formatCurrency(price, "VND", { minimumFractionDigits: 0 });
 }
 
 function stripTrailingZeros(value: string) {
@@ -929,7 +926,7 @@ function formatCompactPrice(value: number) {
     return `${stripTrailingZeros(normalized.toFixed(0))} nghìn`;
   }
 
-  return `${value.toLocaleString("vi-VN")} ₫`;
+  return `${formatNumber(value)} ₫`;
 }
 
 function nextImage() {

@@ -665,7 +665,7 @@ const fetchPosts = async () => {
     }
 
     const response = await get<AdminListingsResponse>(
-      `/admin/listings?${params.toString()}`
+      `/admin/listings?${params.toString()}`,
     );
 
     if (token !== fetchToken) {
@@ -691,7 +691,7 @@ const fetchPosts = async () => {
       limit: safeLimit,
       totalPages: Math.max(
         1,
-        pag.totalPages ?? Math.ceil(safeTotal / safeLimit)
+        pag.totalPages ?? Math.ceil(safeTotal / safeLimit),
       ),
     };
 
@@ -743,7 +743,7 @@ const filteredPosts = computed(() => {
       (post) =>
         post.title.toLowerCase().includes(query) ||
         post.description.toLowerCase().includes(query) ||
-        post.author.name.toLowerCase().includes(query)
+        post.author.name.toLowerCase().includes(query),
     );
   }
 
@@ -756,8 +756,8 @@ const filteredPosts = computed(() => {
       categoryFilter.value === "Xe điện"
         ? post.type === "vehicle"
         : batteryCategoryValues.has(categoryFilter.value)
-        ? post.type === "battery"
-        : post.category === categoryFilter.value
+          ? post.type === "battery"
+          : post.category === categoryFilter.value,
     );
   }
 
@@ -788,16 +788,15 @@ const pageCount = computed(() => {
   return pagination.value.totalPages;
 });
 
+const { formatCurrency, formatDate: formatLocaleDate } = useLocaleFormat();
+
 // Methods
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(price);
+  return formatCurrency(price, "VND");
 };
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("vi-VN", {
+  return formatLocaleDate(dateString, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -812,7 +811,7 @@ const truncateText = (text: string, maxLength: number) => {
 };
 
 const getStatusColor = (
-  status: string
+  status: string,
 ): "green" | "yellow" | "red" | "gray" => {
   const colors: Record<string, "green" | "yellow" | "red" | "gray"> = {
     pending: "yellow",
@@ -876,7 +875,7 @@ const rejectPost = async (postId: string) => {
 
   const reason = window.prompt(
     "Nhập lý do từ chối tin đăng",
-    "Nội dung chưa phù hợp"
+    "Nội dung chưa phù hợp",
   );
   if (reason === null || !reason.trim()) {
     return;
@@ -930,7 +929,7 @@ const markAsSpam = async (postId: string) => {
   }
 
   const confirmed = window.confirm(
-    "Bạn có chắc chắn muốn đánh dấu tin này là spam?"
+    "Bạn có chắc chắn muốn đánh dấu tin này là spam?",
   );
   if (!confirmed) {
     return;

@@ -465,7 +465,7 @@ const normaliseTransactionFee = (data: any) => ({
 
 const normaliseListingTier = (
   data: any,
-  fallbackOrder: number
+  fallbackOrder: number,
 ): ListingTier => ({
   id: data?.id ?? String(fallbackOrder),
   name: data?.name ?? "",
@@ -478,7 +478,7 @@ const normaliseListingTier = (
 
 const normaliseCommissionTier = (
   data: any,
-  fallbackOrder: number
+  fallbackOrder: number,
 ): CommissionTier => ({
   id: data?.id ?? String(fallbackOrder),
   name: data?.name ?? "",
@@ -576,19 +576,18 @@ const filteredHistory = computed(() => {
     return feeHistory.value;
   }
   return feeHistory.value.filter(
-    (history) => history.type === historyFilter.value
+    (history) => history.type === historyFilter.value,
   );
 });
 
+const { formatCurrency, formatDate: formatLocaleDate } = useLocaleFormat();
+
 const formatPrice = (price: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(price || 0);
+  return formatCurrency(price || 0, "VND");
 };
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("vi-VN", {
+  return formatLocaleDate(dateString, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -601,13 +600,13 @@ const calculateFee = (amount: number) => {
   const feeAmount = (amount * newTransactionFeeRate.value) / 100;
   const finalFee = Math.max(
     minTransactionFee.value,
-    Math.min(maxTransactionFee.value, feeAmount)
+    Math.min(maxTransactionFee.value, feeAmount),
   );
   return formatPrice(finalFee);
 };
 
 const getFeeTypeColor = (
-  type: FeeHistoryType
+  type: FeeHistoryType,
 ): "blue" | "green" | "purple" | "gray" => {
   const colors: Record<FeeHistoryType, "blue" | "green" | "purple"> = {
     TRANSACTION_FEE: "blue",
@@ -687,7 +686,7 @@ const updateListingFees = async () => {
     if (Array.isArray(response)) {
       listingTiers.value = response
         .map((item, index) =>
-          normaliseListingTier(item?.updated ?? item, index + 1)
+          normaliseListingTier(item?.updated ?? item, index + 1),
         )
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
@@ -742,7 +741,7 @@ const updateCommissions = async () => {
     if (Array.isArray(response)) {
       commissionTiers.value = response
         .map((item, index) =>
-          normaliseCommissionTier(item?.updated ?? item, index + 1)
+          normaliseCommissionTier(item?.updated ?? item, index + 1),
         )
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 

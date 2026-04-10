@@ -466,7 +466,7 @@ definePageMeta({
   middleware: "auth",
 });
 
-const { t } = useI18n();
+const { t } = useI18n({ useScope: 'global' });
 
 useHead({
   title: `${t("sell")} - EVN Market`,

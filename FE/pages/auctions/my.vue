@@ -89,6 +89,7 @@ const { getMyAuctions } = useAuctions();
 const auctions = ref<AuctionSummary[]>([]);
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
+const { formatCurrency, formatDateTime } = useLocaleFormat();
 
 const fetchAuctions = async () => {
   isLoading.value = true;
@@ -110,17 +111,13 @@ const formatPrice = (value: number | string) => {
   if (!Number.isFinite(numeric)) {
     return "0 ₫";
   }
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(numeric);
+  return formatCurrency(numeric, "VND", { maximumFractionDigits: 0 });
 };
 
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString("vi-VN");
+  return formatDateTime(date);
 };
 
 const goToAuction = (id: string) => {

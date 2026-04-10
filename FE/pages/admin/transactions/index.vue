@@ -430,7 +430,8 @@
                       <span
                         ><strong>{{
                           formatPrice(
-                            selectedTransaction.amount + selectedTransaction.fee
+                            selectedTransaction.amount +
+                              selectedTransaction.fee,
                           )
                         }}</strong></span
                       >
@@ -695,7 +696,7 @@ const totalTransactions = computed(
   () =>
     pagination.value.totalCount ||
     stats.value.total ||
-    transactions.value.length
+    transactions.value.length,
 );
 const pageCount = computed(() => Math.max(pagination.value.pageCount || 1, 1));
 
@@ -725,7 +726,7 @@ const fetchTransactions = async () => {
     }
 
     const response = await get<AdminTransactionsResponse>(
-      `/admin/transactions?${params.toString()}`
+      `/admin/transactions?${params.toString()}`,
     );
 
     if (token !== fetchToken) {
@@ -741,7 +742,7 @@ const fetchTransactions = async () => {
 
     if (selectedTransaction.value) {
       const updated = response.data.find(
-        (item) => item.id === selectedTransaction.value?.id
+        (item) => item.id === selectedTransaction.value?.id,
       );
       if (updated) {
         selectedTransaction.value = updated;
@@ -769,13 +770,13 @@ const fetchTransactionDetail = async (transactionId: string) => {
   try {
     isDetailLoading.value = true;
     const detail = await get<Transaction>(
-      `/admin/transactions/${transactionId}`
+      `/admin/transactions/${transactionId}`,
     );
     selectedTransaction.value = detail;
   } catch (error) {
     console.error("Failed to fetch transaction detail:", error);
     const fallback = transactions.value.find(
-      (item) => item.id === transactionId
+      (item) => item.id === transactionId,
     );
     if (fallback) {
       selectedTransaction.value = fallback;
@@ -801,11 +802,10 @@ watch([searchQuery, statusFilter, typeFilter], () => {
   fetchTransactions();
 });
 
+const { formatCurrency, formatDate: formatLocaleDate } = useLocaleFormat();
+
 const formatPrice = (price?: number | null) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(price ?? 0);
+  return formatCurrency(price ?? 0, "VND");
 };
 
 const formatDate = (dateString?: string | null) => {
@@ -813,7 +813,7 @@ const formatDate = (dateString?: string | null) => {
     return "—";
   }
 
-  return new Date(dateString).toLocaleDateString("vi-VN", {
+  return formatLocaleDate(dateString, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -946,7 +946,7 @@ const processTransaction = async (transactionId: string) => {
 
 const resolveDispute = async (
   transactionId: string,
-  resolution: "buyer" | "seller" | "partial"
+  resolution: "buyer" | "seller" | "partial",
 ) => {
   try {
     await post(`/admin/transactions/${transactionId}/resolve-dispute`, {

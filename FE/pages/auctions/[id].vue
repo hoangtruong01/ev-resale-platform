@@ -111,13 +111,13 @@
                   />
                 </button>
               </div>
-                <img
-                  v-for="i in 3"
-                  :key="i"
-                  src="/placeholder.svg"
-                  alt="placeholder"
-                  class="h-20 w-24 shrink-0 overflow-hidden rounded-xl border object-cover opacity-50"
-                />
+              <img
+                v-for="i in 3"
+                :key="i"
+                src="/placeholder.svg"
+                alt="placeholder"
+                class="h-20 w-24 shrink-0 overflow-hidden rounded-xl border object-cover opacity-50"
+              />
             </UiCardContent>
           </UiCard>
 
@@ -355,7 +355,12 @@
               <div
                 class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center overflow-hidden"
               >
-                <img v-if="auction.seller.avatar" :src="resolveAsset(auction.seller.avatar)" :alt="auction.seller.name" class="w-full h-full object-cover" />
+                <img
+                  v-if="auction.seller.avatar"
+                  :src="resolveAsset(auction.seller.avatar)"
+                  :alt="auction.seller.name"
+                  class="w-full h-full object-cover"
+                />
                 <span v-else class="text-green-600 font-bold">
                   {{ auction.seller.name?.charAt?.(0)?.toUpperCase?.() || "?" }}
                 </span>
@@ -503,12 +508,12 @@
                   :alt="`${auction.title} ${activeImageIndex + 1}`"
                   class="max-h-full max-w-full object-contain"
                 />
-                  <img
-                    v-else
-                    src="/placeholder.svg"
-                    :alt="auction.title"
-                    class="h-full w-full object-cover opacity-50"
-                  />
+                <img
+                  v-else
+                  src="/placeholder.svg"
+                  :alt="auction.title"
+                  class="h-full w-full object-cover opacity-50"
+                />
 
                 <button
                   v-if="auction.images?.length > 1"
@@ -779,7 +784,7 @@ const auctionId = computed(() => {
   const param = route.params.id;
   return Array.isArray(param) ? param[0] : (param as string | undefined);
 });
-const i18n = useI18n();
+const i18n = useI18n({ useScope: "global" });
 const t = i18n.t.bind(i18n) as typeof i18n.t;
 const toast = useCustomToast();
 const { resolve: resolveAsset } = useAssetUrl();
@@ -836,11 +841,17 @@ const normalizeImages = (value?: string[] | string | null): string[] => {
   return [];
 };
 
+const {
+  formatNumber,
+  formatCurrency,
+  formatDateTime: formatLocaleDateTime,
+} = useLocaleFormat();
+
 const formatMileage = (value?: number | null) => {
   if (value === null || value === undefined) {
     return "—";
   }
-  return `${Number(value).toLocaleString("vi-VN")} km`;
+  return `${formatNumber(Number(value))} km`;
 };
 
 const formatCondition = (numeric?: number | null, label?: string | null) => {
@@ -929,18 +940,18 @@ const buildSellerInfo = (detail: AuctionDetail): AuctionViewSeller => {
     normalizeString(detail.location) || normalizeString(seller?.location);
 
   const rating = normalizeNumber(
-    seller?.rating ?? seller?.averageRating ?? seller?.reviewScore ?? null
+    seller?.rating ?? seller?.averageRating ?? seller?.reviewScore ?? null,
   );
 
   const reviewCount = normalizeNumber(
-    seller?.reviewCount ?? seller?.reviewsCount ?? seller?.totalReviews ?? null
+    seller?.reviewCount ?? seller?.reviewsCount ?? seller?.totalReviews ?? null,
   );
 
   const soldItems = normalizeNumber(
     seller?.soldItems ??
       seller?.soldAuctions ??
       seller?.completedTransactions ??
-      null
+      null,
   );
 
   return {
@@ -976,10 +987,10 @@ const mapAuctionDetail = (detail: AuctionDetail): AuctionView => {
     .map((media) => resolveImageUrl(media?.url))
     .filter((url): url is string => Boolean(url));
   const vehicleImages = normalizeImages(
-    detail.vehicle?.images as string[] | string | undefined
+    detail.vehicle?.images as string[] | string | undefined,
   );
   const batteryImages = normalizeImages(
-    detail.battery?.images as string[] | string | undefined
+    detail.battery?.images as string[] | string | undefined,
   );
   const images = [...mediaImages, ...vehicleImages, ...batteryImages];
 
@@ -1071,7 +1082,7 @@ const fetchAuction = async ({ silent = false } = {}) => {
   if (!id) {
     errorMessage.value = translateOr(
       "auctionNotFound",
-      "Không tìm thấy phiên đấu giá."
+      "Không tìm thấy phiên đấu giá.",
     );
     loadingAuction.value = false;
     return;
@@ -1088,7 +1099,7 @@ const fetchAuction = async ({ silent = false } = {}) => {
   } catch (error: unknown) {
     const fallbackMessage = translateOr(
       "auctionLoadError",
-      "Không thể tải thông tin đấu giá."
+      "Không thể tải thông tin đấu giá.",
     );
     const message =
       error instanceof Error && error.message ? error.message : fallbackMessage;
@@ -1130,9 +1141,9 @@ const minimumBidValue = computed(() => {
 const canBid = computed(() =>
   Boolean(
     auction.value &&
-      auction.value.status === "ACTIVE" &&
-      auction.value.timeLeft > 0
-  )
+    auction.value.status === "ACTIVE" &&
+    auction.value.timeLeft > 0,
+  ),
 );
 
 const isValidBid = computed(() => {
@@ -1149,7 +1160,7 @@ const openBidModal = () => {
       title: translateOr("bidUnavailable", "Không thể đặt giá"),
       description: translateOr(
         "bidUnavailableDescription",
-        "Phiên đấu giá đã kết thúc hoặc chưa sẵn sàng."
+        "Phiên đấu giá đã kết thúc hoặc chưa sẵn sàng.",
       ),
       color: "orange",
     });
@@ -1195,11 +1206,7 @@ const formatPrice = (price?: number) => {
   if (!price || Number.isNaN(price)) {
     return "0 đ";
   }
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(price);
+  return formatCurrency(price, "VND", { minimumFractionDigits: 0 });
 };
 
 const formatDateTime = (value?: string) => {
@@ -1210,13 +1217,13 @@ const formatDateTime = (value?: string) => {
   if (Number.isNaN(date.getTime())) {
     return t("notProvided");
   }
-  return new Intl.DateTimeFormat("vi-VN", {
+  return formatLocaleDateTime(date, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+  });
 };
 
 const formatPriceShort = (price?: number) => {
@@ -1276,7 +1283,7 @@ const placeBid = async () => {
       title: translateOr("invalidBid", "Giá trị không hợp lệ"),
       description: translateOr(
         "enterBidAmount",
-        "Vui lòng nhập giá trị hợp lệ."
+        "Vui lòng nhập giá trị hợp lệ.",
       ),
       color: "red",
     });
@@ -1287,7 +1294,7 @@ const placeBid = async () => {
     toast.add({
       title: t("bidTooLow") || "Giá quá thấp",
       description: `${t("minimumBidAmount") || "Tối thiểu"}: ${formatPrice(
-        minimumBid
+        minimumBid,
       )}`,
       color: "orange",
     });
@@ -1305,7 +1312,7 @@ const placeBid = async () => {
       title: t("bidSuccessful") || "Đặt giá thành công",
       description: translateOr(
         "bidQueued",
-        "Hệ thống đã ghi nhận lượt đấu giá của bạn."
+        "Hệ thống đã ghi nhận lượt đấu giá của bạn.",
       ),
       color: "green",
     });

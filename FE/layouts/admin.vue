@@ -127,6 +127,8 @@
             </button>
           </div>
 
+          <ThemeToggle />
+
           <!-- Quick Actions -->
           <div class="quick-actions">
             <button class="quick-action-btn" title="Refresh">

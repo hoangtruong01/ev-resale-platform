@@ -78,6 +78,7 @@ const { notifications, fetchNotifications, markAsRead, markAllRead } =
 
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
+const { formatDateTime } = useLocaleFormat();
 
 const loadData = async () => {
   isLoading.value = true;
@@ -96,7 +97,7 @@ const loadData = async () => {
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString("vi-VN");
+  return formatDateTime(date);
 };
 
 onMounted(() => {

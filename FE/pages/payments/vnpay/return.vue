@@ -136,8 +136,8 @@ const transactionId = computed(() =>
   typeof route.query.transactionId === "string"
     ? route.query.transactionId
     : Array.isArray(route.query.transactionId)
-    ? route.query.transactionId[0]
-    : null
+      ? route.query.transactionId[0]
+      : null,
 );
 
 const destinationPath = computed(() => {
@@ -148,11 +148,11 @@ const destinationPath = computed(() => {
 });
 
 const isSuccess = computed(() =>
-  Boolean(result.value?.success && !errorMessage.value)
+  Boolean(result.value?.success && !errorMessage.value),
 );
 
 const statusIcon = computed(() =>
-  isSuccess.value ? "i-heroicons-check-circle" : "i-heroicons-x-circle"
+  isSuccess.value ? "i-heroicons-check-circle" : "i-heroicons-x-circle",
 );
 
 const displayMessage = computed(() => {
@@ -167,14 +167,16 @@ const displayMessage = computed(() => {
     : "Thanh toán chưa được hoàn tất. Vui lòng thử lại hoặc liên hệ hỗ trợ.";
 });
 
+const { formatDateTime } = useLocaleFormat();
+
 const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat("vi-VN", {
+  formatDateTime(date, {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(date);
+  });
 
 const navigateToDestination = () => {
   if (!destinationPath.value) {

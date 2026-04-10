@@ -337,7 +337,7 @@ import {
 import type { AuctionSummary, PaginationMeta } from "~/types/api";
 import { useAuctions, type AuctionListParams } from "~/composables/useAuctions";
 
-const { t } = useI18n();
+const { t } = useI18n({ useScope: "global" });
 const toast = useCustomToast();
 const { list } = useAuctions();
 const { resolve: resolveAsset } = useAssetUrl();
@@ -375,12 +375,18 @@ const toNumber = (value: number | string | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const {
+  formatNumber,
+  formatCurrency,
+  formatDateTime: formatLocaleDateTime,
+} = useLocaleFormat();
+
 const buildLabel = (...segments: Array<string | number | null | undefined>) =>
   segments
     .map((segment) =>
       typeof segment === "number"
         ? segment.toString()
-        : segment?.toString().trim() || ""
+        : segment?.toString().trim() || "",
     )
     .filter(Boolean)
     .join(" ");
@@ -391,9 +397,7 @@ const formatAnnotatedNumber = (value?: number | null, unit?: string) => {
   }
 
   const isFiniteNumber = Number.isFinite(value);
-  const formatted = isFiniteNumber
-    ? value.toLocaleString("vi-VN")
-    : String(value);
+  const formatted = isFiniteNumber ? formatNumber(value) : String(value);
 
   return unit ? `${formatted} ${unit}` : formatted;
 };
@@ -430,7 +434,7 @@ const getAuctionSubtitle = (auction: AuctionSummary) => {
 
   if (auction.lotQuantity && auction.lotQuantity > 1) {
     segments.push(
-      `${auction.lotQuantity} ${t("lots", { count: auction.lotQuantity })}`
+      `${auction.lotQuantity} ${t("lots", { count: auction.lotQuantity })}`,
     );
   }
 
@@ -509,7 +513,7 @@ watch(
   () => {
     fetchAuctions();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -523,7 +527,7 @@ watch(
       return;
     }
     searchDebounce = setTimeout(fetchAuctions, 400);
-  }
+  },
 );
 
 const auctionCards = computed(() =>
@@ -565,24 +569,20 @@ const auctionCards = computed(() =>
       type: normalizedType,
       bidCount: auction._count?.bids ?? 0,
     };
-  })
+  }),
 );
 
 const formatPrice = (value: number) =>
-  new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    minimumFractionDigits: 0,
-  }).format(value);
+  formatCurrency(value, "VND", { minimumFractionDigits: 0 });
 
 const formatDateTime = (date: string) =>
-  new Intl.DateTimeFormat("vi-VN", {
+  formatLocaleDateTime(date, {
     hour: "2-digit",
     minute: "2-digit",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  }).format(new Date(date));
+  });
 
 const formatTimeLeft = (auction: { endTime: string; status: string }) => {
   if (auction.status === "ENDED" || auction.status === "CANCELLED") {
@@ -604,7 +604,7 @@ const formatTimeLeft = (auction: { endTime: string; status: string }) => {
 
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
     2,
-    "0"
+    "0",
   )}:${String(seconds).padStart(2, "0")}`;
 };
 
@@ -667,7 +667,9 @@ useHead({
   font-size: 0.875rem;
   line-height: 1.25rem;
   color: hsl(var(--foreground));
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .filter-select:focus-visible {

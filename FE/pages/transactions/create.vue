@@ -203,7 +203,7 @@ const error = ref<string | null>(null);
 const isSeller = computed(() =>
   currentUser.value?.id && sellerId.value
     ? currentUser.value.id === sellerId.value
-    : false
+    : false,
 );
 
 const canSubmit = computed(
@@ -212,7 +212,7 @@ const canSubmit = computed(
     isSeller.value &&
     (!!vehicleId || !!batteryId) &&
     amount.value !== undefined &&
-    Number(amount.value) > 0
+    Number(amount.value) > 0,
 );
 
 const sellerDisplayName = computed(
@@ -220,7 +220,7 @@ const sellerDisplayName = computed(
     listing.value?.seller?.fullName ||
     listing.value?.seller?.name ||
     listing.value?.seller?.email ||
-    "—"
+    "—",
 );
 
 const sellerContact = computed(() => listing.value?.seller?.phone || "");
@@ -267,17 +267,16 @@ const normalizeNumber = (value: unknown): number | null => {
   return Number.isFinite(numeric) ? numeric : null;
 };
 
+const { formatCurrency: formatLocaleCurrency, formatNumber } =
+  useLocaleFormat();
+
 const formatCurrency = (value: number | null) => {
   if (value === null) return "—";
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
+  return formatLocaleCurrency(value, "VND", { maximumFractionDigits: 0 });
 };
 
 const productPriceDisplay = computed(() =>
-  formatCurrency(normalizeNumber(listing.value?.price ?? null))
+  formatCurrency(normalizeNumber(listing.value?.price ?? null)),
 );
 
 const productSpecs = computed(() => {
@@ -291,9 +290,7 @@ const productSpecs = computed(() => {
       {
         label: "Số km",
         value:
-          typeof mileage === "number"
-            ? `${mileage.toLocaleString("vi-VN")} km`
-            : "—",
+          typeof mileage === "number" ? `${formatNumber(mileage)} km` : "—",
       },
     ];
   }
@@ -326,7 +323,7 @@ watch(
     if (price !== null && amount.value === undefined) {
       amount.value = price;
     }
-  }
+  },
 );
 
 const loadListing = async () => {
@@ -381,7 +378,7 @@ watch(
       }
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 onMounted(() => {

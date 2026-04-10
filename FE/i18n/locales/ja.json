@@ -208,5 +208,26 @@
   "hoursMinutesAgo": "{hours} 時間 {minutes} 分前",
   "you": "あなた",
   "noBidsYet": "まだ入札がありません",
-  "load_more": "もっと見る"
+  "load_more": "もっと見る",
+  "noVehiclesFound": "現在のフィルターに一致する車両がありません。",
+  "noBatteriesFound": "現在のフィルターに一致するバッテリーがありません。",
+  "stats": {
+    "vehiclesListed": "5,000+ 台の車両・バッテリー",
+    "transactions": "2,500+ 件の取引実績",
+    "users": "10,000+ の信頼ユーザー",
+    "locations": "全国63省・都市"
+  },
+  "process": {
+    "title": "安全な取引プロセス",
+    "step1Title": "商品を探す",
+    "step1Desc": "認証済みの電気自動車・バッテリー掲載を検索できます。",
+    "step2Title": "情報を確認",
+    "step2Desc": "仕様、整備履歴、バッテリー状態を確認します。",
+    "step3Title": "交渉・取引",
+    "step3Desc": "出品者へ連絡、または公開オークションに参加できます。",
+    "step4Title": "安全に完了",
+    "step4Desc": "EVN Marketのサポートで引き渡しと手続きを完了。"
+  },
+  "switchToLight": "ライトモードに切り替え",
+  "switchToDark": "ダークモードに切り替え"
 }

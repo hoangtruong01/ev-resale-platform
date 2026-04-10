@@ -128,7 +128,7 @@
 import { nextTick, ref, reactive, computed } from "vue";
 
 // Use i18n
-const { t } = useI18n();
+const { t } = useI18n({ useScope: 'global' });
 
 // Define reactive form data
 const form = reactive({

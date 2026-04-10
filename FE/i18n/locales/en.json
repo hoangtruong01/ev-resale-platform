@@ -211,5 +211,26 @@
   "hoursMinutesAgo": "{hours} hr {minutes} min ago",
   "you": "You",
   "noBidsYet": "No bids yet",
-  "load_more": "Load more"
+  "load_more": "Load more",
+  "noVehiclesFound": "No vehicles match your filters yet.",
+  "noBatteriesFound": "No batteries match your filters yet.",
+  "stats": {
+    "vehiclesListed": "5,000+ Vehicles & Batteries",
+    "transactions": "2,500+ Successful Transactions",
+    "users": "10,000+ Trusted Users",
+    "locations": "63 Provinces & Cities"
+  },
+  "process": {
+    "title": "Safe Trading Process",
+    "step1Title": "Find Products",
+    "step1Desc": "Browse through thousands of verified electric vehicle and battery listings.",
+    "step2Title": "Verify Information",
+    "step2Desc": "Check detailed specs, maintenance history, and battery health conditions.",
+    "step3Title": "Negotiate & Transact",
+    "step3Desc": "Contact sellers directly or join fair and transparent public auctions.",
+    "step4Title": "Secure Completion",
+    "step4Desc": "Complete the handover and documentation with EVN Market support."
+  },
+  "switchToLight": "Switch to light mode",
+  "switchToDark": "Switch to dark mode"
 }

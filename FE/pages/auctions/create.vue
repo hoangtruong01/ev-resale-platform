@@ -559,10 +559,10 @@
                           image.status === "uploaded"
                             ? "Đã tải"
                             : image.status === "uploading"
-                            ? "Đang tải"
-                            : image.status === "queued"
-                            ? "Chờ tải"
-                            : "Lỗi"
+                              ? "Đang tải"
+                              : image.status === "queued"
+                                ? "Chờ tải"
+                                : "Lỗi"
                         }}
                       </span>
                     </div>
@@ -631,11 +631,12 @@ const { post } = useApi();
 const toast = useCustomToast();
 const { resolve: resolveAsset } = useAssetUrl();
 const { create: createAuction } = useAuctions();
-const { t } = useI18n();
+const { t } = useI18n({ useScope: "global" });
+const { formatNumber } = useLocaleFormat();
 
 const DEFAULT_MIN_BID_STEP = 500000;
 const MAX_AUCTION_PRICE = 9_999_999_999;
-const maxPriceLabel = new Intl.NumberFormat("vi-VN").format(MAX_AUCTION_PRICE);
+const maxPriceLabel = formatNumber(MAX_AUCTION_PRICE);
 
 const itemTypeOptions = [
   {
@@ -705,7 +706,7 @@ const form = reactive({
 const submitting = ref(false);
 
 const selectedItemTypeLabel = computed(() =>
-  itemType.value ? itemTypeLabels[itemType.value] : "Chưa chọn"
+  itemType.value ? itemTypeLabels[itemType.value] : "Chưa chọn",
 );
 
 const handleCurrencyInput = (field: CurrencyField, event: Event) => {
@@ -853,7 +854,7 @@ const processSelectedFiles = async (files: File[]) => {
     toast.add({
       title: "Tệp quá lớn",
       description: `Vui lòng chọn hình ảnh dưới ${MAX_IMAGE_SIZE_MB}MB: ${oversizeFiles.join(
-        ", "
+        ", ",
       )}`,
       color: "orange",
     });
@@ -921,7 +922,7 @@ const uploadQueuedImages = async (images: ListingImage[]) => {
 
     const response = await post<UploadImagesResponse>(
       "/uploads/listing-images",
-      formData
+      formData,
     );
 
     const uploadedMap = new Map<
@@ -995,7 +996,7 @@ const clearUploadedImages = () => {
 const imageList = computed(() =>
   uploadedImages.value
     .filter((image) => image.status === "uploaded" && image.url)
-    .map((image) => (image.serverPath || image.url) as string)
+    .map((image) => (image.serverPath || image.url) as string),
 );
 
 const resetForm = () => {
@@ -1100,7 +1101,7 @@ const submitForm = async () => {
   }
 
   const hasPendingUploads = uploadedImages.value.some((image) =>
-    ["queued", "uploading"].includes(image.status)
+    ["queued", "uploading"].includes(image.status),
   );
 
   if (isUploadingImages.value || hasPendingUploads) {

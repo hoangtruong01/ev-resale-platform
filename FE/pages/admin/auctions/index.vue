@@ -54,7 +54,9 @@
             <div class="card-info">
               <p class="card-label">Đang đấu giá</p>
               <p class="card-value">
-                {{ summaryLoading ? "..." : summary.active.toLocaleString() }}
+                {{
+                  summaryLoading ? "..." : formatLocaleNumber(summary.active)
+                }}
               </p>
             </div>
           </UCard>
@@ -67,7 +69,9 @@
               <p class="card-label">Sắp kết thúc</p>
               <p class="card-value">
                 {{
-                  summaryLoading ? "..." : summary.closingSoon.toLocaleString()
+                  summaryLoading
+                    ? "..."
+                    : formatLocaleNumber(summary.closingSoon)
                 }}
               </p>
             </div>
@@ -80,7 +84,9 @@
             <div class="card-info">
               <p class="card-label">Chờ duyệt</p>
               <p class="card-value">
-                {{ summaryLoading ? "..." : summary.pending.toLocaleString() }}
+                {{
+                  summaryLoading ? "..." : formatLocaleNumber(summary.pending)
+                }}
               </p>
             </div>
           </UCard>
@@ -110,7 +116,8 @@
               </div>
               <div class="table-meta">
                 <span class="meta-count"
-                  >Tổng cộng {{ pagination.total.toLocaleString() }} phiên</span
+                  >Tổng cộng
+                  {{ formatLocaleNumber(pagination.total) }} phiên</span
                 >
                 <UButton
                   variant="ghost"
@@ -469,10 +476,10 @@ const normalizeBaseUrl = (value?: string) => {
 
 const runtimeConfig = useRuntimeConfig();
 const apiBaseUrl = normalizeBaseUrl(
-  runtimeConfig.public?.apiBaseUrl as string | undefined
+  runtimeConfig.public?.apiBaseUrl as string | undefined,
 );
 const baseCandidates = Array.from(
-  new Set([apiBaseUrl, fallbackApiBase])
+  new Set([apiBaseUrl, fallbackApiBase]),
 ).filter(Boolean) as string[];
 
 const authToken = useCookie("auth-token", {
@@ -552,17 +559,17 @@ const buildCandidateUrls = (originalPath: string) => {
   return Array.from(urls);
 };
 
-const apiRequest = async <T>(
+const apiRequest = async <T,>(
   path: string,
   options: {
     method?: string;
     body?: any;
     headers?: Record<string, string>;
-  } = {}
+  } = {},
 ): Promise<T> => {
   if (process.server) {
     throw new Error(
-      "API requests are only executed on the client in this view."
+      "API requests are only executed on the client in this view.",
     );
   }
 
@@ -614,7 +621,7 @@ const apiRequest = async <T>(
   }
 
   throw new Error(
-    lastError || "Request failed without a specific error message"
+    lastError || "Request failed without a specific error message",
   );
 };
 
@@ -674,21 +681,21 @@ watch(
   () => filters.status,
   () => {
     filters.page = 1;
-  }
+  },
 );
 
 watch(
   () => filters.approval,
   () => {
     filters.page = 1;
-  }
+  },
 );
 
 watch(
   () => filters.sort,
   () => {
     filters.page = 1;
-  }
+  },
 );
 
 const auctions = ref<AuctionListItem[]>([]);
@@ -708,6 +715,12 @@ const summary = reactive({
   pending: 0,
   revenue: 0,
 });
+
+const {
+  formatNumber: formatLocaleNumber,
+  formatCurrency: formatLocaleCurrency,
+  formatDateTime: formatLocaleDateTime,
+} = useLocaleFormat();
 
 const updateLocalAuction = (id: string, updates: Partial<AuctionListItem>) => {
   const index = auctions.value.findIndex((item) => item.id === id);
@@ -855,7 +868,7 @@ const fetchAuctions = async () => {
     params.append("sortOrder", sortOrder);
 
     const response = await apiRequest<AuctionListResponse>(
-      `/admin/auctions?${params.toString()}`
+      `/admin/auctions?${params.toString()}`,
     );
     auctions.value = Array.isArray(response.data) ? response.data : [];
 
@@ -884,10 +897,10 @@ const fetchSummary = async () => {
     const [statistics, pendingResponse, activeList] = await Promise.all([
       apiRequest<AuctionStatisticsResponse>("/auctions/statistics"),
       apiRequest<AuctionListResponse>(
-        "/admin/auctions?approvalStatus=PENDING&limit=1"
+        "/admin/auctions?approvalStatus=PENDING&limit=1",
       ),
       apiRequest<AuctionListResponse>(
-        "/auctions?status=ACTIVE&sortBy=endTime&sortOrder=asc&limit=50"
+        "/auctions?status=ACTIVE&sortBy=endTime&sortOrder=asc&limit=50",
       ),
     ]);
 
@@ -950,14 +963,14 @@ const viewAuction = (auction: AuctionListItem) => {
 const pauseAuction = (auction: AuctionListItem) => {
   handleSuccess(
     "Tạm dừng đấu giá",
-    `Đã gửi yêu cầu tạm dừng phiên "${getItemName(auction)}".`
+    `Đã gửi yêu cầu tạm dừng phiên "${getItemName(auction)}".`,
   );
 };
 
 const endAuctionEarly = async (auction: AuctionListItem) => {
   if (process.client) {
     const confirmed = window.confirm(
-      "Bạn có chắc muốn kết thúc sớm phiên đấu giá này?"
+      "Bạn có chắc muốn kết thúc sớm phiên đấu giá này?",
     );
     if (!confirmed) {
       return;
@@ -967,11 +980,11 @@ const endAuctionEarly = async (auction: AuctionListItem) => {
   try {
     const updated = await apiRequest<AuctionListItem>(
       `/admin/auctions/${auction.id}/end`,
-      { method: "PUT" }
+      { method: "PUT" },
     );
     handleSuccess(
       "Đã kết thúc đấu giá",
-      `${getItemName(auction)} đã được kết thúc sớm.`
+      `${getItemName(auction)} đã được kết thúc sớm.`,
     );
     if (updated) {
       updateLocalAuction(updated.id, updated);
@@ -989,7 +1002,7 @@ const endAuctionEarly = async (auction: AuctionListItem) => {
 const exportAuctionReport = (auction: AuctionListItem) => {
   handleInfo(
     "Xuất báo cáo",
-    `Báo cáo cho "${getItemName(auction)}" đã được tạo.`
+    `Báo cáo cho "${getItemName(auction)}" đã được tạo.`,
   );
 };
 
@@ -997,7 +1010,7 @@ const approveAuction = async (auction: AuctionListItem) => {
   try {
     const updated = await apiRequest<AuctionListItem>(
       `/admin/auctions/${auction.id}/approve`,
-      { method: "PUT", body: {} }
+      { method: "PUT", body: {} },
     );
     reviewStates[auction.id] = "approved";
     if (updated) {
@@ -1010,7 +1023,7 @@ const approveAuction = async (auction: AuctionListItem) => {
     }
     handleSuccess(
       "Đã duyệt đấu giá",
-      `Phiên "${getItemName(auction)}" đã được duyệt lên sàn.`
+      `Phiên "${getItemName(auction)}" đã được duyệt lên sàn.`,
     );
     await refreshAfterMutation();
   } catch (error: unknown) {
@@ -1024,7 +1037,7 @@ const promptReason = (defaultMessage: string) => {
   }
   const input = window.prompt(
     "Vui lòng nhập lý do cho hành động này:",
-    defaultMessage
+    defaultMessage,
   );
   if (input === null) {
     return null;
@@ -1041,7 +1054,7 @@ const rejectAuction = async (auction: AuctionListItem) => {
   try {
     const updated = await apiRequest<AuctionListItem>(
       `/admin/auctions/${auction.id}/reject`,
-      { method: "PUT", body: { reason } }
+      { method: "PUT", body: { reason } },
     );
     reviewStates[auction.id] = "rejected";
     if (updated) {
@@ -1064,7 +1077,7 @@ const markSpamAuction = async (auction: AuctionListItem) => {
   try {
     const updated = await apiRequest<AuctionListItem>(
       `/admin/auctions/${auction.id}/reject`,
-      { method: "PUT", body: { reason } }
+      { method: "PUT", body: { reason } },
     );
     reviewStates[auction.id] = "spam";
     if (updated) {
@@ -1077,7 +1090,7 @@ const markSpamAuction = async (auction: AuctionListItem) => {
     }
     handleInfo(
       "Đã đánh dấu spam",
-      `Phiên "${getItemName(auction)}" đã bị khóa vì spam.`
+      `Phiên "${getItemName(auction)}" đã bị khóa vì spam.`,
     );
     await refreshAfterMutation();
   } catch (error: unknown) {
@@ -1192,7 +1205,7 @@ const buildLabel = (...segments: Array<string | number | null | undefined>) =>
     .map((segment) =>
       typeof segment === "number"
         ? segment.toString()
-        : segment?.toString().trim() || ""
+        : segment?.toString().trim() || "",
     )
     .filter(Boolean)
     .join(" ");
@@ -1224,7 +1237,7 @@ const formatNumber = (value?: number | null, unit?: string) => {
   }
 
   const formatted = Number.isFinite(value)
-    ? value.toLocaleString("vi-VN")
+    ? formatLocaleNumber(value)
     : String(value);
 
   return unit ? `${formatted} ${unit}` : formatted;
@@ -1321,7 +1334,7 @@ const formatRemainingTime = (auction: AuctionListItem) => {
 
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
     2,
-    "0"
+    "0",
   )}:${String(seconds).padStart(2, "0")}`;
 };
 
@@ -1396,11 +1409,11 @@ const formatDateTime = (value?: string | null) => {
     return value;
   }
 
-  return new Intl.DateTimeFormat("vi-VN", {
+  return formatLocaleDateTime(date, {
     dateStyle: "medium",
     timeStyle: "short",
     hour12: false,
-  }).format(date);
+  });
 };
 
 const formatCurrency = (value: number | null | undefined) => {
@@ -1408,7 +1421,7 @@ const formatCurrency = (value: number | null | undefined) => {
     return "0 đ";
   }
 
-  return `${Math.round(value).toLocaleString("vi-VN")} đ`;
+  return `${formatLocaleNumber(Math.round(value))} đ`;
 };
 
 const syncData = async () => {
@@ -1430,7 +1443,7 @@ watch(
       fetchAuctions();
     }
   },
-  { immediate: process.client }
+  { immediate: process.client },
 );
 </script>
 

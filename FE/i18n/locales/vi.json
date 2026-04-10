@@ -212,5 +212,26 @@
   "hoursMinutesAgo": "Cách đây {hours} giờ {minutes} phút",
   "you": "Bạn",
   "noBidsYet": "Chưa có lượt đấu giá nào",
-  "load_more": "Xem thêm"
+  "load_more": "Xem thêm",
+  "noVehiclesFound": "Chưa có xe phù hợp với bộ lọc hiện tại.",
+  "noBatteriesFound": "Chưa có pin phù hợp với bộ lọc hiện tại.",
+  "stats": {
+    "vehiclesListed": "Hơn 5,000 xe & pin",
+    "transactions": "2,500+ giao dịch thành công",
+    "users": "10,000+ người dùng tin tưởng",
+    "locations": "63 tỉnh thành phủ sóng"
+  },
+  "process": {
+    "title": "Quy trình giao dịch an toàn",
+    "step1Title": "Tìm kiếm sản phẩm",
+    "step1Desc": "Duyệt qua hàng nghìn tin đăng xe điện và pin đã được kiểm duyệt.",
+    "step2Title": "Xác thực thông tin",
+    "step2Desc": "Kiểm tra chi tiết thông số, lịch sử bảo dưỡng và tình trạng pin.",
+    "step3Title": "Thương thảo & Giao dịch",
+    "step3Desc": "Liên hệ trực tiếp hoặc tham gia đấu giá công khai, minh bạch.",
+    "step4Title": "Hoàn tất an toàn",
+    "step4Desc": "Giao nhận xe và hoàn tất thủ tục dưới sự hỗ trợ của EVN Market."
+  },
+  "switchToLight": "Chuyển sang chế độ sáng",
+  "switchToDark": "Chuyển sang chế độ tối"
 }

@@ -1,12 +1,25 @@
 <template>
-  <header class="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+  <header
+    :class="[
+      'w-full z-50 transition-all duration-300 border-b',
+      isHomePage ? 'fixed top-0 left-0 right-0' : 'sticky top-0',
+      showSolidBg
+        ? 'bg-card/95 backdrop-blur-md border-border py-2 shadow-sm'
+        : 'bg-black/60 backdrop-blur-md border-white/10 py-4 text-white shadow-lg',
+    ]"
+  >
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <span class="text-2xl">⚡</span>
           <NuxtLink
             to="/"
-            class="text-2xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+            :class="[
+              'text-2xl font-bold transition-colors cursor-pointer',
+              isTransparentHeader
+                ? 'text-white hover:text-white'
+                : 'text-foreground hover:text-primary',
+            ]"
           >
             EVN Market
           </NuxtLink>
@@ -14,45 +27,25 @@
         <nav class="hidden md:flex items-center gap-6">
           <NuxtLink
             to="/vehicles"
-            :class="[
-              'transition-colors',
-              $route.path === '/vehicles'
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground',
-            ]"
+            :class="navLinkClass($route.path === '/vehicles')"
           >
             {{ $t("vehicles") }}
           </NuxtLink>
           <NuxtLink
             to="/batteries"
-            :class="[
-              'transition-colors',
-              $route.path === '/batteries'
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground',
-            ]"
+            :class="navLinkClass($route.path === '/batteries')"
           >
             {{ $t("batteries") }}
           </NuxtLink>
           <NuxtLink
             to="/auctions"
-            :class="[
-              'transition-colors',
-              $route.path.startsWith('/auctions')
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground',
-            ]"
+            :class="navLinkClass($route.path.startsWith('/auctions'))"
           >
             {{ $t("auctions") }}
           </NuxtLink>
           <NuxtLink
             to="/compare"
-            :class="[
-              'transition-colors',
-              $route.path === '/compare'
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground',
-            ]"
+            :class="navLinkClass($route.path === '/compare')"
           >
             {{ $t("compare") }}
           </NuxtLink>
@@ -60,10 +53,23 @@
         <div class="flex items-center gap-3">
           <!-- Show login/register buttons when not authenticated -->
           <template v-if="!isLoggedIn">
-            <UiButton variant="outline">
+            <UiButton
+              variant="outline"
+              :class="
+                isTransparentHeader
+                  ? 'border-white/40 text-white hover:bg-white/10'
+                  : ''
+              "
+            >
               <NuxtLink to="/login">{{ $t("login") }}</NuxtLink>
             </UiButton>
-            <UiButton>
+            <UiButton
+              :class="
+                isTransparentHeader
+                  ? 'bg-white text-black hover:bg-white/90'
+                  : ''
+              "
+            >
               <NuxtLink to="/register">{{ $t("register") }}</NuxtLink>
             </UiButton>
           </template>
@@ -104,7 +110,8 @@
             <UserDropdown :user="currentUser" @logout="handleLogout" />
           </template>
 
-          <LangSwitcher />
+          <ThemeToggle />
+          <LangSwitcher :variant="isTransparentHeader ? 'hero' : 'default'" />
         </div>
       </div>
     </div>
@@ -117,6 +124,29 @@ const { isLoggedIn, currentUser, logout } = useAuth();
 const { unreadTotal, fetchRooms } = useChatRooms();
 const { unreadCount, fetchUnreadCount } = useNotifications();
 const router = useRouter();
+const route = useRoute();
+
+const isHomePage = computed(() => route.path === "/");
+const isTransparentHeader = computed(
+  () => isHomePage.value && !showSolidBg.value,
+);
+
+// Show solid background when scrolled on homepage, or always on other pages
+const showSolidBg = computed(() => {
+  if (!isHomePage.value) return true;
+  return isScrolled.value;
+});
+
+const navLinkClass = (isActive) => [
+  "transition-colors",
+  isActive
+    ? isTransparentHeader.value
+      ? "text-white font-medium"
+      : "text-foreground font-medium"
+    : isTransparentHeader.value
+      ? "text-white/80 hover:text-white"
+      : "text-muted-foreground hover:text-foreground",
+];
 
 const unreadBadge = computed(() =>
   unreadTotal.value > 99 ? "99+" : String(unreadTotal.value),
@@ -146,4 +176,19 @@ watch(
   },
   { immediate: true },
 );
+
+const isScrolled = ref(false);
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 50;
+};
+
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll);
+  handleScroll();
+});
+
+onUnmounted(() => {
+  window.removeEventListener("scroll", handleScroll);
+});
 </script>

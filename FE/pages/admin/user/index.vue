@@ -406,7 +406,7 @@ const getFilteredUsers = () => {
       (user) =>
         user.name.toLowerCase().includes(query) ||
         user.email.toLowerCase().includes(query) ||
-        user.phone?.toLowerCase().includes(query)
+        user.phone?.toLowerCase().includes(query),
     );
   }
 
@@ -422,7 +422,7 @@ const filteredUsers = computed(() => {
   const filtered = getFilteredUsers();
   return filtered.slice(
     (currentPage.value - 1) * pageSize,
-    currentPage.value * pageSize
+    currentPage.value * pageSize,
   );
 });
 
@@ -430,9 +430,11 @@ const totalUsers = computed(() => getFilteredUsers().length);
 
 const pageCount = computed(() => Math.ceil(totalUsers.value / pageSize));
 
+const { formatDate: formatLocaleDate } = useLocaleFormat();
+
 // Methods
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("vi-VN", {
+  return formatLocaleDate(dateString, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -442,7 +444,7 @@ const formatDate = (dateString: string) => {
 };
 
 const getStatusColor = (
-  status: string
+  status: string,
 ): "green" | "yellow" | "red" | "gray" => {
   const colors: Record<string, "green" | "yellow" | "red" | "gray"> = {
     active: "green",
@@ -504,12 +506,8 @@ const viewUserDetails = (user: User) => {
 const processApiResponse = (response: any): User[] => {
   const processUser = (user: any): User => ({
     ...user,
-    createdAt: user.createdAt
-      ? new Date(user.createdAt).toLocaleDateString("vi-VN")
-      : "",
-    lastActive: user.lastActive
-      ? new Date(user.lastActive).toLocaleDateString("vi-VN")
-      : "",
+    createdAt: user.createdAt ? formatLocaleDate(user.createdAt) : "",
+    lastActive: user.lastActive ? formatLocaleDate(user.lastActive) : "",
     avatar: resolveAssetUrl(user.avatar) || "",
     phone: user.phone || "",
     address: user.address || "",
@@ -532,7 +530,7 @@ const processApiResponse = (response: any): User[] => {
 const updateUserStatus = async (
   userId: string,
   status: User["status"],
-  action: string
+  action: string,
 ) => {
   try {
     try {

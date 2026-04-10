@@ -234,11 +234,11 @@ const userId = computed(() => currentUser.value?.id || "");
 const isBuyer = computed(() =>
   Boolean(
     contract.value?.parties.buyer?.id &&
-      contract.value.parties.buyer.id === userId.value
-  )
+    contract.value.parties.buyer.id === userId.value,
+  ),
 );
 const isSeller = computed(
-  () => contract.value?.parties.seller.id === userId.value
+  () => contract.value?.parties.seller.id === userId.value,
 );
 const isParticipant = computed(() => isBuyer.value || isSeller.value);
 const hasAlreadySigned = computed(() => {
@@ -249,7 +249,7 @@ const hasAlreadySigned = computed(() => {
 });
 const isCompleted = computed(() => contract.value?.status === "COMPLETED");
 const canSign = computed(
-  () => isParticipant.value && !hasAlreadySigned.value && !isCompleted.value
+  () => isParticipant.value && !hasAlreadySigned.value && !isCompleted.value,
 );
 const finalPdfUrl = computed(() => {
   if (!contract.value?.finalPdfPath) return "";
@@ -264,13 +264,12 @@ const statusClass = computed(() => {
   return statusColors[status];
 });
 
+const { formatDateTime } = useLocaleFormat();
+
 const formatDate = (value?: string | null) => {
   if (!value) return "";
-  try {
-    return new Date(value).toLocaleString("vi-VN");
-  } catch (error) {
-    return value;
-  }
+  const formatted = formatDateTime(value);
+  return formatted === "-" ? value : formatted;
 };
 
 const setupCanvas = () => {
@@ -433,7 +432,7 @@ watch(
   () => transactionId.value,
   async () => {
     await fetchContract();
-  }
+  },
 );
 
 watch(
@@ -445,6 +444,6 @@ watch(
       setupCanvas();
       attachListeners();
     }
-  }
+  },
 );
 </script>

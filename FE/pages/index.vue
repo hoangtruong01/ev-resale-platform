@@ -1,384 +1,359 @@
 <template>
-  <div
-    class="min-h-screen bg-gradient-to-b from-background via-background to-muted/40"
-  >
+  <div class="min-h-screen bg-background selection:bg-primary/30">
     <!-- Header -->
     <AppHeader />
 
     <!-- Hero Section -->
     <section
-      class="relative py-20 bg-gradient-to-br from-primary/15 via-background to-secondary/15 overflow-hidden"
+      class="relative h-screen flex items-center justify-center overflow-hidden"
     >
-      <div
-        class="pointer-events-none absolute -top-24 -left-24 w-80 h-80 bg-primary/25 blur-3xl rounded-full"
-      ></div>
-      <div
-        class="pointer-events-none absolute -bottom-24 -right-24 w-96 h-96 bg-secondary/25 blur-3xl rounded-full"
-      ></div>
-      <div class="container mx-auto px-4 text-center relative">
-        <h2 class="text-4xl md:text-6xl font-bold text-foreground mb-6">
-          {{ $t("hello") }}
-        </h2>
-        <p class="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          {{ $t("welcome") }}
-        </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <UiButton size="lg">
-            <NuxtLink to="/vehicles" class="flex items-center justify-center">
-              <span class="mr-2">🔍</span>
-              <span>{{ $t("vehicles") }}</span>
-            </NuxtLink>
-          </UiButton>
-          <UiButton
-            size="lg"
-            variant="outline"
-            class="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 hover:from-orange-600 hover:to-red-600"
+      <!-- Video Background -->
+      <div class="absolute inset-0 z-0">
+        <video
+          autoplay
+          muted
+          loop
+          playsinline
+          poster="/hero-placeholder.png"
+          class="h-full w-full object-cover scale-105"
+        >
+          <source
+            src="https://assets.mixkit.co/videos/preview/mixkit-top-view-of-a-fast-car-driving-on-the-highway-at-night-34547-large.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <!-- Overlay -->
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-background"
+        ></div>
+      </div>
+
+      <div class="container mx-auto px-4 text-center relative z-10">
+        <div class="reveal">
+          <h1
+            class="text-5xl md:text-8xl font-black text-white mb-6 tracking-tight leading-tight"
           >
-            <NuxtLink to="/auctions" class="flex items-center justify-center">
-              <span class="mr-2">🔨</span>
-              <span>{{ $t("join_auction") }}</span>
-            </NuxtLink>
-          </UiButton>
-          <UiButton
-            size="lg"
-            variant="outline"
-            class="bg-transparent border-foreground text-foreground hover:bg-foreground hover:text-background"
+            {{ $t("hello") }} <br />
+            <span class="title-gradient">{{ $t("welcome") }}</span>
+          </h1>
+          <p
+            class="text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto font-light leading-relaxed"
           >
-            <NuxtLink to="/sell">{{ $t("sell_now") }}</NuxtLink>
-          </UiButton>
+            {{ $t("evn_market_desc") }}
+          </p>
+          <div class="flex flex-col sm:flex-row gap-6 justify-center">
+            <UiButton
+              size="lg"
+              class="h-14 px-10 text-lg bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105"
+            >
+              <NuxtLink to="/vehicles" class="flex items-center gap-2">
+                <span>{{ $t("vehicles") }}</span>
+                <Icon name="mdi:arrow-right" class="h-5 w-5" />
+              </NuxtLink>
+            </UiButton>
+            <UiButton
+              size="lg"
+              variant="outline"
+              class="h-14 px-10 text-lg border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 shadow-xl transition-all hover:scale-105"
+            >
+              <NuxtLink to="/auctions" class="flex items-center gap-2">
+                <span>{{ $t("join_auction") }}</span>
+              </NuxtLink>
+            </UiButton>
+            <UiButton
+              size="lg"
+              variant="link"
+              class="h-14 px-6 text-white hover:text-emerald-400 transition-all"
+            >
+              <NuxtLink to="/sell">{{ $t("sell_now") }}</NuxtLink>
+            </UiButton>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll Down Indicator -->
+      <div
+        class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 animate-bounce"
+      >
+        <span class="text-xs uppercase tracking-widest font-medium"
+          >Scroll</span
+        >
+        <Icon name="mdi:chevron-down" class="h-6 w-6" />
+      </div>
+    </section>
+
+    <!-- Numbers / Stats Section -->
+    <section class="py-12 bg-background border-y border-border/50">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 reveal">
+          <div
+            v-for="(stat, index) in stats"
+            :key="index"
+            class="stagger-item flex flex-col items-center text-center p-4"
+            :class="`delay-${index * 100}`"
+          >
+            <span class="text-3xl md:text-4xl font-bold title-gradient mb-2">{{
+              stat.value
+            }}</span>
+            <span
+              class="text-sm text-muted-foreground uppercase tracking-wider font-semibold"
+              >{{ $t(`stats.${stat.key}`) }}</span
+            >
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Features -->
-    <section class="py-20 bg-gradient-to-b from-background to-muted/30">
-      <div class="container mx-auto px-4">
-        <div class="text-center mb-16">
-          <h3 class="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+    <section class="py-24 relative overflow-hidden">
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"
+      ></div>
+      <div class="container mx-auto px-4 relative">
+        <div class="text-center mb-16 reveal">
+          <h2 class="text-4xl md:text-5xl font-bold mb-6 text-foreground">
             {{ $t("why_choose_evn") }}
-          </h3>
+          </h2>
           <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
             {{ $t("leading_platform") }}
           </p>
         </div>
 
-        <div class="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          <div class="group relative">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 reveal">
+          <div
+            v-for="(feature, index) in features"
+            :key="index"
+            class="stagger-item group"
+            :class="`delay-${index * 100}`"
+          >
             <div
-              class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
-            ></div>
-            <UiCard
-              class="relative text-center border-0 bg-card/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 rounded-2xl overflow-hidden"
+              class="glass-card p-8 rounded-3xl h-full transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:border-primary/30"
             >
               <div
-                class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
-              <div class="relative p-6">
-                <div
-                  class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                >
-                  🛡️
-                </div>
-                <h4 class="text-2xl font-bold mb-3 text-foreground">
-                  {{ $t("safe_reliable") }}
-                </h4>
-                <p class="text-base leading-relaxed text-muted-foreground">
-                  {{ $t("safe_reliable_desc") }}
-                </p>
-                <div
-                  class="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-blue-600"
-                >
-                  <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  {{ $t("user_verification") }}
-                </div>
+                class="w-16 h-16 mb-6 rounded-2xl bg-gradient-to-br flex items-center justify-center text-3xl shadow-lg transition-transform duration-500 group-hover:rotate-6"
+                :class="feature.gradient"
+              >
+                <Icon :name="feature.icon" class="text-white h-8 w-8" />
               </div>
-            </UiCard>
+              <h4 class="text-2xl font-bold mb-3 text-foreground">
+                {{ $t(feature.title) }}
+              </h4>
+              <p class="text-base leading-relaxed text-muted-foreground">
+                {{ $t(feature.desc) }}
+              </p>
+            </div>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
-            ></div>
-            <UiCard
-              class="relative text-center border-0 bg-card/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 rounded-2xl overflow-hidden"
-            >
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
-              <div class="relative p-6">
-                <div
-                  class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-500 to-green-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                >
-                  ⚡
-                </div>
-                <h4 class="text-2xl font-bold mb-3 text-foreground">
-                  {{ $t("ai_pricing") }}
-                </h4>
-                <p class="text-base leading-relaxed text-muted-foreground">
-                  {{ $t("ai_pricing_desc") }}
-                </p>
-                <div
-                  class="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-emerald-600"
-                >
-                  <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
-                  {{ $t("accuracy_95") }}
-                </div>
-              </div>
-            </UiCard>
-          </div>
+    <!-- Trading Process Section -->
+    <section class="py-24 bg-muted/30">
+      <div class="container mx-auto px-4">
+        <div class="text-center mb-16 reveal">
+          <h2 class="text-4xl md:text-5xl font-bold mb-6">
+            {{ $t("process.title") }}
+          </h2>
+          <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+        </div>
 
-          <div class="group relative">
-            <div
-              class="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
-            ></div>
-            <UiCard
-              class="relative text-center border-0 bg-card/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 rounded-2xl overflow-hidden"
-            >
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
-              <div class="relative p-6">
-                <div
-                  class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                >
-                  🔨
-                </div>
-                <h4 class="text-2xl font-bold mb-3 text-foreground">
-                  {{ $t("online_auction") }}
-                </h4>
-                <p class="text-base leading-relaxed text-muted-foreground">
-                  {{ $t("online_auction_desc") }}
-                </p>
-                <div
-                  class="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-orange-600"
-                >
-                  <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
-                  {{ $t("fair_transparent") }}
-                </div>
-              </div>
-            </UiCard>
-          </div>
+        <div class="grid md:grid-cols-4 gap-4 reveal relative">
+          <!-- Connector Line (Desktop) -->
+          <div
+            class="hidden md:block absolute top-[60px] left-0 right-0 h-0.5 bg-border/50 z-0"
+          ></div>
 
-          <div class="group relative">
+          <div
+            v-for="(step, index) in 4"
+            :key="index"
+            class="stagger-item relative z-10 text-center px-4"
+            :class="`delay-${index * 100}`"
+          >
             <div
-              class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-0 group-hover:opacity-100"
-            ></div>
-            <UiCard
-              class="relative text-center border-0 bg-card/80 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 rounded-2xl overflow-hidden"
+              class="w-14 h-14 mx-auto rounded-full bg-background border-4 border-primary flex items-center justify-center text-xl font-black text-primary mb-6 shadow-xl"
             >
-              <div
-                class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              ></div>
-              <div class="relative p-6">
-                <div
-                  class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl flex items-center justify-center text-3xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                >
-                  ⭐
-                </div>
-                <h4 class="text-2xl font-bold mb-3 text-foreground">
-                  {{ $t("support_24_7") }}
-                </h4>
-                <p class="text-base leading-relaxed text-muted-foreground">
-                  {{ $t("support_24_7_desc") }}
-                </p>
-                <div
-                  class="mt-6 flex items-center justify-center gap-2 text-sm font-medium text-amber-600"
-                >
-                  <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
-                  {{ $t("response_5min") }}
-                </div>
-              </div>
-            </UiCard>
+              {{ step }}
+            </div>
+            <h5 class="text-xl font-bold mb-3">
+              {{ $t(`process.step${step}Title`) }}
+            </h5>
+            <p class="text-sm text-muted-foreground leading-relaxed">
+              {{ $t(`process.step${step}Desc`) }}
+            </p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Featured Listings -->
-    <section class="py-16 bg-gradient-to-b from-muted/30 to-muted/50">
+    <section class="py-24">
       <div class="container mx-auto px-4">
-        <h3 class="text-3xl font-bold text-center mb-12 text-foreground">
-          {{ $t("featured_products") }}
-        </h3>
-        <div>
-          <div
-            v-if="errorMessage"
-            class="rounded-lg border border-red-200 bg-red-50 p-6 text-center text-red-600"
-          >
-            {{ errorMessage }}
+        <div class="flex items-end justify-between mb-12 reveal">
+          <div>
+            <h2 class="text-4xl font-bold mb-2">
+              {{ $t("featured_products") }}
+            </h2>
+            <p class="text-muted-foreground">{{ $t("leading_platform") }}</p>
           </div>
-
-          <div
-            v-else-if="isLoading && !visibleItems.length"
-            class="flex items-center justify-center gap-3 rounded-lg border border-primary/20 bg-primary/5 p-6 text-primary"
+          <NuxtLink
+            to="/vehicles"
+            class="text-primary font-semibold hover:underline flex items-center gap-1 group"
           >
-            <span
-              class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-            ></span>
-            <span>{{ $t("loading") }}</span>
-          </div>
+            {{ $t("view_details") }}
+            <Icon
+              name="mdi:chevron-right"
+              class="h-5 w-5 transition-transform group-hover:translate-x-1"
+            />
+          </NuxtLink>
+        </div>
 
-          <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <UiCard
-              v-for="item in visibleItems"
-              :key="item.id"
-              class="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              @click="goToVehicleDetail(item.id)"
-            >
+        <div
+          v-if="errorMessage"
+          class="rounded-2xl bg-red-500/10 border border-red-500/20 p-8 text-center text-red-500"
+        >
+          {{ errorMessage }}
+        </div>
+
+        <div
+          v-else-if="isLoading && !visibleItems.length"
+          class="flex justify-center p-20"
+        >
+          <div
+            class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
+          ></div>
+        </div>
+
+        <div
+          v-else-if="visibleItems.length"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 reveal"
+        >
+          <UiCard
+            v-for="(item, index) in visibleItems"
+            :key="item.id"
+            class="stagger-item overflow-hidden bg-card border-border hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 group rounded-3xl cursor-pointer"
+            :class="`delay-${(index % 3) * 100}`"
+            @click="goToVehicleDetail(item.id)"
+          >
+            <div class="aspect-[16/10] relative overflow-hidden">
+              <img
+                v-if="item.image"
+                :src="item.image"
+                :alt="item.name"
+                class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <img
+                v-else
+                src="/placeholder.svg"
+                :alt="$t('vehicles')"
+                class="absolute inset-0 h-full w-full object-contain p-8 opacity-40"
+              />
               <div
-                class="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 relative overflow-hidden"
+                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
+              ></div>
+              <UiBadge
+                class="absolute top-4 left-4 bg-emerald-500 border-0 shadow-lg"
+                >{{ $t("vehicles") }}</UiBadge
               >
-                <img
-                  v-if="item.image"
-                  :src="item.image"
-                  :alt="item.name"
-                  class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div
-                  v-else
-                  class="absolute inset-0 flex items-center justify-center text-4xl"
-                >
-                  🚗
+            </div>
+            <UiCardContent class="p-6">
+              <h4
+                class="font-bold text-xl mb-3 line-clamp-1 group-hover:text-primary transition-colors"
+              >
+                {{ item.name }}
+              </h4>
+              <div
+                class="flex items-center gap-4 mb-4 text-sm text-muted-foreground font-medium"
+              >
+                <div class="flex items-center gap-1">
+                  <Icon name="mdi:map-marker-outline" /> {{ item.location }}
                 </div>
-                <UiBadge class="absolute top-3 left-3 bg-primary/90">{{
-                  $t("vehicles")
-                }}</UiBadge>
+                <div v-if="item.year" class="flex items-center gap-1">
+                  <Icon name="mdi:calendar-outline" /> {{ item.year }}
+                </div>
               </div>
-              <UiCardContent class="p-4">
-                <h4 class="font-semibold text-lg mb-2">
-                  {{ item.name }}
-                </h4>
-                <p class="text-2xl font-bold text-primary mb-2">
+              <div class="flex items-center justify-between">
+                <p class="text-2xl font-black text-primary">
                   {{ formatPrice(item.price) }}
                 </p>
                 <div
-                  class="flex items-center gap-4 text-sm text-muted-foreground mb-3"
+                  class="flex items-center gap-1 text-sm bg-muted px-2 py-1 rounded-lg"
                 >
-                  <div class="flex items-center gap-1">
-                    <span>📍</span>
-                    {{ $t("hanoi") }}
-                  </div>
-                  <div v-if="item.year" class="flex items-center gap-1">
-                    <span>📅</span>
-                    {{ item.year }}
-                  </div>
+                  <Icon name="mdi:star" class="text-amber-500 h-4 w-4" />
+                  <span>{{ item.rating?.toFixed(1) || "5.0" }}</span>
                 </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1">
-                    <span class="text-amber-600">⭐</span>
-                    <span class="text-sm">
-                      <template v-if="item.reviewCount">
-                        {{ item.rating?.toFixed(1) || "0.0" }} ({
-                        {{ item.reviewCount }} {{ $t("reviews") }})
-                      </template>
-                      <template v-else>0 {{ $t("reviews") }}</template>
-                    </span>
-                  </div>
-                  <UiButton size="sm">
-                    <NuxtLink :to="`/vehicles/${item.id}`">{{
-                      $t("viewDetails")
-                    }}</NuxtLink>
-                  </UiButton>
-                </div>
-              </UiCardContent>
-            </UiCard>
-          </div>
+              </div>
+            </UiCardContent>
+          </UiCard>
+        </div>
 
-          <!-- Load more button -->
-          <div class="mt-8 flex justify-center">
-            <UiButton
-              size="lg"
-              v-if="hasMore"
-              :disabled="isLoading"
-              @click="loadMore"
-            >
-              {{ $t("load_more") }}
-            </UiButton>
-          </div>
+        <div
+          v-else
+          class="rounded-2xl border border-dashed border-muted-foreground/40 bg-background p-12 text-center text-muted-foreground"
+        >
+          {{ $t("noVehiclesFound") }}
+        </div>
+
+        <div class="mt-16 flex justify-center">
+          <UiButton
+            v-if="hasMore"
+            variant="outline"
+            size="lg"
+            :disabled="isLoading"
+            class="h-14 px-12 rounded-full border-primary/30 hover:border-primary text-primary hover:bg-primary/5 transition-all"
+            @click="loadMore"
+          >
+            <span
+              v-if="isLoading"
+              class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            ></span>
+            {{ $t("load_more") }}
+          </UiButton>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-card py-12 border-t">
+    <footer class="bg-card py-20 border-t border-border/50">
       <div class="container mx-auto px-4">
-        <div class="grid md:grid-cols-4 gap-8">
-          <div>
-            <div class="flex items-center gap-2 mb-4">
-              <span class="text-xl">⚡</span>
-              <span class="font-bold text-lg text-foreground">EVN Market</span>
+        <div class="grid md:grid-cols-4 gap-12 text-center md:text-left">
+          <div class="space-y-6">
+            <div
+              class="flex items-center justify-center md:justify-start gap-2"
+            >
+              <span class="text-3xl">⚡</span>
+              <span class="font-black text-2xl">EVN Market</span>
             </div>
-            <p class="text-muted-foreground">{{ $t("evn_market_desc") }}</p>
+            <p class="text-muted-foreground leading-relaxed">
+              {{ $t("evn_market_desc") }}
+            </p>
           </div>
-          <div>
-            <h5 class="font-semibold mb-4 text-foreground">
-              {{ $t("products") }}
+          <div v-for="(col, i) in footerCols" :key="i">
+            <h5 class="font-bold text-lg mb-6 uppercase tracking-widest">
+              {{ $t(col.title) }}
             </h5>
-            <ul class="space-y-2 text-muted-foreground">
-              <li>
-                <NuxtLink to="/vehicles" class="hover:text-foreground">
-                  {{ $t("vehicles") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/batteries" class="hover:text-foreground">
-                  {{ $t("batteries") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/auctions" class="hover:text-foreground">
-                  {{ $t("auctions") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/compare" class="hover:text-foreground">
-                  {{ $t("compare") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/accessories" class="hover:text-foreground">
-                  Phụ kiện
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 class="font-semibold mb-4 text-foreground">
-              {{ $t("support") }}
-            </h5>
-            <ul class="space-y-2 text-muted-foreground">
-              <li>
-                <NuxtLink to="/help" class="hover:text-foreground">
-                  {{ $t("help_center") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="/contact" class="hover:text-foreground">
-                  {{ $t("contact") }}
-                </NuxtLink>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h5 class="font-semibold mb-4 text-foreground">
-              {{ $t("connect") }}
-            </h5>
-            <ul class="space-y-2 text-muted-foreground">
-              <li>
-                <NuxtLink to="#" class="hover:text-foreground">
-                  {{ $t("facebook") }}
-                </NuxtLink>
-              </li>
-              <li>
-                <NuxtLink to="#" class="hover:text-foreground">
-                  {{ $t("zalo") }}
+            <ul class="space-y-4 text-muted-foreground">
+              <li v-for="link in col.links" :key="link.to">
+                <NuxtLink
+                  :to="link.to"
+                  class="hover:text-primary transition-colors flex items-center justify-center md:justify-start gap-2"
+                >
+                  <Icon v-if="link.icon" :name="link.icon" class="h-4 w-4" />
+                  {{ $t(link.key) }}
                 </NuxtLink>
               </li>
             </ul>
           </div>
         </div>
-        <div class="border-t mt-8 pt-8 text-center text-muted-foreground">
-          <p>&copy; 2025 EVN Market. {{ $t("all_rights_reserved") }}</p>
+        <div
+          class="border-t border-border/50 mt-16 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground"
+        >
+          <p>&copy; 2026 EVN Market. {{ $t("all_rights_reserved") }}</p>
+          <div class="flex gap-6">
+            <NuxtLink to="/terms" class="hover:text-primary">Terms</NuxtLink>
+            <NuxtLink to="/privacy" class="hover:text-primary"
+              >Privacy</NuxtLink
+            >
+          </div>
         </div>
       </div>
     </footer>
@@ -386,16 +361,73 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
 
-// Use i18n for head
-const { t } = useI18n();
+const { t, locale } = useI18n({ useScope: "global" });
 
-// Set head
-useHead({
+useHead(() => ({
   title: "EVN Market - " + t("evn_market_desc"),
-  meta: [{ name: "description", content: t("evn_market_desc") }],
-});
+  meta: [{ name: "description", content: String(t("evn_market_desc")) }],
+}));
+
+const stats = [
+  { key: "vehiclesListed", value: "5,000+" },
+  { key: "transactions", value: "2,500+" },
+  { key: "users", value: "10,000+" },
+  { key: "locations", value: "63" },
+];
+
+const features = [
+  {
+    title: "safe_reliable",
+    desc: "safe_reliable_desc",
+    icon: "mdi:security",
+    gradient: "from-blue-500 to-cyan-500",
+  },
+  {
+    title: "ai_pricing",
+    desc: "ai_pricing_desc",
+    icon: "mdi:robot",
+    gradient: "from-emerald-500 to-green-500",
+  },
+  {
+    title: "online_auction",
+    desc: "online_auction_desc",
+    icon: "mdi:gavel",
+    gradient: "from-orange-500 to-red-500",
+  },
+  {
+    title: "support_24_7",
+    desc: "support_24_7_desc",
+    icon: "mdi:headset",
+    gradient: "from-amber-500 to-yellow-500",
+  },
+];
+
+const footerCols = [
+  {
+    title: "products",
+    links: [
+      { key: "vehicles", to: "/vehicles" },
+      { key: "batteries", to: "/batteries" },
+      { key: "auctions", to: "/auctions" },
+    ],
+  },
+  {
+    title: "support",
+    links: [
+      { key: "help_center", to: "/help" },
+      { key: "contact", to: "/contact" },
+    ],
+  },
+  {
+    title: "connect",
+    links: [
+      { key: "facebook", to: "#", icon: "mdi:facebook" },
+      { key: "zalo", to: "#", icon: "mdi:chat" },
+    ],
+  },
+];
 
 interface FeaturedVehicle {
   id: string;
@@ -436,7 +468,7 @@ const fetchFeaturedVehicles = async () => {
     });
 
     const response = await get<{ data?: any[]; pagination?: any }>(
-      `/vehicles?${params.toString()}`
+      `/vehicles?${params.toString()}`,
     );
 
     const nextItems = (response?.data ?? []).map((item) => ({
@@ -447,9 +479,9 @@ const fetchFeaturedVehicles = async () => {
         Array.isArray(item.images) && item.images.length
           ? resolveAsset(item.images[0])
           : undefined,
-      location: item.location || t("location"),
+      location: item.location || String(t("location")),
       year: item.year ?? null,
-      rating: null,
+      rating: 5.0,
       reviewCount: item.reviews?.length ?? 0,
     }));
 
@@ -458,9 +490,12 @@ const fetchFeaturedVehicles = async () => {
     hasMore.value = page.value < totalPages;
   } catch (error) {
     console.error("Failed to load featured vehicles", error);
-    errorMessage.value = t("unableToLoadVehicles");
+    errorMessage.value = String(t("unableToLoadVehicles"));
   } finally {
     isLoading.value = false;
+    // Re-observe any new .reveal elements after data loads
+    await nextTick();
+    observeRevealElements();
   }
 };
 
@@ -474,22 +509,48 @@ function goToVehicleDetail(id: string) {
   router.push(`/vehicles/${id}`);
 }
 
+const { formatCurrency } = useLocaleFormat();
+
 const formatPrice = (value: number) => {
   if (!Number.isFinite(value)) {
     return "0 ₫";
   }
 
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(value);
+  if (locale.value === "vi") {
+    return formatCurrency(value, "VND", { maximumFractionDigits: 0 });
+  }
+
+  const usdAmount = value / 24_000;
+  return formatCurrency(usdAmount, "USD", { maximumFractionDigits: 0 });
 };
+
+// Intersection Observer for ScrollReveal
+let observer: IntersectionObserver | null = null;
+
+function observeRevealElements() {
+  if (!observer) return;
+  const targets = document.querySelectorAll(".reveal:not(.is-visible)");
+  targets.forEach((target) => observer?.observe(target));
+}
 
 onMounted(() => {
   fetchFeaturedVehicles();
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+        }
+      });
+    },
+    { threshold: 0.1 },
+  );
+
+  observeRevealElements();
 });
 
-// Register local component usage for TS awareness (Nuxt auto-imports components)
-// Using <LangSwitcher /> in template above
+onUnmounted(() => {
+  observer?.disconnect();
+});
 </script>

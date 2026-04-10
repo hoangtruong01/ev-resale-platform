@@ -4,7 +4,13 @@ import { relative, isAbsolute } from "pathe";
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/eslint", "@nuxt/image", "@nuxt/ui", "@nuxtjs/i18n"],
+  modules: [
+    "@nuxt/eslint",
+    "@nuxt/image",
+    "@nuxt/ui",
+    "@nuxtjs/i18n",
+    "@nuxtjs/color-mode",
+  ],
   css: ["~/assets/css/main.css", "~/assets/css/admin.css"],
   devServer: {
     port: 3001,
@@ -87,7 +93,8 @@ export default defineNuxtConfig({
   i18n: {
     strategy: "no_prefix",
     defaultLocale: "vi",
-    langDir: "locales/",
+    langDir: "locales",
+    lazy: false,
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: "i18n_redirected",
@@ -99,5 +106,14 @@ export default defineNuxtConfig({
       { code: "en", iso: "en-US", file: "en.json", name: "English" },
       { code: "ja", iso: "ja-JP", file: "ja.json", name: "日本語" },
     ],
+    bundle: {
+      optimizeTranslationDirective: false,
+    },
+  },
+  colorMode: {
+    classSuffix: "",
+    preference: "system",
+    fallback: "light",
+    storageKey: "nuxt-color-mode",
   },
 });

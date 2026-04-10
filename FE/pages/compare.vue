@@ -207,7 +207,7 @@ interface ListResponse<T> {
   data?: T[] | null;
 }
 
-const { t } = useI18n();
+const { t } = useI18n({ useScope: "global" });
 const { get } = useApi();
 
 const compareType = ref<"vehicles" | "batteries">("vehicles");
@@ -356,17 +356,15 @@ const fetchData = async () => {
   }
 };
 
+const { formatCurrency, formatNumber: formatLocaleNumber } = useLocaleFormat();
+
 const formatPrice = (value?: number | string | null) => {
   const numeric = Number(value ?? 0);
   if (!Number.isFinite(numeric)) {
     return "-";
   }
 
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    maximumFractionDigits: 0,
-  }).format(numeric);
+  return formatCurrency(numeric, "VND", { maximumFractionDigits: 0 });
 };
 
 const formatNumber = (value?: number | string | null, unit?: string) => {
@@ -375,7 +373,8 @@ const formatNumber = (value?: number | string | null, unit?: string) => {
     return "-";
   }
 
-  return unit ? `${numeric} ${unit}` : String(numeric);
+  const formatted = formatLocaleNumber(numeric);
+  return unit ? `${formatted} ${unit}` : formatted;
 };
 
 const formatBatteryType = (value?: string | null) => {

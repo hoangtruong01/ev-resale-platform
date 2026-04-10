@@ -71,3 +71,56 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
 }
+
+/* Scroll Reveal Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible .stagger-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger Delays - Up to 10 items */
+.reveal.is-visible .delay-0 { transition-delay: 0s; }
+.reveal.is-visible .delay-100 { transition-delay: 0.1s; }
+.reveal.is-visible .delay-200 { transition-delay: 0.2s; }
+.reveal.is-visible .delay-300 { transition-delay: 0.3s; }
+.reveal.is-visible .delay-400 { transition-delay: 0.4s; }
+.reveal.is-visible .delay-500 { transition-delay: 0.5s; }
+.reveal.is-visible .delay-600 { transition-delay: 0.6s; }
+.reveal.is-visible .delay-700 { transition-delay: 0.7s; }
+.reveal.is-visible .delay-800 { transition-delay: 0.8s; }
+.reveal.is-visible .delay-900 { transition-delay: 0.9s; }
+
+/* Custom UI Polish */
+.glass-card {
+  background-color: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+.title-gradient {
+  background-image: linear-gradient(to right, #34d399, #22d3ee, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
