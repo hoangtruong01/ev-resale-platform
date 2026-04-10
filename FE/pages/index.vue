@@ -29,22 +29,25 @@
       </div>
 
       <div class="container mx-auto px-4 text-center relative z-10">
-        <div class="reveal">
+        <div class="reveal hero-animate">
           <h1
             class="text-5xl md:text-8xl font-black text-white mb-6 tracking-tight leading-tight"
           >
-            {{ $t("hello") }} <br />
-            <span class="title-gradient">{{ $t("welcome") }}</span>
+            <span class="hero-line hero-line--primary">{{ $t("hello") }}</span>
+            <br />
+            <span class="title-gradient hero-line hero-line--accent">
+              {{ $t("welcome") }}
+            </span>
           </h1>
           <p
-            class="text-xl md:text-2xl text-white/80 mb-10 max-w-3xl mx-auto font-light leading-relaxed"
+            class="hero-subtitle text-xl md:text-2xl text-white/90 mb-10 max-w-3xl mx-auto font-semibold leading-relaxed"
           >
             {{ $t("evn_market_desc") }}
           </p>
           <div class="flex flex-col sm:flex-row gap-6 justify-center">
             <UiButton
               size="lg"
-              class="h-14 px-10 text-lg bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105"
+              class="hero-cta-primary h-14 px-10 text-lg bg-emerald-500 hover:bg-emerald-600 shadow-2xl shadow-emerald-500/30 transition-all hover:scale-105"
             >
               <NuxtLink to="/vehicles" class="flex items-center gap-2">
                 <span>{{ $t("vehicles") }}</span>
@@ -54,7 +57,7 @@
             <UiButton
               size="lg"
               variant="outline"
-              class="h-14 px-10 text-lg border-white/20 bg-white/10 text-white backdrop-blur-md hover:bg-white/20 shadow-xl transition-all hover:scale-105"
+              class="hero-cta-secondary h-14 px-10 text-lg border-white/30 bg-white/15 text-white backdrop-blur-md hover:bg-white/25 shadow-xl transition-all hover:scale-105"
             >
               <NuxtLink to="/auctions" class="flex items-center gap-2">
                 <span>{{ $t("join_auction") }}</span>
@@ -62,8 +65,8 @@
             </UiButton>
             <UiButton
               size="lg"
-              variant="link"
-              class="h-14 px-6 text-white hover:text-emerald-400 transition-all"
+              variant="outline"
+              class="hero-cta-tertiary h-14 px-8 text-white/90 border-white/30 bg-transparent hover:bg-white/10 transition-all"
             >
               <NuxtLink to="/sell">{{ $t("sell_now") }}</NuxtLink>
             </UiButton>
@@ -92,9 +95,14 @@
             class="stagger-item flex flex-col items-center text-center p-4"
             :class="`delay-${index * 100}`"
           >
-            <span class="text-3xl md:text-4xl font-bold title-gradient mb-2">{{
-              stat.value
-            }}</span>
+            <span
+              class="stat-number text-3xl md:text-4xl font-bold title-gradient mb-2"
+              data-countup="true"
+              :data-target="stat.target"
+              :data-suffix="stat.suffix"
+            >
+              {{ stat.valueLabel }}
+            </span>
             <span
               class="text-sm text-muted-foreground uppercase tracking-wider font-semibold"
               >{{ $t(`stats.${stat.key}`) }}</span
@@ -105,12 +113,15 @@
     </section>
 
     <!-- Features -->
-    <section class="py-24 relative overflow-hidden">
+    <section
+      ref="featureScrollSection"
+      class="features-scroll relative overflow-hidden"
+    >
       <div
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"
       ></div>
-      <div class="container mx-auto px-4 relative">
-        <div class="text-center mb-16 reveal">
+      <div class="container mx-auto px-4 relative features-scroll__sticky">
+        <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-bold mb-6 text-foreground">
             {{ $t("why_choose_evn") }}
           </h2>
@@ -119,12 +130,14 @@
           </p>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 reveal">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div
             v-for="(feature, index) in features"
             :key="index"
-            class="stagger-item group"
-            :class="`delay-${index * 100}`"
+            class="feature-card group"
+            :class="{
+              'is-active': index < activeFeatureCount,
+            }"
           >
             <div
               class="glass-card p-8 rounded-3xl h-full transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:border-primary/30"
@@ -371,10 +384,10 @@ useHead(() => ({
 }));
 
 const stats = [
-  { key: "vehiclesListed", value: "5,000+" },
-  { key: "transactions", value: "2,500+" },
-  { key: "users", value: "10,000+" },
-  { key: "locations", value: "63" },
+  { key: "vehiclesListed", valueLabel: "5,000+", target: 5000, suffix: "+" },
+  { key: "transactions", valueLabel: "2,500+", target: 2500, suffix: "+" },
+  { key: "users", valueLabel: "10,000+", target: 10000, suffix: "+" },
+  { key: "locations", valueLabel: "63", target: 63, suffix: "" },
 ];
 
 const features = [
@@ -428,6 +441,72 @@ const footerCols = [
     ],
   },
 ];
+
+const featureScrollSection = ref<HTMLElement | null>(null);
+const featureStep = ref(0);
+const activeFeatureCount = computed(() => featureStep.value);
+const isFeatureLocked = ref(false);
+let lockedScrollY = 0;
+let featureAnchorY = 0;
+let featureLocking = false;
+
+const updateFeatureLockState = () => {
+  if (!featureScrollSection.value) return;
+  const rect = featureScrollSection.value.getBoundingClientRect();
+  const entersLock =
+    rect.top <= window.innerHeight * 0.4 &&
+    rect.bottom >= window.innerHeight * 0.6;
+
+  if (rect.top > window.innerHeight * 0.6) {
+    featureStep.value = 0;
+    isFeatureLocked.value = false;
+    featureLocking = false;
+    return;
+  }
+
+  if (rect.bottom < window.innerHeight * 0.4) {
+    featureStep.value = features.length;
+    isFeatureLocked.value = false;
+    featureLocking = false;
+    return;
+  }
+
+  if (entersLock && featureStep.value < features.length) {
+    if (!featureLocking) {
+      featureAnchorY = window.scrollY + rect.top;
+      lockedScrollY = featureAnchorY;
+      window.scrollTo({ top: featureAnchorY, behavior: "auto" });
+      featureLocking = true;
+    }
+    if (featureStep.value === 0) {
+      featureStep.value = 1;
+    }
+    isFeatureLocked.value = true;
+  } else if (featureStep.value >= features.length) {
+    isFeatureLocked.value = false;
+    featureLocking = false;
+  }
+};
+
+const handleFeatureWheel = (event: WheelEvent) => {
+  if (!isFeatureLocked.value) return;
+  event.preventDefault();
+
+  if (window.scrollY !== lockedScrollY) {
+    window.scrollTo({ top: lockedScrollY, behavior: "auto" });
+  }
+
+  if (event.deltaY > 0 && featureStep.value < features.length) {
+    featureStep.value += 1;
+  } else if (event.deltaY < 0 && featureStep.value > 0) {
+    featureStep.value -= 1;
+  }
+
+  if (featureStep.value >= features.length) {
+    isFeatureLocked.value = false;
+    featureLocking = false;
+  }
+};
 
 interface FeaturedVehicle {
   id: string;
@@ -509,7 +588,7 @@ function goToVehicleDetail(id: string) {
   router.push(`/vehicles/${id}`);
 }
 
-const { formatCurrency } = useLocaleFormat();
+const { formatCurrency, formatNumber } = useLocaleFormat();
 
 const formatPrice = (value: number) => {
   if (!Number.isFinite(value)) {
@@ -526,12 +605,42 @@ const formatPrice = (value: number) => {
 
 // Intersection Observer for ScrollReveal
 let observer: IntersectionObserver | null = null;
+let countObserver: IntersectionObserver | null = null;
+const countedElements = new WeakSet<Element>();
 
 function observeRevealElements() {
   if (!observer) return;
   const targets = document.querySelectorAll(".reveal:not(.is-visible)");
   targets.forEach((target) => observer?.observe(target));
 }
+
+const startCountUp = (el: HTMLElement) => {
+  if (countedElements.has(el)) return;
+
+  const rawTarget = el.dataset.target;
+  const suffix = el.dataset.suffix || "";
+  const target = rawTarget ? Number(rawTarget) : Number.NaN;
+  if (!Number.isFinite(target)) return;
+
+  countedElements.add(el);
+
+  const duration = 1400;
+  const startTime = performance.now();
+  const startValue = 0;
+
+  const animate = (now: number) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(startValue + (target - startValue) * eased);
+    el.textContent = `${formatNumber(current)}${suffix}`;
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    }
+  };
+
+  requestAnimationFrame(animate);
+};
 
 onMounted(() => {
   fetchFeaturedVehicles();
@@ -548,9 +657,33 @@ onMounted(() => {
   );
 
   observeRevealElements();
+
+  updateFeatureLockState();
+  window.addEventListener("scroll", updateFeatureLockState, { passive: true });
+  window.addEventListener("resize", updateFeatureLockState);
+  window.addEventListener("wheel", handleFeatureWheel, { passive: false });
+
+  countObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target as HTMLElement;
+        startCountUp(el);
+        countObserver?.unobserve(el);
+      });
+    },
+    { threshold: 0.4 },
+  );
+
+  const countTargets = document.querySelectorAll('[data-countup="true"]');
+  countTargets.forEach((target) => countObserver?.observe(target));
 });
 
 onUnmounted(() => {
   observer?.disconnect();
+  countObserver?.disconnect();
+  window.removeEventListener("scroll", updateFeatureLockState);
+  window.removeEventListener("resize", updateFeatureLockState);
+  window.removeEventListener("wheel", handleFeatureWheel);
 });
 </script>

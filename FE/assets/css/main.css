@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --background: 0 0% 100%;
@@ -72,6 +72,83 @@ body {
   animation: fadeIn 0.3s ease-in-out;
 }
 
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-animate .hero-line {
+  display: inline-block;
+  opacity: 0;
+  animation: heroFadeUp 0.9s ease forwards;
+}
+
+.hero-animate .hero-line--primary {
+  animation-delay: 0.05s;
+}
+
+.hero-animate .hero-line--accent {
+  animation-delay: 0.2s;
+}
+
+.hero-subtitle {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+.hero-cta-primary,
+.hero-cta-secondary,
+.hero-cta-tertiary {
+  border-width: 1px;
+}
+
+.hero-cta-primary {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.hero-cta-secondary {
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+.hero-cta-tertiary {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.stat-number {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate .hero-line {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .reveal,
+  .stagger-item {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .feature-card {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 /* Scroll Reveal Animations */
 .reveal {
   opacity: 0;
@@ -98,16 +175,36 @@ body {
 }
 
 /* Stagger Delays - Up to 10 items */
-.reveal.is-visible .delay-0 { transition-delay: 0s; }
-.reveal.is-visible .delay-100 { transition-delay: 0.1s; }
-.reveal.is-visible .delay-200 { transition-delay: 0.2s; }
-.reveal.is-visible .delay-300 { transition-delay: 0.3s; }
-.reveal.is-visible .delay-400 { transition-delay: 0.4s; }
-.reveal.is-visible .delay-500 { transition-delay: 0.5s; }
-.reveal.is-visible .delay-600 { transition-delay: 0.6s; }
-.reveal.is-visible .delay-700 { transition-delay: 0.7s; }
-.reveal.is-visible .delay-800 { transition-delay: 0.8s; }
-.reveal.is-visible .delay-900 { transition-delay: 0.9s; }
+.reveal.is-visible .delay-0 {
+  transition-delay: 0s;
+}
+.reveal.is-visible .delay-100 {
+  transition-delay: 0.1s;
+}
+.reveal.is-visible .delay-200 {
+  transition-delay: 0.2s;
+}
+.reveal.is-visible .delay-300 {
+  transition-delay: 0.3s;
+}
+.reveal.is-visible .delay-400 {
+  transition-delay: 0.4s;
+}
+.reveal.is-visible .delay-500 {
+  transition-delay: 0.5s;
+}
+.reveal.is-visible .delay-600 {
+  transition-delay: 0.6s;
+}
+.reveal.is-visible .delay-700 {
+  transition-delay: 0.7s;
+}
+.reveal.is-visible .delay-800 {
+  transition-delay: 0.8s;
+}
+.reveal.is-visible .delay-900 {
+  transition-delay: 0.9s;
+}
 
 /* Custom UI Polish */
 .glass-card {
@@ -115,7 +212,9 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
 .title-gradient {
@@ -123,4 +222,55 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.features-scroll {
+  min-height: 100vh;
+}
+
+.features-scroll__sticky {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+.feature-card {
+  opacity: 0.25;
+  transform: translateY(20px) scale(0.96);
+  filter: blur(0.6px);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.feature-card.is-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+.feature-card.is-active .glass-card {
+  border-color: rgba(52, 211, 153, 0.35);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 1024px) {
+  .features-scroll {
+    min-height: 100vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-scroll {
+    min-height: 100vh;
+  }
+  .features-scroll__sticky {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
 }
