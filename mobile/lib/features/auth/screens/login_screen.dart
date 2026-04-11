@@ -19,6 +19,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -34,12 +35,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text,
         );
-    setState(() => _isLoading = false);
     if (!mounted) return;
+    setState(() => _isLoading = false);
     final authState = ref.read(authStateProvider).value;
     if (authState?.isAuthenticated == true) {
       context.go('/');
     } else if (authState?.error != null) {
+      _showError(authState!.error!);
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    await ref.read(authStateProvider.notifier).loginWithGoogle();
+    if (!mounted) return;
+    setState(() => _isGoogleLoading = false);
+    final authState = ref.read(authStateProvider).value;
+    if (authState?.isAuthenticated == true) {
+      context.go('/');
+      return;
+    }
+    if (authState?.error != null) {
       _showError(authState!.error!);
     }
   }
@@ -224,16 +240,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         // Google Sign In
                         OutlinedButton.icon(
-                          onPressed: () {
-                            // TODO: implement Google Sign In
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Google Sign In coming soon')),
-                            );
-                          },
+                          onPressed: _isGoogleLoading ? null : _loginWithGoogle,
                           icon: const Icon(Icons.g_mobiledata_rounded,
                               size: 24, color: Color(0xFF4285F4)),
-                          label: const Text('Đăng nhập với Google'),
+                          label: Text(
+                            _isGoogleLoading
+                                ? 'Đang đăng nhập...'
+                                : 'Đăng nhập với Google',
+                          ),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(double.infinity, 52),
                             side: const BorderSide(color: AppTheme.grey200),

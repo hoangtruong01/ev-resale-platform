@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'dart:convert';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../models/user_model.dart';
 import '../../../services/auth_service.dart';
 import '../../../../core/network/dio_client.dart';
@@ -93,6 +94,31 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> googleLogin(String idToken) async {
     state = const AsyncValue.loading();
     try {
+      final authService = ref.read(authServiceProvider);
+      final response = await authService.googleLogin(idToken);
+      await _saveAuth(response);
+      state = AsyncValue.data(AuthState(user: response.user));
+    } catch (e) {
+      state = AsyncValue.data(AuthState(error: parseApiError(e)));
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    state = const AsyncValue.loading();
+    try {
+      final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        state = const AsyncValue.data(AuthState());
+        return;
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw StateError('Missing Google ID token');
+      }
+
       final authService = ref.read(authServiceProvider);
       final response = await authService.googleLogin(idToken);
       await _saveAuth(response);

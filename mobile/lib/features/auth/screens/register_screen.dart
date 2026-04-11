@@ -130,12 +130,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
               AppTextField(
                 controller: _phoneCtrl,
-                label: 'Số điện thoại (tuỳ chọn)',
+                label: 'Số điện thoại',
                 hint: '0912345678',
                 prefixIcon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
                 validator: (v) {
-                  if (v == null || v.isEmpty) return null;
+                  if (v == null || v.isEmpty) return 'Nhập số điện thoại';
                   if (!RegExp(r'^(0|\+84)[3-9]\d{8}$').hasMatch(v)) {
                     return 'SĐT không hợp lệ';
                   }

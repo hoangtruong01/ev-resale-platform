@@ -60,6 +60,15 @@ class AuthService {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> resendOtp({
+    required String resetId,
+  }) async {
+    final response = await _dio.post('/auth/password/resend', data: {
+      'resetId': resetId,
+    });
+    return response.data;
+  }
+
   Future<void> resetPassword({
     required String resetId,
     required String resetToken,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   bool _isLoading = false;
   String? _resetId;
   String? _resetToken;
+  int _resendCountdown = 0;
+  Timer? _resendTimer;
 
   final _emailCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
@@ -33,6 +36,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     _otpCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
+    _resendTimer?.cancel();
     super.dispose();
   }
 
@@ -47,7 +51,42 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       final result = await service.forgotPassword(_emailCtrl.text.trim());
       _resetId = result['data']?['id'];
       setState(() => _step = 2);
+      _startResendCountdown();
       _showSnack('OTP đã được gửi đến email của bạn');
+    } catch (e) {
+      _showSnack(parseApiError(e), isError: true);
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _startResendCountdown() {
+    _resendTimer?.cancel();
+    setState(() => _resendCountdown = 60);
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_resendCountdown <= 1) {
+        timer.cancel();
+        setState(() => _resendCountdown = 0);
+        return;
+      }
+      setState(() => _resendCountdown -= 1);
+    });
+  }
+
+  Future<void> _resendOtp() async {
+    if (_resetId == null) {
+      _showSnack('Không tìm thấy yêu cầu đặt lại mật khẩu', isError: true);
+      return;
+    }
+    if (_resendCountdown > 0) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final service = ref.read(authServiceProvider);
+      await service.resendOtp(resetId: _resetId!);
+      _startResendCountdown();
+      _showSnack('OTP mới đã được gửi đến email của bạn');
     } catch (e) {
       _showSnack(parseApiError(e), isError: true);
     } finally {
@@ -210,6 +249,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 isLoading: _isLoading,
                 onPressed: _verifyOtp,
                 label: 'Xác thực OTP',
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed:
+                    _resendCountdown > 0 || _isLoading ? null : _resendOtp,
+                child: Text(
+                  _resendCountdown > 0
+                      ? 'Gửi lại OTP sau $_resendCountdown s'
+                      : 'Gửi lại OTP',
+                  style: const TextStyle(color: AppTheme.primaryGreen),
+                ),
               ),
             ],
 
