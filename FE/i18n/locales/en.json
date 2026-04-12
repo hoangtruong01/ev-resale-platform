@@ -151,6 +151,25 @@
   "contact_info": "Contact Information",
   "phone_number": "Phone number",
   "submit_product": "Submit Product",
+  "globalNetwork": {
+    "kicker": "GLOBAL NETWORK",
+    "title": "Safe trading across the globe",
+    "desc": "Our partner network spans worldwide locations to make every transaction faster, more transparent, and more secure.",
+    "locations": {
+      "hanoi": "Hanoi",
+      "hochiminh": "Ho Chi Minh City",
+      "singapore": "Singapore",
+      "tokyo": "Tokyo",
+      "seoul": "Seoul",
+      "dubai": "Dubai",
+      "frankfurt": "Frankfurt",
+      "london": "London",
+      "newyork": "New York",
+      "sanfrancisco": "San Francisco",
+      "saopaulo": "Sao Paulo",
+      "sydney": "Sydney"
+    }
+  },
   "auctionPricingSectionTitle": "Auction Pricing",
   "auctionPricingSectionHint": "Provide the auction title and core pricing details.",
   "auctionTitleLabel": "Auction Title",

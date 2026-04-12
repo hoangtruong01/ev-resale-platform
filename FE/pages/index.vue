@@ -208,16 +208,15 @@
             <p
               class="text-sm uppercase tracking-[0.3em] text-emerald-600 font-semibold"
             >
-              MANG LUOI TOAN CAU
+              {{ $t("globalNetwork.kicker") }}
             </p>
             <h2
               class="text-4xl md:text-5xl font-black mt-4 mb-6 text-foreground"
             >
-              Giao dich an toan tren pham vi toan cau
+              {{ $t("globalNetwork.title") }}
             </h2>
             <p class="text-lg text-muted-foreground leading-relaxed mb-8">
-              He thong co so doi tac hien co tren khap the gioi, giup giao dich
-              nhanh, minh bach va an toan hon cho moi phien mua ban.
+              {{ $t("globalNetwork.desc") }}
             </p>
             <div class="flex flex-wrap gap-3">
               <span
@@ -227,7 +226,7 @@
                 :class="`delay-${index * 60}`"
                 @click="focusGlobe(base)"
               >
-                {{ base.name }}
+                {{ $t(base.labelKey) }}
               </span>
             </div>
           </div>
@@ -486,18 +485,90 @@ const footerCols = [
 ];
 
 const globalBases = [
-  { name: "Ha Noi", lat: 21.03, lng: 105.85, id: "hn" },
-  { name: "Ho Chi Minh", lat: 10.82, lng: 106.63, id: "hcm" },
-  { name: "Singapore", lat: 1.29, lng: 103.85, id: "sg" },
-  { name: "Tokyo", lat: 35.68, lng: 139.76, id: "tokyo" },
-  { name: "Seoul", lat: 37.56, lng: 126.97, id: "seoul" },
-  { name: "Dubai", lat: 25.2, lng: 55.27, id: "dubai" },
-  { name: "Frankfurt", lat: 50.11, lng: 8.68, id: "frankfurt" },
-  { name: "London", lat: 51.5, lng: -0.12, id: "london" },
-  { name: "New York", lat: 40.71, lng: -74.01, id: "nyc" },
-  { name: "San Francisco", lat: 37.78, lng: -122.44, id: "sf" },
-  { name: "Sao Paulo", lat: -23.55, lng: -46.63, id: "sp" },
-  { name: "Sydney", lat: -33.86, lng: 151.21, id: "sydney" },
+  {
+    name: "Ha Noi",
+    labelKey: "globalNetwork.locations.hanoi",
+    lat: 21.03,
+    lng: 105.85,
+    id: "hn",
+  },
+  {
+    name: "Ho Chi Minh",
+    labelKey: "globalNetwork.locations.hochiminh",
+    lat: 10.82,
+    lng: 106.63,
+    id: "hcm",
+  },
+  {
+    name: "Singapore",
+    labelKey: "globalNetwork.locations.singapore",
+    lat: 1.29,
+    lng: 103.85,
+    id: "sg",
+  },
+  {
+    name: "Tokyo",
+    labelKey: "globalNetwork.locations.tokyo",
+    lat: 35.68,
+    lng: 139.76,
+    id: "tokyo",
+  },
+  {
+    name: "Seoul",
+    labelKey: "globalNetwork.locations.seoul",
+    lat: 37.56,
+    lng: 126.97,
+    id: "seoul",
+  },
+  {
+    name: "Dubai",
+    labelKey: "globalNetwork.locations.dubai",
+    lat: 25.2,
+    lng: 55.27,
+    id: "dubai",
+  },
+  {
+    name: "Frankfurt",
+    labelKey: "globalNetwork.locations.frankfurt",
+    lat: 50.11,
+    lng: 8.68,
+    id: "frankfurt",
+  },
+  {
+    name: "London",
+    labelKey: "globalNetwork.locations.london",
+    lat: 51.5,
+    lng: -0.12,
+    id: "london",
+  },
+  {
+    name: "New York",
+    labelKey: "globalNetwork.locations.newyork",
+    lat: 40.71,
+    lng: -74.01,
+    id: "nyc",
+  },
+  {
+    name: "San Francisco",
+    labelKey: "globalNetwork.locations.sanfrancisco",
+    lat: 37.78,
+    lng: -122.44,
+    id: "sf",
+  },
+  {
+    name: "Sao Paulo",
+    labelKey: "globalNetwork.locations.saopaulo",
+    lat: -23.55,
+    lng: -46.63,
+    id: "sp",
+  },
+  {
+    name: "Sydney",
+    labelKey: "globalNetwork.locations.sydney",
+    lat: -33.86,
+    lng: 151.21,
+    id: "sydney",
+  },
 ];
 
 const globeCanvas = ref<HTMLCanvasElement | null>(null);

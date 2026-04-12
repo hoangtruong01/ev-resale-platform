@@ -152,6 +152,25 @@
   "contact_info": "Thông tin liên hệ",
   "phone_number": "Số điện thoại",
   "submit_product": "Đăng bán sản phẩm",
+  "globalNetwork": {
+    "kicker": "MẠNG LƯỚI TOÀN CẦU",
+    "title": "Giao dịch an toàn trên phạm vi toàn cầu",
+    "desc": "Hệ thống cơ sở đối tác hiện có trên khắp thế giới, giúp giao dịch nhanh, minh bạch và an toàn hơn cho mọi phiên mua bán.",
+    "locations": {
+      "hanoi": "Hà Nội",
+      "hochiminh": "Hồ Chí Minh",
+      "singapore": "Singapore",
+      "tokyo": "Tokyo",
+      "seoul": "Seoul",
+      "dubai": "Dubai",
+      "frankfurt": "Frankfurt",
+      "london": "London",
+      "newyork": "New York",
+      "sanfrancisco": "San Francisco",
+      "saopaulo": "Sao Paulo",
+      "sydney": "Sydney"
+    }
+  },
   "auctionPricingSectionTitle": "Thiết lập đấu giá",
   "auctionPricingSectionHint": "Nhập tiêu đề và các thông số giá cơ bản cho phiên đấu giá.",
   "auctionTitleLabel": "Tiêu đề phiên đấu giá",

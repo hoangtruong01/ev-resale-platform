@@ -138,6 +138,25 @@
     "inputPlaceholder": "メッセージを入力...",
     "responseTime": "応答時間: 5分以内"
   },
+  "globalNetwork": {
+    "kicker": "グローバルネットワーク",
+    "title": "世界規模で安全な取引",
+    "desc": "世界各地のパートナーネットワークにより、取引をより迅速で透明、かつ安全にします。",
+    "locations": {
+      "hanoi": "ハノイ",
+      "hochiminh": "ホーチミン市",
+      "singapore": "シンガポール",
+      "tokyo": "東京",
+      "seoul": "ソウル",
+      "dubai": "ドバイ",
+      "frankfurt": "フランクフルト",
+      "london": "ロンドン",
+      "newyork": "ニューヨーク",
+      "sanfrancisco": "サンフランシスコ",
+      "saopaulo": "サンパウロ",
+      "sydney": "シドニー"
+    }
+  },
   "Auctions Title": "オークション",
   "Auctions Subtitle": "EVとバッテリーのオークションに参加して最適な価格で入手",
   "searchAuctionsPlaceholder": "タイトルまたは説明で検索",

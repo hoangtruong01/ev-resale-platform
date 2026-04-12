@@ -138,6 +138,25 @@
     "inputPlaceholder": "Nhập tin nhắn...",
     "responseTime": "Thời gian phản hồi: < 5 phút"
   },
+  "globalNetwork": {
+    "kicker": "MẠNG LƯỚI TOÀN CẦU",
+    "title": "Giao dịch an toàn trên phạm vi toàn cầu",
+    "desc": "Hệ thống cơ sở đối tác hiện có trên khắp thế giới, giúp giao dịch nhanh, minh bạch và an toàn hơn cho mọi phiên mua bán.",
+    "locations": {
+      "hanoi": "Hà Nội",
+      "hochiminh": "Hồ Chí Minh",
+      "singapore": "Singapore",
+      "tokyo": "Tokyo",
+      "seoul": "Seoul",
+      "dubai": "Dubai",
+      "frankfurt": "Frankfurt",
+      "london": "London",
+      "newyork": "New York",
+      "sanfrancisco": "San Francisco",
+      "saopaulo": "Sao Paulo",
+      "sydney": "Sydney"
+    }
+  },
   "Auctions Title": "Đấu giá",
   "Auctions Subtitle": "Tham gia đấu giá xe điện và pin với giá tốt nhất",
   "searchAuctionsPlaceholder": "Tìm kiếm theo tiêu đề hoặc mô tả",
