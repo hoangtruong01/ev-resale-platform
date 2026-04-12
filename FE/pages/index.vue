@@ -198,6 +198,48 @@
       </div>
     </section>
 
+    <!-- Global Network Section -->
+    <section
+      class="py-24 bg-gradient-to-b from-background via-emerald-50/40 to-background"
+    >
+      <div class="container mx-auto px-4">
+        <div class="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-center">
+          <div class="reveal">
+            <p
+              class="text-sm uppercase tracking-[0.3em] text-emerald-600 font-semibold"
+            >
+              MANG LUOI TOAN CAU
+            </p>
+            <h2
+              class="text-4xl md:text-5xl font-black mt-4 mb-6 text-foreground"
+            >
+              Giao dich an toan tren pham vi toan cau
+            </h2>
+            <p class="text-lg text-muted-foreground leading-relaxed mb-8">
+              He thong co so doi tac hien co tren khap the gioi, giup giao dich
+              nhanh, minh bach va an toan hon cho moi phien mua ban.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <span
+                v-for="(base, index) in globalBases"
+                :key="base.name"
+                class="px-4 py-2 rounded-full bg-white/80 border border-emerald-100 text-sm font-semibold text-emerald-700 shadow-sm cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md"
+                :class="`delay-${index * 60}`"
+                @click="focusGlobe(base)"
+              >
+                {{ base.name }}
+              </span>
+            </div>
+          </div>
+          <div class="relative flex justify-center lg:justify-end">
+            <div class="globe-frame">
+              <canvas ref="globeCanvas" class="globe-canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Featured Listings -->
     <section class="py-24">
       <div class="container mx-auto px-4">
@@ -375,6 +417,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, nextTick } from "vue";
+import createGlobe from "cobe";
 
 const { t, locale } = useI18n({ useScope: "global" });
 
@@ -441,6 +484,37 @@ const footerCols = [
     ],
   },
 ];
+
+const globalBases = [
+  { name: "Ha Noi", lat: 21.03, lng: 105.85, id: "hn" },
+  { name: "Ho Chi Minh", lat: 10.82, lng: 106.63, id: "hcm" },
+  { name: "Singapore", lat: 1.29, lng: 103.85, id: "sg" },
+  { name: "Tokyo", lat: 35.68, lng: 139.76, id: "tokyo" },
+  { name: "Seoul", lat: 37.56, lng: 126.97, id: "seoul" },
+  { name: "Dubai", lat: 25.2, lng: 55.27, id: "dubai" },
+  { name: "Frankfurt", lat: 50.11, lng: 8.68, id: "frankfurt" },
+  { name: "London", lat: 51.5, lng: -0.12, id: "london" },
+  { name: "New York", lat: 40.71, lng: -74.01, id: "nyc" },
+  { name: "San Francisco", lat: 37.78, lng: -122.44, id: "sf" },
+  { name: "Sao Paulo", lat: -23.55, lng: -46.63, id: "sp" },
+  { name: "Sydney", lat: -33.86, lng: 151.21, id: "sydney" },
+];
+
+const globeCanvas = ref<HTMLCanvasElement | null>(null);
+let globeInstance: ReturnType<typeof createGlobe> | null = null;
+let globeAnimationId = 0;
+let globeResizeObserver: ResizeObserver | null = null;
+let globePhi = 0;
+let globeTheta = 0.2;
+let globeDragging = false;
+let globeDragStartX = 0;
+let globeDragStartY = 0;
+let globeDragPhiStart = 0;
+let globeDragThetaStart = 0;
+let globeTargetPhi: number | null = null;
+let globeTargetTheta: number | null = null;
+const globeFocusEase = 0.08;
+const globeFocusEpsilon = 0.01;
 
 const featureScrollSection = ref<HTMLElement | null>(null);
 const featureStep = ref(0);
@@ -642,6 +716,102 @@ const startCountUp = (el: HTMLElement) => {
   requestAnimationFrame(animate);
 };
 
+const toRadians = (value: number) => (value * Math.PI) / 180;
+
+const focusGlobe = (base: (typeof globalBases)[number]) => {
+  globeTargetPhi = toRadians(base.lng);
+  globeTargetTheta = toRadians(base.lat);
+};
+
+const setupGlobe = () => {
+  if (!globeCanvas.value) return;
+
+  const canvas = globeCanvas.value;
+  const parent = canvas.parentElement;
+  if (!parent) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const size = Math.min(parent.clientWidth, 520);
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = `${size}px`;
+  canvas.style.height = `${size}px`;
+
+  globeInstance?.destroy();
+  globeInstance = createGlobe(canvas, {
+    devicePixelRatio: 2,
+    width: 600 * 2,
+    height: 600 * 2,
+    phi: globePhi,
+    theta: globeTheta,
+    dark: 0,
+    diffuse: 1.2,
+    mapSamples: 16000,
+    mapBrightness: 6,
+    baseColor: [1, 1, 1],
+    markerColor: [0.2, 0.4, 1],
+    glowColor: [1, 1, 1],
+    markers: globalBases.map((base) => ({
+      location: [base.lat, base.lng],
+      size: 0.03,
+      id: base.id,
+    })),
+    arcs: [],
+    arcColor: [0.3, 0.5, 1],
+    arcWidth: 0.5,
+    arcHeight: 0.3,
+  });
+};
+
+const startGlobeAnimation = () => {
+  const animate = () => {
+    if (!globeDragging) {
+      globePhi += 0.005;
+    }
+    if (globeTargetPhi !== null) {
+      globePhi += (globeTargetPhi - globePhi) * globeFocusEase;
+    }
+    if (globeTargetTheta !== null) {
+      globeTheta += (globeTargetTheta - globeTheta) * globeFocusEase;
+    }
+    if (
+      globeTargetPhi !== null &&
+      globeTargetTheta !== null &&
+      Math.abs(globeTargetPhi - globePhi) < globeFocusEpsilon &&
+      Math.abs(globeTargetTheta - globeTheta) < globeFocusEpsilon
+    ) {
+      globeTargetPhi = null;
+      globeTargetTheta = null;
+    }
+    globeInstance?.update({ phi: globePhi, theta: globeTheta });
+    globeAnimationId = requestAnimationFrame(animate);
+  };
+  globeAnimationId = requestAnimationFrame(animate);
+};
+
+const handleGlobePointerDown = (event: PointerEvent) => {
+  globeDragging = true;
+  globeDragStartX = event.clientX;
+  globeDragStartY = event.clientY;
+  globeDragPhiStart = globePhi;
+  globeDragThetaStart = globeTheta;
+};
+
+const handleGlobePointerMove = (event: PointerEvent) => {
+  if (!globeDragging) return;
+  const deltaX = event.clientX - globeDragStartX;
+  const deltaY = event.clientY - globeDragStartY;
+  globePhi = globeDragPhiStart + deltaX * 0.005;
+  globeTheta = Math.max(
+    -Math.PI / 2,
+    Math.min(Math.PI / 2, globeDragThetaStart + deltaY * 0.005),
+  );
+};
+
+const handleGlobePointerUp = () => {
+  globeDragging = false;
+};
+
 onMounted(() => {
   fetchFeaturedVehicles();
 
@@ -677,6 +847,19 @@ onMounted(() => {
 
   const countTargets = document.querySelectorAll('[data-countup="true"]');
   countTargets.forEach((target) => countObserver?.observe(target));
+
+  setupGlobe();
+  startGlobeAnimation();
+  if (globeCanvas.value?.parentElement) {
+    globeResizeObserver = new ResizeObserver(() => setupGlobe());
+    globeResizeObserver.observe(globeCanvas.value.parentElement);
+  }
+  if (globeCanvas.value) {
+    globeCanvas.value.addEventListener("pointerdown", handleGlobePointerDown);
+    globeCanvas.value.addEventListener("pointermove", handleGlobePointerMove);
+    window.addEventListener("pointerup", handleGlobePointerUp);
+    window.addEventListener("pointercancel", handleGlobePointerUp);
+  }
 });
 
 onUnmounted(() => {
@@ -685,5 +868,57 @@ onUnmounted(() => {
   window.removeEventListener("scroll", updateFeatureLockState);
   window.removeEventListener("resize", updateFeatureLockState);
   window.removeEventListener("wheel", handleFeatureWheel);
+  if (globeAnimationId) {
+    cancelAnimationFrame(globeAnimationId);
+  }
+  globeResizeObserver?.disconnect();
+  globeInstance?.destroy();
+  globeInstance = null;
+  if (globeCanvas.value) {
+    globeCanvas.value.removeEventListener(
+      "pointerdown",
+      handleGlobePointerDown,
+    );
+    globeCanvas.value.removeEventListener(
+      "pointermove",
+      handleGlobePointerMove,
+    );
+  }
+  window.removeEventListener("pointerup", handleGlobePointerUp);
+  window.removeEventListener("pointercancel", handleGlobePointerUp);
 });
 </script>
+
+<style scoped>
+.globe-frame {
+  position: relative;
+  width: min(520px, 100%);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      rgba(16, 185, 129, 0.25),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 70% 70%,
+      rgba(59, 130, 246, 0.25),
+      transparent 65%
+    ),
+    #ffffff;
+  box-shadow:
+    0 25px 60px rgba(15, 23, 42, 0.15),
+    inset 0 0 40px rgba(59, 130, 246, 0.08);
+}
+
+.globe-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  filter: drop-shadow(0 20px 40px rgba(15, 23, 42, 0.25));
+  touch-action: none;
+}
+</style>

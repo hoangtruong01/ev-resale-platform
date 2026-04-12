@@ -18,6 +18,7 @@
     "@nuxt/image": "^1.0.0",
     "@nuxt/ui": "^2.11.1",
     "@nuxtjs/i18n": "^10.1.0",
+    "cobe": "^2.0.1",
     "dotenv": "^17.2.2",
     "eslint": "^9.35.0",
     "highlight.js": "^11.11.1",
@@ -30,9 +31,9 @@
   "devDependencies": {
     "@nuxtjs/color-mode": "^3.5.2",
     "@nuxtjs/tailwindcss": "^6.10.0",
+    "@playwright/test": "^1.52.0",
     "@types/node": "^24.5.2",
     "autoprefixer": "^10.4.16",
-    "@playwright/test": "^1.52.0",
     "postcss": "^8.4.32"
   }
 }
