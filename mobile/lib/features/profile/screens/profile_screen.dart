@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-// import '../../../features/auth/providers/auth_provider.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 // import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';

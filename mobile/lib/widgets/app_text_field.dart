@@ -3,7 +3,7 @@ import '../core/theme/app_theme.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
-  final String label;
+  final String? label;
   final String? hint;
   final IconData? prefixIcon;
   final Widget? suffixIcon;
@@ -19,7 +19,7 @@ class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
     required this.controller,
-    required this.label,
+    this.label,
     this.hint,
     this.prefixIcon,
     this.suffixIcon,
