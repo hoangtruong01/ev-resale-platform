@@ -6,7 +6,7 @@ import '../../../services/vehicle_service.dart';
 import '../../../models/vehicle_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
-import '../../../features/auth/providers/auth_provider.dart';
+// import '../../../features/auth/providers/auth_provider.dart';
 
 final vehicleDetailProvider =
     FutureProvider.family<VehicleModel, String>((ref, id) {
@@ -29,7 +29,7 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final vehicleAsync = ref.watch(vehicleDetailProvider(widget.id));
-    final currentUser = ref.watch(currentUserProvider);
+    // final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       body: vehicleAsync.when(
@@ -123,13 +123,13 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppTheme.accentOrange.withOpacity(0.1),
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             vehicle.brand,
                             style: const TextStyle(
-                              color: AppTheme.accentOrange,
+                              color: AppTheme.primaryGreen,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),

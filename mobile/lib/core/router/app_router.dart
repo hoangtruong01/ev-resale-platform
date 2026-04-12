@@ -5,6 +5,7 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/batteries/screens/battery_list_screen.dart';
 import '../../features/batteries/screens/battery_detail_screen.dart';
@@ -27,13 +28,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/splash',
     redirect: (context, state) {
       final isLoggedIn = authState.value?.isAuthenticated ?? false;
-      final isAuthRoute = state.matchedLocation.startsWith('/auth') ||
-          state.matchedLocation == '/splash';
+      final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
+          state.matchedLocation == '/splash' ||
+          state.matchedLocation == '/welcome';
 
-      if (!isLoggedIn && !isAuthRoute) {
-        return '/auth/login';
+      if (!isLoggedIn && !isPublicRoute) {
+        return '/welcome';
       }
-      if (isLoggedIn && isAuthRoute && state.matchedLocation != '/splash') {
+      if (isLoggedIn && isPublicRoute && state.matchedLocation != '/splash') {
         return '/';
       }
       return null;
@@ -42,6 +44,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+
+      // Welcome / Landing page (before login)
+      GoRoute(
+        path: '/welcome',
+        builder: (context, state) => const WelcomeScreen(),
       ),
 
       // Auth routes

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import '../core/utils/app_utils.dart';
 
 class AppNetworkImage extends StatelessWidget {
   final String? url;
@@ -22,13 +23,14 @@ class AppNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedUrl = AppUtils.resolveImageUrl(url);
     Widget child;
 
-    if (url == null || url!.isEmpty) {
+    if (resolvedUrl == null || resolvedUrl.isEmpty) {
       child = _Placeholder(icon: placeholderIcon);
     } else {
       child = CachedNetworkImage(
-        imageUrl: url!,
+        imageUrl: resolvedUrl,
         width: width,
         height: height,
         fit: fit,

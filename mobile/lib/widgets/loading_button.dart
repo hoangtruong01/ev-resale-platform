@@ -23,7 +23,7 @@ class LoadingButton extends StatelessWidget {
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: color ?? AppTheme.primaryGreen,
-        disabledBackgroundColor: AppTheme.primaryGreen.withOpacity(0.6),
+        disabledBackgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.6),
         minimumSize: const Size(double.infinity, 52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),

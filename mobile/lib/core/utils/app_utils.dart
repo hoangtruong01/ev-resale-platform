@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../constants/app_constants.dart';
 
 class AppUtils {
   static final _currencyFormatter = NumberFormat.currency(
@@ -90,5 +91,17 @@ class AppUtils {
   /// Validate phone VN
   static bool isValidPhone(String phone) {
     return RegExp(r'^(0|\+84)[3-9]\d{8}$').hasMatch(phone);
+  }
+
+  /// Resolve image URL (prepend base URL if relative)
+  static String? resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+
+    // Remove /api from base URL to get the server origin
+    final origin = AppConstants.baseUrl.replaceAll('/api', '');
+    final normalizedPath = path.startsWith('/') ? path : '/$path';
+
+    return '$origin$normalizedPath';
   }
 }

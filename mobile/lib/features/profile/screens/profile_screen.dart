@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/providers/auth_provider.dart';
-import '../../../core/utils/app_utils.dart';
+// import '../../../features/auth/providers/auth_provider.dart';
+// import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';
 import '../../admin/screens/kyc_management_screen.dart';
@@ -201,7 +201,7 @@ class ProfileScreen extends ConsumerWidget {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(0.12),
+                                    color: color.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -321,7 +321,7 @@ class ProfileScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppTheme.error.withOpacity(0.06),
+                        color: AppTheme.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                             color: AppTheme.error.withOpacity(0.2)),

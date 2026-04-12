@@ -25,11 +25,11 @@ class MainShell extends StatelessWidget {
           color: Theme.of(context).brightness == Brightness.dark
               ? AppTheme.darkSurface
               : Colors.white,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black54,
               blurRadius: 20,
-              offset: const Offset(0, -2),
+              offset: Offset(0, -2),
             ),
           ],
         ),
@@ -68,7 +68,7 @@ class MainShell extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: AppTheme.primaryGreen.withOpacity(0.4),
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -224,16 +224,16 @@ class _PostOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 24),

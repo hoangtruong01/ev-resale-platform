@@ -205,7 +205,7 @@ class _VehicleCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppTheme.info.withOpacity(0.1),
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(

@@ -144,7 +144,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: grey100,
-        selectedColor: primaryGreen.withOpacity(0.15),
+        selectedColor: primaryGreen.withValues(alpha: 0.15),
         labelStyle: const TextStyle(
           fontFamily: 'BeVietnamPro',
           fontSize: 12,
@@ -203,11 +203,11 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

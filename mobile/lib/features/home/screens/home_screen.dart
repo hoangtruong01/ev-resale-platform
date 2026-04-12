@@ -94,7 +94,7 @@ class HomeScreen extends ConsumerWidget {
                               // Avatar
                               CircleAvatar(
                                 radius: 20,
-                                backgroundColor: Colors.white.withOpacity(0.2),
+                                backgroundColor: Colors.white.withValues(alpha: 0.2),
                                 child: user?.avatar != null
                                     ? ClipOval(
                                         child: AppNetworkImage(
@@ -195,7 +195,7 @@ class HomeScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.accentOrange.withOpacity(0.9),
+                      AppTheme.accentOrange.withValues(alpha: 0.9),
                       AppTheme.accentYellow,
                     ],
                   ),
@@ -350,7 +350,7 @@ class _CategoryCard extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(icon, color: color, size: 30),
@@ -379,7 +379,7 @@ class BatteryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -417,7 +417,7 @@ class BatteryCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withOpacity(0.1),
+                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -471,7 +471,7 @@ class VehicleListTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
