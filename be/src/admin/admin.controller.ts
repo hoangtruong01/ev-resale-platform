@@ -26,6 +26,7 @@ import {
 import type { Response, Request } from 'express';
 import { UsersService } from '../users/users.service';
 import { BatteriesService } from '../batteries/batteries.service';
+import { AccessoriesService } from '../accessories/accessories.service';
 import { AuctionsService } from '../auctions/auctions.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { TransactionsService } from '../transactions/transactions.service';
@@ -51,12 +52,13 @@ interface AdminRequest extends Request {
 
 @ApiTags('Admin')
 @Controller('admin')
-// Temporarily disabled for development - @UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, AdminGuard)
 @ApiBearerAuth('JWT-auth')
 export class AdminController {
   constructor(
     private readonly usersService: UsersService,
     private readonly batteriesService: BatteriesService,
+    private readonly accessoriesService: AccessoriesService,
     private readonly auctionsService: AuctionsService,
     private readonly vehiclesService: VehiclesService,
     private readonly transactionsService: TransactionsService,
@@ -375,6 +377,96 @@ export class AdminController {
     return this.batteriesService.reject(id, req.user?.sub, body.reason);
   }
 
+  @Put('batteries/:id/spam')
+  @ApiOperation({
+    summary: 'Mark battery listing as spam',
+    description: 'Flag a battery listing as spam and hide it',
+  })
+  async markBatterySpam(
+    @Param('id') id: string,
+    @Req() req: AdminRequest,
+    @Body() body: { reason?: string } = {},
+  ) {
+    return this.batteriesService.markSpam(id, req.user?.sub, body.reason);
+  }
+
+  @Put('batteries/:id/verify')
+  @ApiOperation({ summary: 'Verify battery listing' })
+  async verifyBattery(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.batteriesService.verify(id, req.user?.sub);
+  }
+
+  @Put('batteries/:id/unverify')
+  @ApiOperation({ summary: 'Remove verification from battery listing' })
+  async unverifyBattery(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.batteriesService.unverify(id, req.user?.sub);
+  }
+
+  @Get('accessories')
+  @ApiOperation({
+    summary: 'Get all accessory listings (Admin)',
+    description: 'Get all accessory listings with admin filters',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'location', required: false, type: String })
+  @ApiQuery({ name: 'approvalStatus', required: false, type: String })
+  async getAccessories(@Query(ValidationPipe) query: any) {
+    return this.accessoriesService.findAll(query, { includeAllStatuses: true });
+  }
+
+  @Put('accessories/:id/approve')
+  @ApiOperation({
+    summary: 'Approve accessory listing',
+    description: 'Approve an accessory listing for public display',
+  })
+  async approveAccessory(
+    @Param('id') id: string,
+    @Req() req: AdminRequest,
+    @Body() body: { notes?: string } = {},
+  ) {
+    return this.accessoriesService.approve(id, req.user?.sub, body.notes);
+  }
+
+  @Put('accessories/:id/reject')
+  @ApiOperation({
+    summary: 'Reject accessory listing',
+    description: 'Reject an accessory listing and hide from public',
+  })
+  async rejectAccessory(
+    @Param('id') id: string,
+    @Req() req: AdminRequest,
+    @Body() body: { reason?: string } = {},
+  ) {
+    return this.accessoriesService.reject(id, req.user?.sub, body.reason);
+  }
+
+  @Put('accessories/:id/spam')
+  @ApiOperation({
+    summary: 'Mark accessory listing as spam',
+    description: 'Flag an accessory listing as spam and hide it',
+  })
+  async markAccessorySpam(
+    @Param('id') id: string,
+    @Req() req: AdminRequest,
+    @Body() body: { reason?: string } = {},
+  ) {
+    return this.accessoriesService.markSpam(id, req.user?.sub, body.reason);
+  }
+
+  @Put('accessories/:id/verify')
+  @ApiOperation({ summary: 'Verify accessory listing' })
+  async verifyAccessory(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.accessoriesService.verify(id, req.user?.sub);
+  }
+
+  @Put('accessories/:id/unverify')
+  @ApiOperation({ summary: 'Remove verification from accessory listing' })
+  async unverifyAccessory(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.accessoriesService.unverify(id, req.user?.sub);
+  }
+
   @Get('vehicles')
   @ApiOperation({
     summary: 'Get all vehicle listings (Admin)',
@@ -421,7 +513,7 @@ export class AdminController {
     const approvalStatus = query.approvalStatus as string | undefined;
     const fetchLimit = limit * page;
 
-    const [vehicles, batteries] = await Promise.all([
+    const [vehicles, batteries, accessories] = await Promise.all([
       this.vehiclesService.findAll(
         {
           page: 1,
@@ -448,6 +540,17 @@ export class AdminController {
         },
         { includeAllStatuses: true },
       ),
+      this.accessoriesService.findAll(
+        {
+          search: query.search,
+          status: query.status,
+          location: query.location,
+          page: 1,
+          limit: fetchLimit,
+          approvalStatus,
+        },
+        { includeAllStatuses: true },
+      ),
     ]);
 
     const mapped = [
@@ -463,6 +566,10 @@ export class AdminController {
         createdAt: vehicle.createdAt,
         seller: vehicle.seller,
         images: vehicle.images ?? [],
+        isVerified: vehicle.isVerified ?? false,
+        spamScore: vehicle.spamScore ?? 0,
+        spamReasons: vehicle.spamReasons ?? [],
+        isSpamSuspicious: vehicle.isSpamSuspicious ?? false,
       })),
       ...batteries.data.map((battery: any) => ({
         id: battery.id,
@@ -476,6 +583,28 @@ export class AdminController {
         createdAt: battery.createdAt,
         seller: battery.seller,
         images: battery.images ?? [],
+        isVerified: battery.isVerified ?? false,
+        spamScore: battery.spamScore ?? 0,
+        spamReasons: battery.spamReasons ?? [],
+        isSpamSuspicious: battery.isSpamSuspicious ?? false,
+      })),
+      ...accessories.data.map((accessory: any) => ({
+        id: accessory.id,
+        type: 'accessory' as const,
+        title: accessory.name,
+        description: accessory.description,
+        price: Number(accessory.price ?? 0),
+        category: accessory.category,
+        approvalStatus: accessory.approvalStatus ?? 'PENDING',
+        status: accessory.status,
+        location: accessory.location,
+        createdAt: accessory.createdAt,
+        seller: accessory.seller,
+        images: accessory.images ?? [],
+        isVerified: accessory.isVerified ?? false,
+        spamScore: accessory.spamScore ?? 0,
+        spamReasons: accessory.spamReasons ?? [],
+        isSpamSuspicious: accessory.isSpamSuspicious ?? false,
       })),
     ].sort(
       (a, b) =>
@@ -538,6 +667,28 @@ export class AdminController {
     @Body() body: { reason: string },
   ) {
     return this.vehiclesService.reject(id, req.user?.sub, body.reason);
+  }
+
+  @Put('vehicles/:id/spam')
+  @ApiOperation({ summary: 'Mark vehicle listing as spam' })
+  async markVehicleSpam(
+    @Param('id') id: string,
+    @Req() req: AdminRequest,
+    @Body() body: { reason?: string } = {},
+  ) {
+    return this.vehiclesService.markSpam(id, req.user?.sub, body.reason);
+  }
+
+  @Put('vehicles/:id/verify')
+  @ApiOperation({ summary: 'Verify vehicle listing' })
+  async verifyVehicle(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.vehiclesService.verify(id, req.user?.sub);
+  }
+
+  @Put('vehicles/:id/unverify')
+  @ApiOperation({ summary: 'Remove verification from vehicle listing' })
+  async unverifyVehicle(@Param('id') id: string, @Req() req: AdminRequest) {
+    return this.vehiclesService.unverify(id, req.user?.sub);
   }
 
   // Auction Management

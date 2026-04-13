@@ -11,12 +11,12 @@ export class AdminGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request?.user;
 
-    if (user && user.role === 'ADMIN') {
+    if (user && (user.role === 'ADMIN' || user.role === 'MODERATOR')) {
       return true;
     }
 
     throw new ForbiddenException(
-      'Chỉ quản trị viên mới có quyền truy cập tài nguyên này.',
+      'Chỉ quản trị viên hoặc kiểm duyệt viên mới có quyền truy cập.',
     );
   }
 }

@@ -31,6 +31,7 @@ import { UpdateProfileDto, CreateReviewDto } from './dto';
 import { GetAllUsersDto } from './dto/get-all-users.dto';
 import { SubmitKycDto, ReviewKycDto } from './dto/submit-kyc.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../admin/admin.guard';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -174,7 +175,8 @@ export class UsersController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({
     summary: 'Get own KYC verification status',
-    description: 'Returns the KYC status and submitted document info for the authenticated user.',
+    description:
+      'Returns the KYC status and submitted document info for the authenticated user.',
   })
   async getKycStatus(@Req() req: AuthenticatedRequest) {
     const userId = this.extractUserId(req);
@@ -212,9 +214,7 @@ export class UsersController {
     const uploaded = files ?? [];
 
     const getUrl = (index: number) =>
-      uploaded[index]
-        ? `/uploads/kyc/${uploaded[index].filename}`
-        : undefined;
+      uploaded[index] ? `/uploads/kyc/${uploaded[index].filename}` : undefined;
 
     return this.usersService.submitKyc(userId, dto, {
       idFrontImage: getUrl(0),
@@ -227,7 +227,7 @@ export class UsersController {
    * Admin: list pending KYC requests
    */
   @Get('kyc/pending')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: '[Admin] List pending KYC requests' })
   async listPendingKyc(@Req() req: AuthenticatedRequest) {
@@ -239,7 +239,7 @@ export class UsersController {
    * Admin: approve or reject a user's KYC
    */
   @Post('kyc/:userId/review')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: '[Admin] Approve or reject KYC for a user' })
   @ApiParam({ name: 'userId', description: 'Target user ID' })
@@ -250,7 +250,12 @@ export class UsersController {
     @Body(new ValidationPipe({ whitelist: true })) dto: ReviewKycDto,
   ) {
     const user = req.user as any;
-    return this.usersService.reviewKyc(user.id ?? user.sub, user.role, targetUserId, dto);
+    return this.usersService.reviewKyc(
+      user.id ?? user.sub,
+      user.role,
+      targetUserId,
+      dto,
+    );
   }
 
   // ─── Existing endpoints ────────────────────────────────────────────────────
@@ -261,7 +266,11 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user transactions' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'type', required: false, enum: ['sales', 'purchases', 'all'] })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: ['sales', 'purchases', 'all'],
+  })
   async getTransactions(
     @Req() req: AuthenticatedRequest,
     @Query('page') page?: number,

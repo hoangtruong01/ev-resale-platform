@@ -114,6 +114,9 @@ model Vehicle {
   approvalNotes    String?
   approvedAt       DateTime?
   approvedById     String?
+  isVerified       Boolean        @default(false)
+  verifiedAt       DateTime?
+  verifiedById     String?
 
   // Foreign keys
   sellerId   String
@@ -161,6 +164,9 @@ model Battery {
   approvalNotes    String?
   approvedAt       DateTime?
   approvedById     String?
+  isVerified       Boolean        @default(false)
+  verifiedAt       DateTime?
+  verifiedById     String?
 
   // Technical/IoT fields
   current          Decimal?       @db.Decimal(8, 2) // A
@@ -238,6 +244,9 @@ model Accessory {
   approvalNotes    String?
   approvedAt       DateTime?
   approvedById     String?
+  isVerified       Boolean          @default(false)
+  verifiedAt       DateTime?
+  verifiedById     String?
 
   // Foreign keys
   sellerId   String

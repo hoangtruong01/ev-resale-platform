@@ -368,6 +368,63 @@ export class BatteriesService {
     });
   }
 
+  async markSpam(id: string, adminId?: string, reason?: string) {
+    const battery = await this.prisma.battery.findUnique({ where: { id } });
+
+    if (!battery) {
+      throw new NotFoundException(`Battery with ID ${id} not found`);
+    }
+
+    return this.prisma.battery.update({
+      where: { id },
+      data: {
+        isSpamSuspicious: true,
+        spamScore: 1,
+        spamReasons: reason ? [reason] : undefined,
+        spamCheckedAt: new Date(),
+        approvalStatus: APPROVAL_STATUS.REJECTED,
+        approvalNotes: reason,
+        approvedAt: new Date(),
+        approvedById: adminId,
+        isActive: false,
+      } as any,
+    });
+  }
+
+  async verify(id: string, adminId?: string) {
+    const battery = await this.prisma.battery.findUnique({ where: { id } });
+
+    if (!battery) {
+      throw new NotFoundException(`Battery with ID ${id} not found`);
+    }
+
+    return this.prisma.battery.update({
+      where: { id },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+        verifiedById: adminId,
+      } as any,
+    });
+  }
+
+  async unverify(id: string, adminId?: string) {
+    const battery = await this.prisma.battery.findUnique({ where: { id } });
+
+    if (!battery) {
+      throw new NotFoundException(`Battery with ID ${id} not found`);
+    }
+
+    return this.prisma.battery.update({
+      where: { id },
+      data: {
+        isVerified: false,
+        verifiedAt: null,
+        verifiedById: adminId ?? null,
+      } as any,
+    });
+  }
+
   async findByUser(userId: string, query: SearchBatteryDto) {
     const {
       page = 1,

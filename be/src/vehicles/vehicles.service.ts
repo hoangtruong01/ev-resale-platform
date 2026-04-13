@@ -399,4 +399,61 @@ export class VehiclesService {
       } as any,
     });
   }
+
+  async markSpam(id: string, adminId?: string, reason?: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+
+    return this.prisma.vehicle.update({
+      where: { id },
+      data: {
+        isSpamSuspicious: true,
+        spamScore: 1,
+        spamReasons: reason ? [reason] : undefined,
+        spamCheckedAt: new Date(),
+        approvalStatus: APPROVAL_STATUS.REJECTED,
+        approvalNotes: reason,
+        approvedAt: new Date(),
+        approvedById: adminId,
+        isActive: false,
+      } as any,
+    });
+  }
+
+  async verify(id: string, adminId?: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+
+    return this.prisma.vehicle.update({
+      where: { id },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+        verifiedById: adminId,
+      } as any,
+    });
+  }
+
+  async unverify(id: string, adminId?: string) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { id } });
+
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+
+    return this.prisma.vehicle.update({
+      where: { id },
+      data: {
+        isVerified: false,
+        verifiedAt: null,
+        verifiedById: adminId ?? null,
+      } as any,
+    });
+  }
 }

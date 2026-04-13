@@ -491,11 +491,12 @@ interface AdminListingSeller {
 
 interface AdminListingItem {
   id: string;
-  type: "vehicle" | "battery";
+  type: "vehicle" | "battery" | "accessory";
   title?: string | null;
   name?: string | null;
   description?: string | null;
   price?: number | string | null;
+  category?: string | null;
   approvalStatus?: string | null;
   status?: string | null;
   location?: string | null;
@@ -521,7 +522,7 @@ interface AdminListingsResponse {
 
 interface Post {
   id: string;
-  type: "vehicle" | "battery";
+  type: "vehicle" | "battery" | "accessory";
   title: string;
   description: string;
   price: number;
@@ -586,9 +587,18 @@ const statusOptions = [
 const categoryOptions = [
   { label: "Tất cả danh mục", value: "all" },
   { label: "Xe điện", value: "Xe điện" },
+  { label: "Phụ kiện", value: "Phụ kiện" },
   { label: "Pin xe điện", value: "Pin xe điện" },
   { label: "Pin ô tô điện", value: "Pin ô tô điện" },
   { label: "Pin năng lượng mặt trời", value: "Pin năng lượng mặt trời" },
+  { label: "Bộ sạc", value: "Bộ sạc" },
+  { label: "Lốp xe", value: "Lốp xe" },
+  { label: "Nội thất", value: "Nội thất" },
+  { label: "Ngoại thất", value: "Ngoại thất" },
+  { label: "Điện - điện tử", value: "Điện - điện tử" },
+  { label: "An toàn", value: "An toàn" },
+  { label: "Bảo dưỡng", value: "Bảo dưỡng" },
+  { label: "Khác", value: "Khác" },
 ];
 
 const batteryCategoryValues = new Set([
@@ -596,6 +606,19 @@ const batteryCategoryValues = new Set([
   "Pin ô tô điện",
   "Pin năng lượng mặt trời",
 ]);
+
+const accessoryCategoryLabels: Record<string, string> = {
+  CHARGER: "Bộ sạc",
+  TIRE: "Lốp xe",
+  INTERIOR: "Nội thất",
+  EXTERIOR: "Ngoại thất",
+  ELECTRONICS: "Điện - điện tử",
+  SAFETY: "An toàn",
+  MAINTENANCE: "Bảo dưỡng",
+  OTHER: "Khác",
+};
+
+const accessoryCategoryValues = new Set(Object.values(accessoryCategoryLabels));
 
 const mapListingToPost = (item: AdminListingItem): Post => {
   const approvalStatus = (item.approvalStatus ?? "PENDING")
@@ -622,13 +645,20 @@ const mapListingToPost = (item: AdminListingItem): Post => {
     ? resolveAsset(item.seller.avatar)
     : undefined;
 
+  const categoryLabel =
+    item.type === "vehicle"
+      ? "Xe điện"
+      : item.type === "accessory"
+        ? accessoryCategoryLabels[item.category ?? ""] || "Phụ kiện"
+        : item.category || "Pin/Battery";
+
   return {
     id: item.id,
     type: item.type,
     title: item.title ?? item.name ?? "Tin đăng chưa có tiêu đề",
     description: item.description ?? "",
     price: Number.isFinite(priceNumber) ? priceNumber : 0,
-    category: item.type === "vehicle" ? "Xe điện" : "Pin/Battery",
+    category: categoryLabel,
     location: item.location ?? "Chưa cập nhật",
     images: mappedImages,
     status: computedStatus,
@@ -647,7 +677,13 @@ const mapListingToPost = (item: AdminListingItem): Post => {
 };
 
 const getModerationEndpoint = (post: Post) =>
-  `/admin/${post.type === "vehicle" ? "vehicles" : "batteries"}/${post.id}`;
+  `/admin/${
+    post.type === "vehicle"
+      ? "vehicles"
+      : post.type === "battery"
+        ? "batteries"
+        : "accessories"
+  }/${post.id}`;
 
 const fetchPosts = async () => {
   const token = ++fetchToken;
@@ -755,9 +791,14 @@ const filteredPosts = computed(() => {
     filtered = filtered.filter((post) =>
       categoryFilter.value === "Xe điện"
         ? post.type === "vehicle"
-        : batteryCategoryValues.has(categoryFilter.value)
-          ? post.type === "battery"
-          : post.category === categoryFilter.value,
+        : categoryFilter.value === "Phụ kiện"
+          ? post.type === "accessory"
+          : batteryCategoryValues.has(categoryFilter.value)
+            ? post.type === "battery"
+            : accessoryCategoryValues.has(categoryFilter.value)
+              ? post.type === "accessory" &&
+                post.category === categoryFilter.value
+              : post.category === categoryFilter.value,
     );
   }
 
@@ -902,20 +943,54 @@ const rejectPost = async (postId: string) => {
   }
 };
 
-const verifyPost = async (_postId: string) => {
-  showToast({
-    title: "Tính năng đang phát triển",
-    description: "Chức năng kiểm định sẽ sớm được cập nhật.",
-    color: "blue",
-  });
+const verifyPost = async (postId: string) => {
+  const post = posts.value.find((p) => p.id === postId);
+  if (!post) {
+    return;
+  }
+
+  try {
+    await put(`${getModerationEndpoint(post)}/verify`);
+    showToast({
+      title: "Đã kiểm định tin",
+      description: "Tin đăng đã được gắn nhãn kiểm định.",
+      color: "green",
+    });
+    await fetchPosts();
+  } catch (error) {
+    console.error("Error verifying post:", error);
+    showToast({
+      title: "Không thể kiểm định tin",
+      description:
+        error instanceof Error ? error.message : "Vui lòng thử lại sau.",
+      color: "red",
+    });
+  }
 };
 
-const unverifyPost = async (_postId: string) => {
-  showToast({
-    title: "Tính năng đang phát triển",
-    description: "Chức năng bỏ kiểm định sẽ sớm được cập nhật.",
-    color: "blue",
-  });
+const unverifyPost = async (postId: string) => {
+  const post = posts.value.find((p) => p.id === postId);
+  if (!post) {
+    return;
+  }
+
+  try {
+    await put(`${getModerationEndpoint(post)}/unverify`);
+    showToast({
+      title: "Đã bỏ kiểm định",
+      description: "Nhãn kiểm định đã được gỡ khỏi tin đăng.",
+      color: "yellow",
+    });
+    await fetchPosts();
+  } catch (error) {
+    console.error("Error unverifying post:", error);
+    showToast({
+      title: "Không thể bỏ kiểm định",
+      description:
+        error instanceof Error ? error.message : "Vui lòng thử lại sau.",
+      color: "red",
+    });
+  }
 };
 
 const markAsSpam = async (postId: string) => {
@@ -935,11 +1010,33 @@ const markAsSpam = async (postId: string) => {
     return;
   }
 
-  showToast({
-    title: "Tính năng đang phát triển",
-    description: "Hệ thống sẽ sớm hỗ trợ đánh dấu spam trực tiếp.",
-    color: "blue",
-  });
+  const reason = window.prompt(
+    "Nhập lý do đánh dấu spam",
+    "Nội dung không phù hợp",
+  );
+  if (reason === null || !reason.trim()) {
+    return;
+  }
+
+  try {
+    await put(`${getModerationEndpoint(post)}/spam`, {
+      reason: reason.trim(),
+    });
+    showToast({
+      title: "Đã đánh dấu spam",
+      description: "Tin đăng đã được gắn cờ spam.",
+      color: "yellow",
+    });
+    await fetchPosts();
+  } catch (error) {
+    console.error("Error marking post as spam:", error);
+    showToast({
+      title: "Không thể đánh dấu spam",
+      description:
+        error instanceof Error ? error.message : "Vui lòng thử lại sau.",
+      color: "red",
+    });
+  }
 };
 
 const viewPostDetails = (post: Post) => {

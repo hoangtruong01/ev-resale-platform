@@ -277,6 +277,102 @@ export class AccessoriesService {
     });
   }
 
+  async approve(id: string, adminId?: string, notes?: string) {
+    const accessory = await this.prisma.accessory.findUnique({ where: { id } });
+
+    if (!accessory) {
+      throw new NotFoundException(`Accessory with ID ${id} not found`);
+    }
+
+    return this.prisma.accessory.update({
+      where: { id },
+      data: {
+        approvalStatus: APPROVAL_STATUS.APPROVED,
+        approvalNotes: notes,
+        approvedAt: new Date(),
+        approvedById: adminId,
+        isActive: true,
+        status: AccessoryStatus.AVAILABLE,
+      } as any,
+    });
+  }
+
+  async reject(id: string, adminId?: string, reason?: string) {
+    const accessory = await this.prisma.accessory.findUnique({ where: { id } });
+
+    if (!accessory) {
+      throw new NotFoundException(`Accessory with ID ${id} not found`);
+    }
+
+    return this.prisma.accessory.update({
+      where: { id },
+      data: {
+        approvalStatus: APPROVAL_STATUS.REJECTED,
+        approvalNotes: reason,
+        approvedAt: new Date(),
+        approvedById: adminId,
+        isActive: false,
+      } as any,
+    });
+  }
+
+  async markSpam(id: string, adminId?: string, reason?: string) {
+    const accessory = await this.prisma.accessory.findUnique({ where: { id } });
+
+    if (!accessory) {
+      throw new NotFoundException(`Accessory with ID ${id} not found`);
+    }
+
+    return this.prisma.accessory.update({
+      where: { id },
+      data: {
+        isSpamSuspicious: true,
+        spamScore: 1,
+        spamReasons: reason ? [reason] : undefined,
+        spamCheckedAt: new Date(),
+        approvalStatus: APPROVAL_STATUS.REJECTED,
+        approvalNotes: reason,
+        approvedAt: new Date(),
+        approvedById: adminId,
+        isActive: false,
+      } as any,
+    });
+  }
+
+  async verify(id: string, adminId?: string) {
+    const accessory = await this.prisma.accessory.findUnique({ where: { id } });
+
+    if (!accessory) {
+      throw new NotFoundException(`Accessory with ID ${id} not found`);
+    }
+
+    return this.prisma.accessory.update({
+      where: { id },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+        verifiedById: adminId,
+      } as any,
+    });
+  }
+
+  async unverify(id: string, adminId?: string) {
+    const accessory = await this.prisma.accessory.findUnique({ where: { id } });
+
+    if (!accessory) {
+      throw new NotFoundException(`Accessory with ID ${id} not found`);
+    }
+
+    return this.prisma.accessory.update({
+      where: { id },
+      data: {
+        isVerified: false,
+        verifiedAt: null,
+        verifiedById: adminId ?? null,
+      } as any,
+    });
+  }
+
   async findByUser(userId: string, query: SearchAccessoryDto) {
     const {
       page = 1,
