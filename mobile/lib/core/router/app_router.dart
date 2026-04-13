@@ -11,6 +11,9 @@ import '../../features/batteries/screens/battery_list_screen.dart';
 import '../../features/batteries/screens/battery_detail_screen.dart';
 import '../../features/vehicles/screens/vehicle_list_screen.dart';
 import '../../features/vehicles/screens/vehicle_detail_screen.dart';
+import '../../features/accessories/screens/accessory_list_screen.dart';
+import '../../features/accessories/screens/accessory_detail_screen.dart';
+import '../../features/accessories/screens/sell_accessory_screen.dart';
 import '../../features/auctions/screens/auction_list_screen.dart';
 import '../../features/auctions/screens/auction_detail_screen.dart';
 import '../../features/chat/screens/chat_list_screen.dart';
@@ -91,6 +94,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/vehicles/:id',
             builder: (context, state) =>
                 VehicleDetailScreen(id: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/accessories',
+            builder: (context, state) => const AccessoryListScreen(),
+          ),
+          GoRoute(
+            path: '/accessories/:id',
+            builder: (context, state) =>
+                AccessoryDetailScreen(id: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/sell/accessory',
+            builder: (context, state) => const SellAccessoryScreen(),
           ),
           GoRoute(
             path: '/auctions',

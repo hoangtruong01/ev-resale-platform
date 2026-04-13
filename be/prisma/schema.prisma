@@ -50,9 +50,11 @@ model User {
   vehicles                    Vehicle[]               @relation("VehicleSeller")
   batteries                   Battery[]               @relation("BatterySeller")
   auctions                    Auction[]               @relation("AuctionSeller")
+  accessories                 Accessory[]             @relation("AccessorySeller")
   vehicleApprovals            Vehicle[]               @relation("VehicleApprovedBy")
   batteryApprovals            Battery[]               @relation("BatteryApprovedBy")
   auctionApprovals            Auction[]               @relation("AuctionApprovedBy")
+  accessoryApprovals          Accessory[]             @relation("AccessoryApprovedBy")
   favorites                   Favorite[]
   transactionDisputesReported TransactionDispute[]    @relation("TransactionDisputeReporter")
   transactionDisputesResolved TransactionDispute[]    @relation("TransactionDisputeResolver")
@@ -193,6 +195,56 @@ enum BatteryStatus {
   SOLD
   AUCTION
   RESERVED
+}
+
+enum AccessoryCategory {
+  CHARGER
+  TIRE
+  INTERIOR
+  EXTERIOR
+  ELECTRONICS
+  SAFETY
+  MAINTENANCE
+  OTHER
+}
+
+enum AccessoryStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+}
+
+// Accessory model for vehicle accessories
+model Accessory {
+  id               String           @id @default(uuid())
+  name             String
+  category         AccessoryCategory
+  brand            String?
+  compatibleModel  String?
+  condition        String
+  price            Decimal          @db.Decimal(12, 2)
+  description      String?
+  images           String[]
+  location         String
+  isActive         Boolean          @default(true)
+  status           AccessoryStatus  @default(AVAILABLE)
+  isSpamSuspicious Boolean          @default(false)
+  spamScore        Float            @default(0)
+  spamReasons      Json?
+  spamCheckedAt    DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  approvalStatus   ApprovalStatus   @default(PENDING)
+  approvalNotes    String?
+  approvedAt       DateTime?
+  approvedById     String?
+
+  // Foreign keys
+  sellerId   String
+  seller     User   @relation("AccessorySeller", fields: [sellerId], references: [id])
+  approvedBy User?  @relation("AccessoryApprovedBy", fields: [approvedById], references: [id])
+
+  @@map("accessories")
 }
 
 // Auction model

@@ -38,6 +38,12 @@
             {{ $t("batteries") }}
           </NuxtLink>
           <NuxtLink
+            to="/accessories"
+            :class="navLinkClass($route.path.startsWith('/accessories'))"
+          >
+            {{ $t("accessories") }}
+          </NuxtLink>
+          <NuxtLink
             to="/auctions"
             :class="navLinkClass($route.path.startsWith('/auctions'))"
           >

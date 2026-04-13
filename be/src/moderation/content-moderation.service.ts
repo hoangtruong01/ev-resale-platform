@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BatteryType, AuctionItemType } from '@prisma/client';
+import {
+  BatteryType,
+  AuctionItemType,
+  AccessoryCategory,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface ModerationResult {
@@ -14,7 +18,7 @@ interface TextualContent {
   description?: string | null;
   price?: number | null;
   baseline?: number | null;
-  context: 'vehicle' | 'battery' | 'auction';
+  context: 'vehicle' | 'battery' | 'auction' | 'accessory';
 }
 
 interface VehicleModerationInput {
@@ -41,6 +45,13 @@ interface AuctionModerationInput {
   itemBrand?: string | null;
   itemModel?: string | null;
   itemCapacity?: number | null;
+}
+
+interface AccessoryModerationInput {
+  name: string;
+  category: AccessoryCategory;
+  description?: string | null;
+  price: number;
 }
 
 @Injectable()
@@ -138,6 +149,20 @@ export class ContentModerationService {
       price: input.startingPrice,
       baseline,
       context: 'auction',
+    });
+  }
+
+  async analyzeAccessory(
+    input: AccessoryModerationInput,
+  ): Promise<ModerationResult> {
+    const baseline = await this.getAccessoryBaseline(input.category);
+
+    return this.evaluateContent({
+      title: input.name,
+      description: input.description,
+      price: input.price,
+      baseline,
+      context: 'accessory',
     });
   }
 
@@ -300,6 +325,37 @@ export class ContentModerationService {
     }
   }
 
+  private async getAccessoryBaseline(
+    category: AccessoryCategory,
+  ): Promise<number | null> {
+    try {
+      const [specific, general] = await Promise.all([
+        this.prisma.accessory.aggregate({
+          where: {
+            isActive: true,
+            category,
+          },
+          _avg: { price: true },
+        }),
+        this.prisma.accessory.aggregate({
+          where: { isActive: true },
+          _avg: { price: true },
+        }),
+      ]);
+
+      const specificAverage = Number(specific._avg.price ?? 0);
+      if (specificAverage > 0) {
+        return specificAverage;
+      }
+
+      const generalAverage = Number(general._avg.price ?? 0);
+      return generalAverage > 0 ? generalAverage : null;
+    } catch (error) {
+      this.logger.warn(`Unable to compute accessory baseline: ${error}`);
+      return null;
+    }
+  }
+
   private evaluateContent(content: TextualContent): ModerationResult {
     const combinedText = [content.title, content.description]
       .filter(Boolean)
@@ -380,6 +436,11 @@ export class ContentModerationService {
         if (content.context === 'auction' && price < 1000000) {
           reasons.add('Giá khởi điểm quá thấp so với kỳ vọng');
           score += 0.25;
+        }
+
+        if (content.context === 'accessory' && price < 50000) {
+          reasons.add('Giá phụ kiện quá thấp so với thực tế');
+          score += 0.2;
         }
       }
     }

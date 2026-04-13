@@ -9,6 +9,7 @@ class MainShell extends StatelessWidget {
   int _getSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/batteries')) return 1;
+    if (location.startsWith('/accessories')) return 1;
     if (location.startsWith('/auctions')) return 2;
     if (location.startsWith('/chat')) return 3;
     if (location.startsWith('/profile')) return 4;
@@ -143,6 +144,17 @@ class MainShell extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 // context.push('/sell/vehicle');
+              },
+            ),
+            const SizedBox(height: 12),
+            _PostOption(
+              icon: Icons.extension_outlined,
+              title: 'Đăng bán Phụ kiện',
+              subtitle: 'Sạc, lốp, nội thất, điện tử',
+              color: AppTheme.info,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/sell/accessory');
               },
             ),
             const SizedBox(height: 24),

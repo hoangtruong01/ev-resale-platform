@@ -153,8 +153,9 @@ class HomeScreen extends ConsumerWidget {
                         style: TextStyle(
                             fontSize: 17, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 14),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 12,
                       children: [
                         _CategoryCard(
                           icon: Icons.battery_charging_full_rounded,
@@ -167,6 +168,12 @@ class HomeScreen extends ConsumerWidget {
                           label: 'Xe điện',
                           color: AppTheme.accentOrange,
                           onTap: () => context.go('/vehicles'),
+                        ),
+                        _CategoryCard(
+                          icon: Icons.extension_outlined,
+                          label: 'Phụ kiện',
+                          color: AppTheme.info,
+                          onTap: () => context.go('/accessories'),
                         ),
                         _CategoryCard(
                           icon: Icons.gavel_rounded,

@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { BatteriesModule } from './batteries/batteries.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { AuctionsModule } from './auctions/auctions.module';
+import { AccessoriesModule } from './accessories/accessories.module';
 import { AdminModule } from './admin/admin.module';
 import { SettingsModule } from './settings/settings.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -22,6 +23,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { FeesModule } from './fees/fees.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { IotModule } from './iot/iot.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { IotModule } from './iot/iot.module';
     UsersModule,
     BatteriesModule,
     VehiclesModule,
+    AccessoriesModule,
     AuctionsModule,
     AdminModule,
     SettingsModule,
@@ -48,6 +51,7 @@ import { IotModule } from './iot/iot.module';
     FeesModule,
     SupportTicketsModule,
     IotModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

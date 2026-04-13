@@ -20,7 +20,7 @@
             Chọn loại sản phẩm
           </h2>
           <p class="text-gray-600 mb-6">Bạn muốn bán sản phẩm gì?</p>
-          <div class="grid md:grid-cols-2 gap-6">
+          <div class="grid md:grid-cols-3 gap-6">
             <div
               class="p-8 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-xl"
               :class="
@@ -53,6 +53,23 @@
                   Pin xe điện
                 </h3>
                 <p class="text-gray-600">Bán pin xe điện đã qua sử dụng</p>
+              </div>
+            </div>
+            <div
+              class="p-8 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-xl"
+              :class="
+                productType === 'accessory'
+                  ? 'border-green-500 bg-green-50 shadow-lg'
+                  : 'border-gray-200 bg-white hover:border-green-300'
+              "
+              @click="productType = 'accessory'"
+            >
+              <div class="text-center">
+                <div class="text-6xl mb-4">🧰</div>
+                <h3 class="text-xl font-semibold mb-2 text-gray-800">
+                  {{ $t("accessories") }}
+                </h3>
+                <p class="text-gray-600">{{ $t("sell_accessory_hint") }}</p>
               </div>
             </div>
           </div>
@@ -304,6 +321,93 @@
               </div>
             </div>
 
+            <div v-if="productType === 'accessory'" class="space-y-4">
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ $t("accessory_category") }} *
+                  </label>
+                  <select
+                    v-model="form.accessoryCategory"
+                    class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
+                    required
+                  >
+                    <option value="">
+                      {{ $t("choose_accessory_category") }}
+                    </option>
+                    <option value="CHARGER">
+                      {{ $t("accessory_charger") }}
+                    </option>
+                    <option value="TIRE">{{ $t("accessory_tire") }}</option>
+                    <option value="INTERIOR">
+                      {{ $t("accessory_interior") }}
+                    </option>
+                    <option value="EXTERIOR">
+                      {{ $t("accessory_exterior") }}
+                    </option>
+                    <option value="ELECTRONICS">
+                      {{ $t("accessory_electronics") }}
+                    </option>
+                    <option value="SAFETY">{{ $t("accessory_safety") }}</option>
+                    <option value="MAINTENANCE">
+                      {{ $t("accessory_maintenance") }}
+                    </option>
+                    <option value="OTHER">{{ $t("accessory_other") }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ $t("accessory_brand") }}
+                  </label>
+                  <input
+                    v-model.trim="form.accessoryBrand"
+                    type="text"
+                    class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
+                    :placeholder="$t('accessory_brand_placeholder')"
+                  />
+                </div>
+              </div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ $t("accessory_compatible_model") }}
+                  </label>
+                  <input
+                    v-model.trim="form.accessoryCompatibleModel"
+                    type="text"
+                    class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
+                    :placeholder="$t('accessory_compatible_placeholder')"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    {{ $t("accessory_condition") }} *
+                  </label>
+                  <select
+                    v-model="form.accessoryCondition"
+                    class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
+                    required
+                  >
+                    <option value="">
+                      {{ $t("choose_accessory_condition") }}
+                    </option>
+                    <option value="New">
+                      {{ $t("accessory_condition_new") }}
+                    </option>
+                    <option value="Like New">
+                      {{ $t("accessory_condition_like_new") }}
+                    </option>
+                    <option value="Good">
+                      {{ $t("accessory_condition_good") }}
+                    </option>
+                    <option value="Used">
+                      {{ $t("accessory_condition_used") }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div>
               <label class="block text-sm font-semibold text-gray-700 mb-2">
                 {{ $t("location") }} *
@@ -466,13 +570,13 @@ definePageMeta({
   middleware: "auth",
 });
 
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: "global" });
 
 useHead({
   title: `${t("sell")} - EVN Market`,
 });
 
-const productType = ref<"vehicle" | "battery" | null>(null);
+const productType = ref<"vehicle" | "battery" | "accessory" | null>(null);
 const submitting = ref(false);
 
 type ListingImageStatus = "queued" | "uploading" | "uploaded" | "error";
@@ -523,6 +627,10 @@ const form = reactive({
   capacity: 0,
   voltage: 0,
   batteryCondition: 0,
+  accessoryCategory: "",
+  accessoryBrand: "",
+  accessoryCompatibleModel: "",
+  accessoryCondition: "",
 });
 
 const { resolve: resolveAsset } = useAssetUrl();
@@ -608,7 +716,7 @@ const processSelectedFiles = async (files: File[]) => {
     toast.add({
       title: "Tệp quá lớn",
       description: `Vui lòng chọn hình ảnh dưới ${MAX_IMAGE_SIZE_MB}MB: ${oversizeFiles.join(
-        ", "
+        ", ",
       )}`,
       color: "orange",
     });
@@ -676,7 +784,7 @@ const uploadQueuedImages = async (images: ListingImage[]) => {
 
     const response = await post<UploadImagesResponse>(
       "/uploads/listing-images",
-      formData
+      formData,
     );
     const uploadedMap = new Map<
       string,
@@ -749,7 +857,7 @@ const clearUploadedImages = () => {
 const imageList = computed(() =>
   uploadedImages.value
     .filter((image) => image.status === "uploaded" && image.url)
-    .map((image) => image.url as string)
+    .map((image) => image.url as string),
 );
 
 onBeforeUnmount(() => {
@@ -758,6 +866,7 @@ onBeforeUnmount(() => {
 
 const isVehicle = computed(() => productType.value === "vehicle");
 const isBattery = computed(() => productType.value === "battery");
+const isAccessory = computed(() => productType.value === "accessory");
 
 const isFormValid = computed(() => {
   if (isVehicle.value) {
@@ -793,6 +902,18 @@ const isFormValid = computed(() => {
     );
   }
 
+  if (isAccessory.value) {
+    return (
+      !!form.name &&
+      form.price > 0 &&
+      !!form.accessoryCategory &&
+      !!form.accessoryCondition &&
+      !!form.location &&
+      !!form.description &&
+      !!form.phone
+    );
+  }
+
   return false;
 });
 
@@ -816,6 +937,10 @@ const resetForm = () => {
   form.capacity = 0;
   form.voltage = 0;
   form.batteryCondition = 0;
+  form.accessoryCategory = "";
+  form.accessoryBrand = "";
+  form.accessoryCompatibleModel = "";
+  form.accessoryCondition = "";
   clearUploadedImages();
 };
 
@@ -894,6 +1019,31 @@ const submitForm = async () => {
       }
 
       await post("/batteries", payload);
+    }
+
+    if (isAccessory.value) {
+      const payload: Record<string, unknown> = {
+        name: form.name.trim(),
+        category: form.accessoryCategory,
+        condition: form.accessoryCondition,
+        price: Number(form.price),
+        description,
+        location: form.location.trim(),
+      };
+
+      if (form.accessoryBrand) {
+        payload.brand = form.accessoryBrand.trim();
+      }
+
+      if (form.accessoryCompatibleModel) {
+        payload.compatibleModel = form.accessoryCompatibleModel.trim();
+      }
+
+      if (images?.length) {
+        payload.images = images;
+      }
+
+      await post("/accessories", payload);
     }
 
     toast.add({

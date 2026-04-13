@@ -86,6 +86,35 @@ export interface Vehicle {
   approvalStatus?: string;
 }
 
+export type AccessoryCategory =
+  | "CHARGER"
+  | "TIRE"
+  | "INTERIOR"
+  | "EXTERIOR"
+  | "ELECTRONICS"
+  | "SAFETY"
+  | "MAINTENANCE"
+  | "OTHER";
+
+export interface Accessory {
+  id: string;
+  name: string;
+  category: AccessoryCategory;
+  brand?: string | null;
+  compatibleModel?: string | null;
+  condition: string;
+  price: number | string;
+  description?: string | null;
+  images?: string[];
+  location?: string | null;
+  sellerId: string;
+  seller?: User;
+  status?: string;
+  approvalStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // Types for auctions
 export type AuctionStatus = "PENDING" | "ACTIVE" | "ENDED" | "CANCELLED";
 export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
