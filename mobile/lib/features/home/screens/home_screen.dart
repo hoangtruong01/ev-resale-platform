@@ -544,13 +544,22 @@ class HomeScreen extends ConsumerWidget {
                           fontSize: 17, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
+                    Row(
                       children: _homeFeatures
-                          .map((feature) =>
-                              _FeatureCard(feature: feature, l10n: l10n))
-                          .toList(),
+                          .map(
+                            (feature) => Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: _FeatureCard(
+                                  feature: feature,
+                                  l10n: l10n,
+                                  compact: true,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList()
+                        ..removeLast(),
                     ),
                   ],
                 ),
@@ -1227,13 +1236,20 @@ class _PressableScaleState extends State<PressableScale> {
 class _FeatureCard extends StatelessWidget {
   final _HomeFeature feature;
   final AppLocalizations l10n;
-  const _FeatureCard({required this.feature, required this.l10n});
+  final double? width;
+  final bool compact;
+  const _FeatureCard({
+    required this.feature,
+    required this.l10n,
+    this.width,
+    this.compact = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: (MediaQuery.of(context).size.width - 52) / 2,
-      padding: const EdgeInsets.all(14),
+      width: width ?? (MediaQuery.of(context).size.width - 52) / 2,
+      padding: EdgeInsets.all(compact ? 10 : 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1249,23 +1265,34 @@ class _FeatureCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: compact ? 32 : 40,
+            height: compact ? 32 : 40,
             decoration: BoxDecoration(
               color: feature.color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(feature.icon, color: feature.color, size: 22),
+            child: Icon(feature.icon,
+                color: feature.color, size: compact ? 18 : 22),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: compact ? 8 : 10),
           Text(
             _resolveHomeText(l10n, feature.titleKey),
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: compact ? 11 : 13,
+            ),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: compact ? 4 : 6),
           Text(
             _resolveHomeText(l10n, feature.descKey),
-            style: const TextStyle(color: AppTheme.grey500, fontSize: 11),
+            maxLines: compact ? 2 : 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: AppTheme.grey500,
+              fontSize: compact ? 9 : 11,
+            ),
           ),
         ],
       ),

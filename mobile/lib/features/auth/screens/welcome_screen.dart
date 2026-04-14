@@ -92,6 +92,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             const _FeaturesSection(),
             // ── Process ───────────────────────────────────────────────
             const _ProcessSection(),
+            // ── Global safety ─────────────────────────────────────────
+            const _GlobalSafeSection(),
             // ── Featured Vehicles ─────────────────────────────────────
             const _FeaturedVehiclesSection(),
             // ── Footer CTA ────────────────────────────────────────────
@@ -496,17 +498,20 @@ class _FeaturesSection extends StatelessWidget {
             style: TextStyle(fontSize: 14, color: AppTheme.grey500),
           ),
           const SizedBox(height: 24),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: features.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.9,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
+          SizedBox(
+            height: 150,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: features.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (_, i) => SizedBox(
+                width: 160,
+                child: _FeatureCard(
+                  feature: features[i],
+                  compact: true,
+                ),
+              ),
             ),
-            itemBuilder: (_, i) => _FeatureCard(feature: features[i]),
           ),
         ],
       ),
@@ -529,12 +534,13 @@ class _FeatureData {
 
 class _FeatureCard extends StatelessWidget {
   final _FeatureData feature;
-  const _FeatureCard({required this.feature});
+  final bool compact;
+  const _FeatureCard({required this.feature, this.compact = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(compact ? 12 : 18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -550,8 +556,8 @@ class _FeatureCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: compact ? 36 : 48,
+            height: compact ? 36 : 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: feature.gradient,
@@ -567,30 +573,108 @@ class _FeatureCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(feature.icon, color: Colors.white, size: 24),
+            child: Icon(
+              feature.icon,
+              color: Colors.white,
+              size: compact ? 18 : 24,
+            ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: compact ? 10 : 14),
           Text(
             feature.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppTheme.grey900,
               height: 1.3,
             ),
           ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: Text(
-              feature.desc,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11.5,
-                color: AppTheme.grey500,
-                height: 1.5,
-              ),
+          SizedBox(height: compact ? 4 : 6),
+          Text(
+            feature.desc,
+            maxLines: compact ? 2 : 3,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: compact ? 9.5 : 11.5,
+              color: AppTheme.grey500,
+              height: 1.4,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Global safety section
+// ─────────────────────────────────────────────────────────────────────────────
+class _GlobalSafeSection extends StatelessWidget {
+  const _GlobalSafeSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final locations = [
+      'Ha Noi',
+      'Ho Chi Minh',
+      'Da Nang',
+      'Can Tho',
+      'Singapore',
+      'Tokyo',
+    ];
+
+    return Container(
+      color: const Color(0xFF0B1220),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Giao dịch an toàn trên phạm vi toàn cầu',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Hệ thống đối tác và kiểm định phủ rộng giúp giao dịch minh bạch và an toàn.',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.7),
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: locations
+                .map(
+                  (label) => Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),
