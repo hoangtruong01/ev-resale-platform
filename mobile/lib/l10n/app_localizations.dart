@@ -116,10 +116,16 @@ abstract class AppLocalizations {
   /// **'Welcome to EVN Market'**
   String get welcome;
 
+  /// No description provided for @heroTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent, inspected EV battery marketplace'**
+  String get heroTitle;
+
   /// No description provided for @heroSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Transparent, safe marketplace for EV batteries and EVs.'**
+  /// **'EV batteries, used EVs, and accessories with clear condition and trusted pricing.'**
   String get heroSubtitle;
 
   /// No description provided for @searchHint.
@@ -127,6 +133,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search batteries, EVs, accessories...'**
   String get searchHint;
+
+  /// No description provided for @ctaExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore listings'**
+  String get ctaExplore;
 
   /// No description provided for @ctaVehicles.
   ///
@@ -179,8 +191,20 @@ abstract class AppLocalizations {
   /// No description provided for @statUsers.
   ///
   /// In en, this message translates to:
-  /// **'Users'**
+  /// **'Customers'**
   String get statUsers;
+
+  /// No description provided for @statProvinces.
+  ///
+  /// In en, this message translates to:
+  /// **'Provinces'**
+  String get statProvinces;
+
+  /// No description provided for @statProvincesValue.
+  ///
+  /// In en, this message translates to:
+  /// **'63'**
+  String get statProvincesValue;
 
   /// No description provided for @whyChoose.
   ///
@@ -188,17 +212,17 @@ abstract class AppLocalizations {
   /// **'Why EVN Market'**
   String get whyChoose;
 
-  /// No description provided for @featureSafe.
+  /// No description provided for @featureInspection.
   ///
   /// In en, this message translates to:
-  /// **'Safe & transparent'**
-  String get featureSafe;
+  /// **'Verified inspection'**
+  String get featureInspection;
 
-  /// No description provided for @featureSafeDesc.
+  /// No description provided for @featureInspectionDesc.
   ///
   /// In en, this message translates to:
-  /// **'Strict moderation, clear history, secure trades.'**
-  String get featureSafeDesc;
+  /// **'Clear status reports and verified listings.'**
+  String get featureInspectionDesc;
 
   /// No description provided for @featureAi.
   ///
@@ -224,17 +248,41 @@ abstract class AppLocalizations {
   /// **'Competitive and real-time bidding.'**
   String get featureAuctionDesc;
 
-  /// No description provided for @featureSupport.
+  /// No description provided for @featureWarranty.
   ///
   /// In en, this message translates to:
-  /// **'24/7 support'**
-  String get featureSupport;
+  /// **'Warranty support'**
+  String get featureWarranty;
 
-  /// No description provided for @featureSupportDesc.
+  /// No description provided for @featureWarrantyDesc.
   ///
   /// In en, this message translates to:
-  /// **'Fast, multi-channel support team.'**
-  String get featureSupportDesc;
+  /// **'Transparent policies and post-sale support.'**
+  String get featureWarrantyDesc;
+
+  /// No description provided for @featureDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Nationwide delivery'**
+  String get featureDelivery;
+
+  /// No description provided for @featureDeliveryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure delivery with tracking updates.'**
+  String get featureDeliveryDesc;
+
+  /// No description provided for @featureCondition.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition matching'**
+  String get featureCondition;
+
+  /// No description provided for @featureConditionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Compatibility and condition details upfront.'**
+  String get featureConditionDesc;
 
   /// No description provided for @processTitle.
   ///
@@ -245,73 +293,61 @@ abstract class AppLocalizations {
   /// No description provided for @processStep1Title.
   ///
   /// In en, this message translates to:
-  /// **'Create account'**
+  /// **'Sign up'**
   String get processStep1Title;
 
   /// No description provided for @processStep1Desc.
   ///
   /// In en, this message translates to:
-  /// **'Quick verification and secure data.'**
+  /// **'Create an account in minutes.'**
   String get processStep1Desc;
 
   /// No description provided for @processStep2Title.
   ///
   /// In en, this message translates to:
-  /// **'Post listing'**
+  /// **'Verify listing'**
   String get processStep2Title;
 
   /// No description provided for @processStep2Desc.
   ///
   /// In en, this message translates to:
-  /// **'List your items in minutes.'**
+  /// **'Inspection and listing approval.'**
   String get processStep2Desc;
 
   /// No description provided for @processStep3Title.
   ///
   /// In en, this message translates to:
-  /// **'Connect & negotiate'**
+  /// **'Choose or bid'**
   String get processStep3Title;
 
   /// No description provided for @processStep3Desc.
   ///
   /// In en, this message translates to:
-  /// **'Chat, bargain, and close deals.'**
+  /// **'Buy now or join transparent auctions.'**
   String get processStep3Desc;
 
   /// No description provided for @processStep4Title.
   ///
   /// In en, this message translates to:
-  /// **'Safe transaction'**
+  /// **'Delivery & warranty'**
   String get processStep4Title;
 
   /// No description provided for @processStep4Desc.
   ///
   /// In en, this message translates to:
-  /// **'Clear payments and tracking.'**
+  /// **'Safe payment and support after purchase.'**
   String get processStep4Desc;
-
-  /// No description provided for @globalTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Connected network'**
-  String get globalTitle;
-
-  /// No description provided for @globalDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Connecting buyers and sellers nationwide.'**
-  String get globalDesc;
 
   /// No description provided for @featuredBatteries.
   ///
   /// In en, this message translates to:
-  /// **'Featured batteries'**
+  /// **'Verified EV batteries'**
   String get featuredBatteries;
 
   /// No description provided for @featuredVehicles.
   ///
   /// In en, this message translates to:
-  /// **'Featured vehicles'**
+  /// **'Used EVs for you'**
   String get featuredVehicles;
 
   /// No description provided for @viewAll.
@@ -323,13 +359,13 @@ abstract class AppLocalizations {
   /// No description provided for @bannerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Quality batteries'**
+  /// **'Inspection and warranty'**
   String get bannerTitle;
 
   /// No description provided for @bannerSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Low fees from 1%'**
+  /// **'Clear condition reports and secure transactions.'**
   String get bannerSubtitle;
 
   /// No description provided for @footerProducts.
@@ -379,6 +415,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auctions'**
   String get categoryAuction;
+
+  /// No description provided for @categoryInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection'**
+  String get categoryInspection;
+
+  /// No description provided for @categoryNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get categoryNearby;
 
   /// No description provided for @categoryChat.
   ///
@@ -434,6 +482,24 @@ abstract class AppLocalizations {
   /// **'New'**
   String get badgeNew;
 
+  /// No description provided for @badgeVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get badgeVerified;
+
+  /// No description provided for @badgeWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty'**
+  String get badgeWarranty;
+
+  /// No description provided for @badgeTransparent.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent'**
+  String get badgeTransparent;
+
   /// No description provided for @badgeAvailable.
   ///
   /// In en, this message translates to:
@@ -457,6 +523,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reserved'**
   String get badgeReserved;
+
+  /// No description provided for @trustInspected.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspected'**
+  String get trustInspected;
+
+  /// No description provided for @trustWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear warranty'**
+  String get trustWarranty;
+
+  /// No description provided for @trustDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery support'**
+  String get trustDelivery;
+
+  /// No description provided for @trustAiPricing.
+  ///
+  /// In en, this message translates to:
+  /// **'AI pricing'**
+  String get trustAiPricing;
+
+  /// No description provided for @heroCardBattery.
+  ///
+  /// In en, this message translates to:
+  /// **'EV Batteries'**
+  String get heroCardBattery;
+
+  /// No description provided for @heroCardBatteryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'SOH, capacity, cycles'**
+  String get heroCardBatteryDesc;
+
+  /// No description provided for @heroCardVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used EVs'**
+  String get heroCardVehicle;
+
+  /// No description provided for @heroCardVehicleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage, warranty, condition'**
+  String get heroCardVehicleDesc;
+
+  /// No description provided for @finalCtaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore inspected EV batteries and used EVs'**
+  String get finalCtaTitle;
+
+  /// No description provided for @finalCtaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transparent condition, trusted pricing, nationwide delivery.'**
+  String get finalCtaSubtitle;
+
+  /// No description provided for @finalCtaPrimary.
+  ///
+  /// In en, this message translates to:
+  /// **'View listings'**
+  String get finalCtaPrimary;
+
+  /// No description provided for @finalCtaSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell for free'**
+  String get finalCtaSecondary;
 
   /// No description provided for @errorLoad.
   ///

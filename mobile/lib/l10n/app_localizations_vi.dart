@@ -18,11 +18,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get welcome => 'Chao mung den EVN Market';
 
   @override
+  String get heroTitle => 'Mua ban pin xe dien cu minh bach, co kiem dinh';
+
+  @override
   String get heroSubtitle =>
-      'Nen tang giao dich pin va xe dien minh bach, an toan, gia tot.';
+      'Pin EV, xe dien cu va phu kien chinh hang - ro tinh trang, gia tot.';
 
   @override
   String get searchHint => 'Tim kiem pin, xe dien, phu kien...';
+
+  @override
+  String get ctaExplore => 'Kham pha san pham';
 
   @override
   String get ctaVehicles => 'Kham pha xe dien';
@@ -49,17 +55,23 @@ class AppLocalizationsVi extends AppLocalizations {
   String get statTransactions => 'Giao dich';
 
   @override
-  String get statUsers => 'Nguoi dung';
+  String get statUsers => 'Khach hang';
+
+  @override
+  String get statProvinces => 'Tinh thanh';
+
+  @override
+  String get statProvincesValue => '63';
 
   @override
   String get whyChoose => 'Vi sao chon EVN Market';
 
   @override
-  String get featureSafe => 'An toan & minh bach';
+  String get featureInspection => 'Kiem dinh & xac thuc';
 
   @override
-  String get featureSafeDesc =>
-      'Duyet tin chat che, lich su ro rang, bao ve giao dich.';
+  String get featureInspectionDesc =>
+      'Ho so ro rang, tinh trang duoc xac minh.';
 
   @override
   String get featureAi => 'Dinh gia AI';
@@ -76,58 +88,64 @@ class AppLocalizationsVi extends AppLocalizations {
       'Mua ban canh tranh, minh bach theo thoi gian thuc.';
 
   @override
-  String get featureSupport => 'Ho tro 24/7';
+  String get featureWarranty => 'Bao hanh ro rang';
 
   @override
-  String get featureSupportDesc => 'Doi ngu cham soc ho tro nhanh, da kenh.';
+  String get featureWarrantyDesc => 'Chinh sach minh bach, ho tro sau mua.';
+
+  @override
+  String get featureDelivery => 'Giao nhan toan quoc';
+
+  @override
+  String get featureDeliveryDesc => 'Van chuyen an toan, co theo doi.';
+
+  @override
+  String get featureCondition => 'Doi chieu tinh trang';
+
+  @override
+  String get featureConditionDesc => 'Tuong thich va tinh trang ro rang.';
 
   @override
   String get processTitle => 'Quy trinh giao dich';
 
   @override
-  String get processStep1Title => 'Tao tai khoan';
+  String get processStep1Title => 'Dang ky';
 
   @override
-  String get processStep1Desc => 'Xac thuc nhanh, an toan thong tin.';
+  String get processStep1Desc => 'Tao tai khoan trong vai phut.';
 
   @override
-  String get processStep2Title => 'Dang tin';
+  String get processStep2Title => 'Xac thuc';
 
   @override
-  String get processStep2Desc => 'Dang pin/xe/phu kien chi vai phut.';
+  String get processStep2Desc => 'Kiem dinh va duyet tin nhanh.';
 
   @override
-  String get processStep3Title => 'Ket noi mua ban';
+  String get processStep3Title => 'Chon / dau gia';
 
   @override
-  String get processStep3Desc => 'Chat, dam phan, chot don linh hoat.';
+  String get processStep3Desc => 'Mua ngay hoac tham gia dau gia minh bach.';
 
   @override
-  String get processStep4Title => 'Giao dich an toan';
+  String get processStep4Title => 'Giao nhan & bao hanh';
 
   @override
-  String get processStep4Desc => 'Thanh toan ro rang, theo doi trang thai.';
+  String get processStep4Desc => 'Thanh toan an toan, ho tro sau mua.';
 
   @override
-  String get globalTitle => 'Mang luoi ket noi';
+  String get featuredBatteries => 'Pin EV da kiem dinh';
 
   @override
-  String get globalDesc => 'Ket noi nguoi mua - nguoi ban tren toan quoc.';
-
-  @override
-  String get featuredBatteries => 'Pin dien noi bat';
-
-  @override
-  String get featuredVehicles => 'Xe dien noi bat';
+  String get featuredVehicles => 'Xe dien cu noi bat';
 
   @override
   String get viewAll => 'Xem tat ca';
 
   @override
-  String get bannerTitle => 'Pin chat luong';
+  String get bannerTitle => 'Kiem dinh & bao hanh';
 
   @override
-  String get bannerSubtitle => 'Phi giao dich thap chi tu 1%';
+  String get bannerSubtitle => 'Ho so ro rang, giao dich an toan.';
 
   @override
   String get footerProducts => 'San pham';
@@ -145,13 +163,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get categoryBattery => 'Pin dien';
 
   @override
-  String get categoryVehicle => 'Xe dien';
+  String get categoryVehicle => 'Xe dien cu';
 
   @override
   String get categoryAccessory => 'Phu kien';
 
   @override
   String get categoryAuction => 'Dau gia';
+
+  @override
+  String get categoryInspection => 'Kiem dinh';
+
+  @override
+  String get categoryNearby => 'Gan ban';
 
   @override
   String get categoryChat => 'Tin nhan';
@@ -181,6 +205,15 @@ class AppLocalizationsVi extends AppLocalizations {
   String get badgeNew => 'Moi';
 
   @override
+  String get badgeVerified => 'Da kiem dinh';
+
+  @override
+  String get badgeWarranty => 'Bao hanh';
+
+  @override
+  String get badgeTransparent => 'Minh bach';
+
+  @override
   String get badgeAvailable => 'Con hang';
 
   @override
@@ -191,6 +224,43 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get badgeReserved => 'Da dat coc';
+
+  @override
+  String get trustInspected => 'Da kiem dinh';
+
+  @override
+  String get trustWarranty => 'Bao hanh ro rang';
+
+  @override
+  String get trustDelivery => 'Ho tro giao nhan';
+
+  @override
+  String get trustAiPricing => 'Dinh gia AI';
+
+  @override
+  String get heroCardBattery => 'Pin EV';
+
+  @override
+  String get heroCardBatteryDesc => 'SOH, dung luong, chu ky';
+
+  @override
+  String get heroCardVehicle => 'Xe dien cu';
+
+  @override
+  String get heroCardVehicleDesc => 'So km, bao hanh, tinh trang';
+
+  @override
+  String get finalCtaTitle => 'Kham pha pin va xe dien cu da kiem dinh';
+
+  @override
+  String get finalCtaSubtitle =>
+      'Minh bach tinh trang, gia tot, giao nhan toan quoc.';
+
+  @override
+  String get finalCtaPrimary => 'Xem san pham';
+
+  @override
+  String get finalCtaSecondary => 'Dang ban mien phi';
 
   @override
   String errorLoad(Object message) {

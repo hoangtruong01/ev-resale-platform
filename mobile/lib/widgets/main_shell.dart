@@ -10,8 +10,9 @@ class MainShell extends StatelessWidget {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/batteries')) return 1;
     if (location.startsWith('/accessories')) return 1;
+    if (location.startsWith('/vehicles')) return 1;
     if (location.startsWith('/auctions')) return 2;
-    if (location.startsWith('/chat')) return 3;
+    if (location.startsWith('/sell')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0; // home
   }
@@ -43,52 +44,35 @@ class MainShell extends StatelessWidget {
                 _NavItem(
                   icon: Icons.home_outlined,
                   activeIcon: Icons.home_rounded,
-                  label: 'Trang chủ',
+                  label: 'Trang chu',
                   isSelected: selectedIndex == 0,
                   onTap: () => context.go('/'),
                 ),
                 _NavItem(
-                  icon: Icons.battery_5_bar_outlined,
-                  activeIcon: Icons.battery_charging_full_rounded,
-                  label: 'Pin & Xe',
+                  icon: Icons.grid_view_outlined,
+                  activeIcon: Icons.grid_view_rounded,
+                  label: 'Danh muc',
                   isSelected: selectedIndex == 1,
                   onTap: () => context.go('/batteries'),
-                ),
-                // Center button - Post
-                GestureDetector(
-                  onTap: () => _showPostMenu(context),
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryGreen, AppTheme.primaryDark],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 28),
-                  ),
                 ),
                 _NavItem(
                   icon: Icons.gavel_outlined,
                   activeIcon: Icons.gavel_rounded,
-                  label: 'Đấu giá',
+                  label: 'Dau gia',
                   isSelected: selectedIndex == 2,
                   onTap: () => context.go('/auctions'),
                 ),
                 _NavItem(
+                  icon: Icons.add_circle_outline,
+                  activeIcon: Icons.add_circle,
+                  label: 'Dang ban',
+                  isSelected: selectedIndex == 3,
+                  onTap: () => _showPostMenu(context),
+                ),
+                _NavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person_rounded,
-                  label: 'Tôi',
+                  label: 'Tai khoan',
                   isSelected: selectedIndex == 4,
                   onTap: () => context.go('/profile'),
                 ),

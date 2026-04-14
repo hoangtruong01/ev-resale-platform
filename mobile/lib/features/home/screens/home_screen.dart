@@ -42,10 +42,10 @@ class _HomeProcessStep {
 
 const _homeFeatures = [
   _HomeFeature(
-    icon: Icons.verified_user_outlined,
-    color: AppTheme.info,
-    titleKey: 'featureSafe',
-    descKey: 'featureSafeDesc',
+    icon: Icons.verified_rounded,
+    color: AppTheme.primaryGreen,
+    titleKey: 'featureInspection',
+    descKey: 'featureInspectionDesc',
   ),
   _HomeFeature(
     icon: Icons.auto_graph_rounded,
@@ -60,10 +60,22 @@ const _homeFeatures = [
     descKey: 'featureAuctionDesc',
   ),
   _HomeFeature(
-    icon: Icons.headset_mic_outlined,
+    icon: Icons.workspace_premium_rounded,
+    color: AppTheme.accentOrange,
+    titleKey: 'featureWarranty',
+    descKey: 'featureWarrantyDesc',
+  ),
+  _HomeFeature(
+    icon: Icons.local_shipping_outlined,
+    color: AppTheme.info,
+    titleKey: 'featureDelivery',
+    descKey: 'featureDeliveryDesc',
+  ),
+  _HomeFeature(
+    icon: Icons.fact_check_outlined,
     color: AppTheme.accentYellow,
-    titleKey: 'featureSupport',
-    descKey: 'featureSupportDesc',
+    titleKey: 'featureCondition',
+    descKey: 'featureConditionDesc',
   ),
 ];
 
@@ -90,7 +102,6 @@ const _homeProcessSteps = [
   ),
 ];
 
-// Providers
 final homeBatteriesProvider = FutureProvider<BatteryListResponse>((ref) {
   return ref.read(batteryServiceProvider).getBatteries(limit: 6);
 });
@@ -113,6 +124,9 @@ class HomeScreen extends ConsumerWidget {
     final batteries = ref.watch(homeBatteriesProvider);
     final vehicles = ref.watch(homeVehiclesProvider);
     final stats = ref.watch(homeStatsProvider);
+    final mediaQuery = MediaQuery.of(context);
+    final reduceMotion =
+        mediaQuery.disableAnimations || mediaQuery.accessibleNavigation;
     final statsData = stats.maybeWhen(
       data: (data) => data,
       orElse: () => null,
@@ -132,145 +146,262 @@ class HomeScreen extends ConsumerWidget {
         },
         child: CustomScrollView(
           slivers: [
-            // Hero Section
             SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppTheme.primaryDark,
-                      AppTheme.primaryGreen.withValues(alpha: 0.95),
-                      AppTheme.primaryGreen,
-                    ],
-                  ),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                 child: SafeArea(
                   bottom: false,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '${l10n.hello}, $displayName! 👋',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  l10n.welcome,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => context.push('/notifications'),
-                            icon: const Icon(Icons.notifications_outlined,
-                                color: Colors.white, size: 26),
-                          ),
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.white.withValues(alpha: 0.2),
-                            child: user?.avatar != null
-                                ? ClipOval(
-                                    child: AppNetworkImage(
-                                        url: user!.avatar!,
-                                        width: 40,
-                                        height: 40),
-                                  )
-                                : Text(
-                                    (user?.displayName.isNotEmpty == true)
-                                        ? user!.displayName[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700),
-                                  ),
+                  child: FadeSlideIn(
+                    duration: reduceMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 260),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.primaryDark,
+                            AppTheme.primaryGreen,
+                            AppTheme.primaryGreen.withValues(alpha: 0.9),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 18,
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 18),
-                      Text(
-                        l10n.heroSubtitle,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () => context.push('/batteries'),
-                        child: Container(
-                          height: 46,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              const SizedBox(width: 16),
-                              const Icon(Icons.search, color: AppTheme.grey400),
-                              const SizedBox(width: 10),
-                              Text(
-                                l10n.searchHint,
-                                style: const TextStyle(
-                                    color: AppTheme.grey400, fontSize: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${l10n.hello}, $displayName',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      l10n.heroTitle,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => context.push('/notifications'),
+                                icon: const Icon(Icons.notifications_outlined,
+                                    color: Colors.white, size: 24),
+                              ),
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor:
+                                    Colors.white.withValues(alpha: 0.2),
+                                child: user?.avatar != null
+                                    ? ClipOval(
+                                        child: AppNetworkImage(
+                                            url: user!.avatar!,
+                                            width: 36,
+                                            height: 36),
+                                      )
+                                    : Text(
+                                        (user?.displayName.isNotEmpty == true)
+                                            ? user!.displayName[0]
+                                                .toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w700),
+                                      ),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: [
-                          SizedBox(
-                            width: 160,
-                            child: ElevatedButton(
-                              onPressed: () => context.go('/vehicles'),
-                              child: Text(l10n.ctaVehicles),
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.heroSubtitle,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13,
+                              height: 1.5,
                             ),
                           ),
-                          SizedBox(
-                            width: 160,
-                            child: OutlinedButton(
-                              onPressed: () => context.go('/auctions'),
-                              child: Text(l10n.ctaAuctions),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => context.go('/batteries'),
+                                  child: Text(l10n.ctaExplore),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => _showSellMenu(context, l10n),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: const BorderSide(
+                                        color: Colors.white, width: 1.2),
+                                  ),
+                                  child: Text(l10n.ctaSell),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              TrustBadge(
+                                icon: Icons.verified_outlined,
+                                label: l10n.trustInspected,
+                              ),
+                              TrustBadge(
+                                icon: Icons.workspace_premium_outlined,
+                                label: l10n.trustWarranty,
+                              ),
+                              TrustBadge(
+                                icon: Icons.local_shipping_outlined,
+                                label: l10n.trustDelivery,
+                              ),
+                              TrustBadge(
+                                icon: Icons.auto_graph_rounded,
+                                label: l10n.trustAiPricing,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          GestureDetector(
+                            onTap: () => context.push('/batteries'),
+                            child: Container(
+                              height: 46,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 16),
+                                  const Icon(Icons.search,
+                                      color: AppTheme.grey400),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    l10n.searchHint,
+                                    style: const TextStyle(
+                                        color: AppTheme.grey400, fontSize: 14),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          SizedBox(
-                            width: 160,
-                            child: OutlinedButton(
-                              onPressed: () => _showSellMenu(context, l10n),
-                              child: Text(l10n.ctaSell),
-                            ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _HeroPreviewCard(
+                                  icon: Icons.battery_charging_full_rounded,
+                                  title: l10n.heroCardBattery,
+                                  subtitle: l10n.heroCardBatteryDesc,
+                                  color: AppTheme.primaryGreen,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _HeroPreviewCard(
+                                  icon: Icons.electric_car_rounded,
+                                  title: l10n.heroCardVehicle,
+                                  subtitle: l10n.heroCardVehicleDesc,
+                                  color: AppTheme.accentOrange,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-
-            // Stats
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.categories,
+                      style: const TextStyle(
+                          fontSize: 17, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 96,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          _QuickCategoryItem(
+                            icon: Icons.battery_charging_full_rounded,
+                            label: l10n.categoryBattery,
+                            color: AppTheme.primaryGreen,
+                            onTap: () => context.go('/batteries'),
+                          ),
+                          _QuickCategoryItem(
+                            icon: Icons.electric_car_rounded,
+                            label: l10n.categoryVehicle,
+                            color: AppTheme.accentOrange,
+                            onTap: () => context.go('/vehicles'),
+                          ),
+                          _QuickCategoryItem(
+                            icon: Icons.extension_outlined,
+                            label: l10n.categoryAccessory,
+                            color: AppTheme.info,
+                            onTap: () => context.go('/accessories'),
+                          ),
+                          _QuickCategoryItem(
+                            icon: Icons.gavel_rounded,
+                            label: l10n.categoryAuction,
+                            color: const Color(0xFF8B5CF6),
+                            onTap: () => context.go('/auctions'),
+                          ),
+                          _QuickCategoryItem(
+                            icon: Icons.verified_rounded,
+                            label: l10n.categoryInspection,
+                            color: AppTheme.primaryGreen,
+                            onTap: () => context.go('/batteries'),
+                          ),
+                          _QuickCategoryItem(
+                            icon: Icons.near_me_outlined,
+                            label: l10n.categoryNearby,
+                            color: AppTheme.accentYellow,
+                            onTap: () => context.go('/batteries'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -309,10 +440,10 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: _StatCard(
-                            icon: Icons.receipt_long,
-                            label: l10n.statTransactions,
+                            icon: Icons.people_alt_rounded,
+                            label: l10n.statUsers,
                             value: _formatStatValueOrText(
-                              statsData?.totalTransactions,
+                              statsData?.totalUsers,
                               l10n.updating,
                             ),
                             color: AppTheme.info,
@@ -321,12 +452,9 @@ class HomeScreen extends ConsumerWidget {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _StatCard(
-                            icon: Icons.people_alt_rounded,
-                            label: l10n.statUsers,
-                            value: _formatStatValueOrText(
-                              statsData?.totalUsers,
-                              l10n.updating,
-                            ),
+                            icon: Icons.public,
+                            label: l10n.statProvinces,
+                            value: l10n.statProvincesValue,
                             color: AppTheme.accentYellow,
                           ),
                         ),
@@ -336,113 +464,74 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Categories
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.categories,
-                      style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
-                      children: [
-                        _CategoryCard(
-                          icon: Icons.battery_charging_full_rounded,
-                          label: l10n.categoryBattery,
-                          color: AppTheme.primaryGreen,
-                          onTap: () => context.go('/batteries'),
-                        ),
-                        _CategoryCard(
-                          icon: Icons.electric_car_rounded,
-                          label: l10n.categoryVehicle,
-                          color: AppTheme.accentOrange,
-                          onTap: () => context.go('/vehicles'),
-                        ),
-                        _CategoryCard(
-                          icon: Icons.extension_outlined,
-                          label: l10n.categoryAccessory,
-                          color: AppTheme.info,
-                          onTap: () => context.go('/accessories'),
-                        ),
-                        _CategoryCard(
-                          icon: Icons.gavel_rounded,
-                          label: l10n.categoryAuction,
-                          color: const Color(0xFF8B5CF6),
-                          onTap: () => context.go('/auctions'),
-                        ),
-                        _CategoryCard(
-                          icon: Icons.message_outlined,
-                          label: l10n.categoryChat,
-                          color: AppTheme.info,
-                          onTap: () => context.go('/chat'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Feature highlight banner
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                height: 120,
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      AppTheme.accentOrange.withValues(alpha: 0.9),
-                      AppTheme.accentYellow,
+                      Colors.white,
+                      AppTheme.primaryGreen.withValues(alpha: 0.08),
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  ),
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              l10n.bannerTitle,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              l10n.bannerSubtitle,
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 13),
-                            ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.bannerTitle,
+                            style: const TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            l10n.bannerSubtitle,
+                            style: const TextStyle(
+                                color: AppTheme.grey600, fontSize: 12),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
+                            children: [
+                              _HighlightChip(label: l10n.badgeVerified),
+                              _HighlightChip(label: l10n.badgeWarranty),
+                              _HighlightChip(label: l10n.badgeTransparent),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 68,
+                      height: 68,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryGreen,
+                            AppTheme.primaryDark,
                           ],
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(16),
-                      child: const Icon(Icons.battery_charging_full_rounded,
-                          size: 60, color: Colors.white),
+                      child: const Icon(Icons.verified_rounded,
+                          color: Colors.white, size: 32),
                     ),
                   ],
                 ),
               ),
             ),
-
-            // Features
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -467,8 +556,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Process
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -489,79 +576,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Global network
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.white,
-                      AppTheme.primaryGreen.withValues(alpha: 0.08),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: AppTheme.primaryGreen.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.globalTitle,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            l10n.globalDesc,
-                            style: const TextStyle(
-                                color: AppTheme.grey600, fontSize: 12),
-                          ),
-                          const SizedBox(height: 10),
-                          const Wrap(
-                            spacing: 8,
-                            runSpacing: 6,
-                            children: [
-                              _LocationChip(label: 'Ha Noi'),
-                              _LocationChip(label: 'Ho Chi Minh'),
-                              _LocationChip(label: 'Da Nang'),
-                              _LocationChip(label: 'Can Tho'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryGreen,
-                            AppTheme.primaryDark,
-                          ],
-                        ),
-                      ),
-                      child: const Icon(Icons.public,
-                          color: Colors.white, size: 36),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Featured Batteries
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 0, 12),
@@ -582,11 +596,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Battery horizontal list
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 220,
+                height: 250,
                 child: batteries.when(
                   loading: () => ListView.separated(
                     scrollDirection: Axis.horizontal,
@@ -606,8 +618,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Featured Vehicles
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 0, 12),
@@ -628,8 +638,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Vehicle list
             vehicles.when(
               loading: () => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
@@ -644,8 +652,74 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
-            // Footer
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryDark,
+                      AppTheme.primaryGreen,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.finalCtaTitle,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      l10n.finalCtaSubtitle,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () => context.go('/batteries'),
+                            child: Text(l10n.finalCtaPrimary),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => _showSellMenu(context, l10n),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(
+                                  color: Colors.white, width: 1.2),
+                            ),
+                            child: Text(l10n.finalCtaSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
@@ -709,7 +783,6 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-
             const SliverToBoxAdapter(child: SizedBox(height: 90)),
           ],
         ),
@@ -794,14 +867,18 @@ String _formatStatValueOrText(int? value, String fallback) {
 
 String _resolveHomeText(AppLocalizations l10n, String key) {
   return switch (key) {
-    'featureSafe' => l10n.featureSafe,
-    'featureSafeDesc' => l10n.featureSafeDesc,
+    'featureInspection' => l10n.featureInspection,
+    'featureInspectionDesc' => l10n.featureInspectionDesc,
     'featureAi' => l10n.featureAi,
     'featureAiDesc' => l10n.featureAiDesc,
     'featureAuction' => l10n.featureAuction,
     'featureAuctionDesc' => l10n.featureAuctionDesc,
-    'featureSupport' => l10n.featureSupport,
-    'featureSupportDesc' => l10n.featureSupportDesc,
+    'featureWarranty' => l10n.featureWarranty,
+    'featureWarrantyDesc' => l10n.featureWarrantyDesc,
+    'featureDelivery' => l10n.featureDelivery,
+    'featureDeliveryDesc' => l10n.featureDeliveryDesc,
+    'featureCondition' => l10n.featureCondition,
+    'featureConditionDesc' => l10n.featureConditionDesc,
     'processStep1Title' => l10n.processStep1Title,
     'processStep1Desc' => l10n.processStep1Desc,
     'processStep2Title' => l10n.processStep2Title,
@@ -858,11 +935,18 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.grey200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -879,8 +963,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
           ),
           const SizedBox(height: 4),
           Text(
@@ -888,6 +971,254 @@ class _StatCard extends StatelessWidget {
             style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class FadeSlideIn extends StatelessWidget {
+  final Widget child;
+  final Duration duration;
+
+  const FadeSlideIn({required this.child, required this.duration, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: duration,
+      curve: Curves.easeOutCubic,
+      child: child,
+      builder: (context, value, child) {
+        final offset = (1 - value) * 16;
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, offset),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class TrustBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const TrustBadge({required this.icon, required this.label, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroPreviewCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+
+  const _HeroPreviewCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickCategoryItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickCategoryItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: PressableScale(
+        onTap: onTap,
+        child: Container(
+          width: 92,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HighlightChip extends StatelessWidget {
+  final String label;
+  const _HighlightChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.grey200),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+}
+
+class PressableScale extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const PressableScale({
+    required this.child,
+    required this.onTap,
+    super.key,
+  });
+
+  @override
+  State<PressableScale> createState() => _PressableScaleState();
+}
+
+class _PressableScaleState extends State<PressableScale> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.of(context).disableAnimations ||
+        MediaQuery.of(context).accessibleNavigation;
+    final scale = _pressed && !reduceMotion ? 0.98 : 1.0;
+    final duration =
+        reduceMotion ? Duration.zero : const Duration(milliseconds: 120);
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: scale,
+        duration: duration,
+        curve: Curves.easeOut,
+        child: widget.child,
       ),
     );
   }
@@ -929,8 +1260,7 @@ class _FeatureCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             _resolveHomeText(l10n, feature.titleKey),
-            style: const TextStyle(
-                fontWeight: FontWeight.w700, fontSize: 13),
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
@@ -996,27 +1326,6 @@ class _ProcessStepTile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _LocationChip extends StatelessWidget {
-  final String label;
-  const _LocationChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -1102,43 +1411,6 @@ class _SellOption extends StatelessWidget {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _CategoryCard({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Icon(icon, color: color, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(label,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-}
-
 class _ListingBadge extends StatelessWidget {
   final String label;
   final Color color;
@@ -1174,6 +1446,39 @@ class _ListingBadge extends StatelessWidget {
   }
 }
 
+class _SpecChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SpecChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppTheme.grey100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: AppTheme.grey600),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.grey600,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class BatteryCard extends StatelessWidget {
   final BatteryModel battery;
   const BatteryCard({super.key, required this.battery});
@@ -1183,10 +1488,11 @@ class BatteryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final showNew = _isNewListing(battery.createdAt);
     final statusText = _statusLabel(l10n, battery.status);
-    return GestureDetector(
+    final isVerified = battery.approvalStatus == 'APPROVED';
+    return PressableScale(
       onTap: () => context.push('/batteries/${battery.id}'),
       child: Container(
-        width: 160,
+        width: 170,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -1221,6 +1527,16 @@ class BatteryCard extends StatelessWidget {
                           : _statusColor(battery.status),
                     ),
                   ),
+                  if (isVerified)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: _ListingBadge(
+                        label: l10n.badgeVerified,
+                        color: AppTheme.success,
+                        compact: true,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1239,31 +1555,41 @@ class BatteryCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          '${battery.condition}%',
-                          style: const TextStyle(
-                            color: AppTheme.primaryGreen,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                      const Icon(Icons.location_on_outlined,
+                          size: 12, color: AppTheme.grey400),
                       const SizedBox(width: 4),
-                      Text(
-                        '${battery.capacity}kWh',
-                        style: const TextStyle(
-                            color: AppTheme.grey600, fontSize: 11),
+                      Expanded(
+                        child: Text(
+                          battery.location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: AppTheme.grey400, fontSize: 11),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _SpecChip(
+                        icon: Icons.battery_charging_full_rounded,
+                        label: 'SOH ${battery.condition}%',
+                      ),
+                      _SpecChip(
+                        icon: Icons.bolt,
+                        label: '${battery.capacity.toStringAsFixed(0)} kWh',
+                      ),
+                      if (battery.voltage != null)
+                        _SpecChip(
+                          icon: Icons.flash_on,
+                          label: '${battery.voltage!.toStringAsFixed(0)} V',
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     AppUtils.formatCurrency(battery.price),
                     style: const TextStyle(
@@ -1291,7 +1617,8 @@ class VehicleListTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final showNew = _isNewListing(vehicle.createdAt);
     final statusText = _statusLabel(l10n, vehicle.status);
-    return GestureDetector(
+    final isVerified = vehicle.approvalStatus == 'APPROVED';
+    return PressableScale(
       onTap: () => context.push('/vehicles/${vehicle.id}'),
       child: Container(
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -1309,12 +1636,11 @@ class VehicleListTile extends StatelessWidget {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(16)),
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
               child: AppNetworkImage(
                 url: vehicle.thumbnailUrl,
                 width: 110,
-                height: 90,
+                height: 96,
                 placeholderIcon: Icons.electric_car_rounded,
               ),
             ),
@@ -1333,7 +1659,14 @@ class VehicleListTile extends StatelessWidget {
                               : _statusColor(vehicle.status),
                           compact: true,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
+                        if (isVerified)
+                          _ListingBadge(
+                            label: l10n.badgeVerified,
+                            color: AppTheme.success,
+                            compact: true,
+                          ),
+                        const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             vehicle.name,
@@ -1345,20 +1678,52 @@ class VehicleListTile extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       '${vehicle.brand} • ${vehicle.year}',
                       style: const TextStyle(
                           color: AppTheme.grey600, fontSize: 12),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      vehicle.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: AppTheme.grey400, fontSize: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_outlined,
+                            size: 12, color: AppTheme.grey400),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            vehicle.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: AppTheme.grey400, fontSize: 11),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (vehicle.mileage != null)
+                          _SpecChip(
+                            icon: Icons.speed_outlined,
+                            label: '${AppUtils.formatNumber(vehicle.mileage!)} km',
+                          ),
+                        if (vehicle.condition.isNotEmpty)
+                          _SpecChip(
+                            icon: Icons.auto_fix_high_outlined,
+                            label: vehicle.condition,
+                          ),
+                        if (vehicle.hasWarranty == true)
+                          _SpecChip(
+                            icon: Icons.workspace_premium_outlined,
+                            label: l10n.badgeWarranty,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     Text(
                       AppUtils.formatCurrency(vehicle.price),
                       style: const TextStyle(
@@ -1387,7 +1752,7 @@ class _BatteryCardSkeleton extends StatelessWidget {
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        width: 160,
+        width: 170,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),

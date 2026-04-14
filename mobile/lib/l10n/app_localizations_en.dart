@@ -18,11 +18,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcome => 'Welcome to EVN Market';
 
   @override
+  String get heroTitle => 'Transparent, inspected EV battery marketplace';
+
+  @override
   String get heroSubtitle =>
-      'Transparent, safe marketplace for EV batteries and EVs.';
+      'EV batteries, used EVs, and accessories with clear condition and trusted pricing.';
 
   @override
   String get searchHint => 'Search batteries, EVs, accessories...';
+
+  @override
+  String get ctaExplore => 'Explore listings';
 
   @override
   String get ctaVehicles => 'Browse vehicles';
@@ -49,17 +55,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statTransactions => 'Transactions';
 
   @override
-  String get statUsers => 'Users';
+  String get statUsers => 'Customers';
+
+  @override
+  String get statProvinces => 'Provinces';
+
+  @override
+  String get statProvincesValue => '63';
 
   @override
   String get whyChoose => 'Why EVN Market';
 
   @override
-  String get featureSafe => 'Safe & transparent';
+  String get featureInspection => 'Verified inspection';
 
   @override
-  String get featureSafeDesc =>
-      'Strict moderation, clear history, secure trades.';
+  String get featureInspectionDesc =>
+      'Clear status reports and verified listings.';
 
   @override
   String get featureAi => 'AI pricing';
@@ -74,58 +86,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get featureAuctionDesc => 'Competitive and real-time bidding.';
 
   @override
-  String get featureSupport => '24/7 support';
+  String get featureWarranty => 'Warranty support';
 
   @override
-  String get featureSupportDesc => 'Fast, multi-channel support team.';
+  String get featureWarrantyDesc =>
+      'Transparent policies and post-sale support.';
+
+  @override
+  String get featureDelivery => 'Nationwide delivery';
+
+  @override
+  String get featureDeliveryDesc => 'Secure delivery with tracking updates.';
+
+  @override
+  String get featureCondition => 'Condition matching';
+
+  @override
+  String get featureConditionDesc =>
+      'Compatibility and condition details upfront.';
 
   @override
   String get processTitle => 'Trading process';
 
   @override
-  String get processStep1Title => 'Create account';
+  String get processStep1Title => 'Sign up';
 
   @override
-  String get processStep1Desc => 'Quick verification and secure data.';
+  String get processStep1Desc => 'Create an account in minutes.';
 
   @override
-  String get processStep2Title => 'Post listing';
+  String get processStep2Title => 'Verify listing';
 
   @override
-  String get processStep2Desc => 'List your items in minutes.';
+  String get processStep2Desc => 'Inspection and listing approval.';
 
   @override
-  String get processStep3Title => 'Connect & negotiate';
+  String get processStep3Title => 'Choose or bid';
 
   @override
-  String get processStep3Desc => 'Chat, bargain, and close deals.';
+  String get processStep3Desc => 'Buy now or join transparent auctions.';
 
   @override
-  String get processStep4Title => 'Safe transaction';
+  String get processStep4Title => 'Delivery & warranty';
 
   @override
-  String get processStep4Desc => 'Clear payments and tracking.';
+  String get processStep4Desc => 'Safe payment and support after purchase.';
 
   @override
-  String get globalTitle => 'Connected network';
+  String get featuredBatteries => 'Verified EV batteries';
 
   @override
-  String get globalDesc => 'Connecting buyers and sellers nationwide.';
-
-  @override
-  String get featuredBatteries => 'Featured batteries';
-
-  @override
-  String get featuredVehicles => 'Featured vehicles';
+  String get featuredVehicles => 'Used EVs for you';
 
   @override
   String get viewAll => 'View all';
 
   @override
-  String get bannerTitle => 'Quality batteries';
+  String get bannerTitle => 'Inspection and warranty';
 
   @override
-  String get bannerSubtitle => 'Low fees from 1%';
+  String get bannerSubtitle =>
+      'Clear condition reports and secure transactions.';
 
   @override
   String get footerProducts => 'Products';
@@ -150,6 +171,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryAuction => 'Auctions';
+
+  @override
+  String get categoryInspection => 'Inspection';
+
+  @override
+  String get categoryNearby => 'Nearby';
 
   @override
   String get categoryChat => 'Messages';
@@ -179,6 +206,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get badgeNew => 'New';
 
   @override
+  String get badgeVerified => 'Verified';
+
+  @override
+  String get badgeWarranty => 'Warranty';
+
+  @override
+  String get badgeTransparent => 'Transparent';
+
+  @override
   String get badgeAvailable => 'Available';
 
   @override
@@ -189,6 +225,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get badgeReserved => 'Reserved';
+
+  @override
+  String get trustInspected => 'Inspected';
+
+  @override
+  String get trustWarranty => 'Clear warranty';
+
+  @override
+  String get trustDelivery => 'Delivery support';
+
+  @override
+  String get trustAiPricing => 'AI pricing';
+
+  @override
+  String get heroCardBattery => 'EV Batteries';
+
+  @override
+  String get heroCardBatteryDesc => 'SOH, capacity, cycles';
+
+  @override
+  String get heroCardVehicle => 'Used EVs';
+
+  @override
+  String get heroCardVehicleDesc => 'Mileage, warranty, condition';
+
+  @override
+  String get finalCtaTitle => 'Explore inspected EV batteries and used EVs';
+
+  @override
+  String get finalCtaSubtitle =>
+      'Transparent condition, trusted pricing, nationwide delivery.';
+
+  @override
+  String get finalCtaPrimary => 'View listings';
+
+  @override
+  String get finalCtaSecondary => 'Sell for free';
 
   @override
   String errorLoad(Object message) {
