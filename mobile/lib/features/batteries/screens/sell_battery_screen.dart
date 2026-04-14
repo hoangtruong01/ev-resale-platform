@@ -26,6 +26,8 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
 
   String? _type;
   bool _isSubmitting = false;
+  bool _isSuggestingPrice = false;
+  double? _lastSuggestedPrice;
   final List<File> _images = [];
   final _picker = ImagePicker();
 
@@ -99,6 +101,63 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
     }
   }
 
+  Future<void> _suggestPrice() async {
+    final type = _type;
+    final capacity = double.tryParse(_capacityCtrl.text.trim());
+    final condition = int.tryParse(_conditionCtrl.text.trim());
+
+    if (type == null || capacity == null || capacity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn loại pin và nhập dung lượng hợp lệ.')),
+      );
+      return;
+    }
+
+    if (condition == null || condition < 0 || condition > 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập tình trạng pin từ 0-100.')),
+      );
+      return;
+    }
+
+    setState(() => _isSuggestingPrice = true);
+
+    try {
+      final service = ref.read(batteryServiceProvider);
+      final response = await service.suggestPrice(
+        type: type,
+        capacity: capacity,
+        condition: condition,
+      );
+      final suggested = response['suggestedPrice'];
+
+      if (suggested is num) {
+        final priceValue = suggested.round();
+        _priceCtrl.text = priceValue.toString();
+        _lastSuggestedPrice = priceValue.toDouble();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gợi ý giá: ${priceValue.toString()} VNĐ')),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không lấy được giá gợi ý.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi gợi ý giá: $error')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSuggestingPrice = false);
+      }
+    }
+  }
+
   String _buildDescription() {
     final phone = _phoneCtrl.text.trim();
     final email = _emailCtrl.text.trim();
@@ -143,6 +202,27 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _isSuggestingPrice ? null : _suggestPrice,
+                      icon: const Icon(Icons.auto_fix_high_outlined, size: 18),
+                      label: Text(_isSuggestingPrice
+                          ? 'Đang gợi ý...'
+                          : 'Gợi ý giá từ AI'),
+                    ),
+                  ),
+                ],
+              ),
+              if (_lastSuggestedPrice != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Giá gợi ý gần nhất: ${_lastSuggestedPrice!.toStringAsFixed(0)} VNĐ',
+                  style: const TextStyle(color: AppTheme.grey600, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: _type,

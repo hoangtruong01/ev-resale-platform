@@ -30,7 +30,19 @@
         </header>
 
         <div
-          v-if="loading && !rooms.length"
+          v-if="error && !loading"
+          class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center"
+        >
+          <Icon
+            name="mdi:alert-circle-outline"
+            class="h-10 w-10 text-red-500"
+          />
+          <p class="text-sm text-red-600">{{ error }}</p>
+          <UiButton variant="outline" @click="refreshRooms"> Thử lại </UiButton>
+        </div>
+
+        <div
+          v-else-if="loading && !rooms.length"
           class="flex flex-col items-center justify-center gap-2 px-6 py-16 text-muted-foreground"
         >
           <Icon name="mdi:loading" class="h-6 w-6 animate-spin" />
@@ -126,7 +138,7 @@ definePageMeta({
 const router = useRouter();
 const { t } = useI18n({ useScope: "global" });
 const { currentUser, isLoggedIn } = useAuth();
-const { rooms, loading, fetchRooms } = useChatRooms();
+const { rooms, loading, error, fetchRooms } = useChatRooms();
 const { formatDateTime } = useLocaleFormat();
 
 const refreshRooms = () => {

@@ -73,6 +73,10 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({
+  middleware: "auth",
+});
+
 const { notifications, fetchNotifications, markAsRead, markAllRead } =
   useNotifications();
 

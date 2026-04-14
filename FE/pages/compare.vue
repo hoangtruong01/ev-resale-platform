@@ -76,6 +76,7 @@
                 v-model="slot.selectedId"
                 class="w-full rounded-md border p-2 text-sm"
                 :disabled="isLoading"
+                data-testid="compare-slot-select"
               >
                 <option value="">{{ $t("select_item") }}</option>
                 <option

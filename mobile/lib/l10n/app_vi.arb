@@ -60,8 +60,10 @@
   "badgeAuction": "Dau gia",
   "badgeReserved": "Da dat coc",
   "errorLoad": "Loi: {message}",
-  "errorLoad@placeholders": {
-    "message": {}
+  "@errorLoad": {
+    "placeholders": {
+      "message": {}
+    }
   },
   "language": "Ngon ngu",
   "languageVi": "Tieng Viet",

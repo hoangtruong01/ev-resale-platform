@@ -132,7 +132,7 @@ class MainShell extends StatelessWidget {
               color: AppTheme.primaryGreen,
               onTap: () {
                 Navigator.pop(context);
-                // context.push('/sell/battery');
+                context.push('/sell/battery');
               },
             ),
             const SizedBox(height: 12),
@@ -143,7 +143,7 @@ class MainShell extends StatelessWidget {
               color: AppTheme.accentOrange,
               onTap: () {
                 Navigator.pop(context);
-                // context.push('/sell/vehicle');
+                context.push('/sell/vehicle');
               },
             ),
             const SizedBox(height: 12),

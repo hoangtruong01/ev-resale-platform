@@ -60,8 +60,10 @@
   "badgeAuction": "Auction",
   "badgeReserved": "Reserved",
   "errorLoad": "Error: {message}",
-  "errorLoad@placeholders": {
-    "message": {}
+  "@errorLoad": {
+    "placeholders": {
+      "message": {}
+    }
   },
   "language": "Language",
   "languageVi": "Vietnamese",
