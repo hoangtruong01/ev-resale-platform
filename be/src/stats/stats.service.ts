@@ -24,7 +24,7 @@ export class StatsService {
           },
         }),
         this.prisma.transaction.count({
-          where: { status: TransactionStatus.COMPLETED },
+          where: { status: { not: TransactionStatus.COMPLETED } },
         }),
       ]);
 

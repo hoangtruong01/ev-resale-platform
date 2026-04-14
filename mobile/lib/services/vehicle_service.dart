@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/network/dio_client.dart';
@@ -66,5 +67,28 @@ class VehicleService {
 
   Future<void> deleteVehicle(String id) async {
     await _dio.delete('/vehicles/$id');
+  }
+
+  Future<List<String>> uploadListingImages(List<File> files) async {
+    if (files.isEmpty) {
+      return [];
+    }
+
+    final formData = FormData();
+    for (final file in files) {
+      formData.files.add(MapEntry(
+        'files',
+        await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+      ));
+    }
+
+    final response = await _dio.post('/uploads/listing-images', data: formData);
+    final images = (response.data?['images'] as List? ?? [])
+        .cast<Map<String, dynamic>>();
+
+    return images
+        .map((item) => item['url'] as String)
+        .where((url) => url.isNotEmpty)
+        .toList();
   }
 }
