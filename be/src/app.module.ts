@@ -24,6 +24,7 @@ import { FeesModule } from './fees/fees.module';
 import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { IotModule } from './iot/iot.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { UploadsModule } from './uploads/uploads.module';
     SupportTicketsModule,
     IotModule,
     UploadsModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

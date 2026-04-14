@@ -9,8 +9,10 @@ import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/home/screens/home_screen.dart';
 import '../../features/batteries/screens/battery_list_screen.dart';
 import '../../features/batteries/screens/battery_detail_screen.dart';
+import '../../features/batteries/screens/sell_battery_screen.dart';
 import '../../features/vehicles/screens/vehicle_list_screen.dart';
 import '../../features/vehicles/screens/vehicle_detail_screen.dart';
+import '../../features/vehicles/screens/sell_vehicle_screen.dart';
 import '../../features/accessories/screens/accessory_list_screen.dart';
 import '../../features/accessories/screens/accessory_detail_screen.dart';
 import '../../features/accessories/screens/sell_accessory_screen.dart';
@@ -107,6 +109,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/sell/accessory',
             builder: (context, state) => const SellAccessoryScreen(),
+          ),
+          GoRoute(
+            path: '/sell/battery',
+            builder: (context, state) => const SellBatteryScreen(),
+          ),
+          GoRoute(
+            path: '/sell/vehicle',
+            builder: (context, state) => const SellVehicleScreen(),
           ),
           GoRoute(
             path: '/auctions',

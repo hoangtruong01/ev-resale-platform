@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
+import '../../../core/locale/locale_provider.dart';
 // import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';
@@ -13,6 +15,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
@@ -233,6 +236,11 @@ class ProfileScreen extends ConsumerWidget {
                         label: 'Phương thức thanh toán',
                         onTap: () {},
                       ),
+                      _MenuItem(
+                        icon: Icons.language,
+                        label: l10n.language,
+                        onTap: () => _showLanguageSheet(context, ref, l10n),
+                      ),
                     ],
                   ),
 
@@ -378,6 +386,85 @@ class ProfileScreen extends ConsumerWidget {
             child: const Text('Đăng xuất'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+void _showLanguageSheet(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l10n,
+) {
+  showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppTheme.grey200,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            l10n.language,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 16),
+          _LanguageOption(
+            label: l10n.languageVi,
+            onTap: () {
+              ref.read(localeProvider.notifier).state = const Locale('vi');
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(height: 12),
+          _LanguageOption(
+            label: l10n.languageEn,
+            onTap: () {
+              ref.read(localeProvider.notifier).state = const Locale('en');
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    ),
+  );
+}
+
+class _LanguageOption extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _LanguageOption({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppTheme.grey200),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
