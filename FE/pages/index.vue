@@ -112,6 +112,198 @@
       </div>
     </section>
 
+    <!-- Live Auctions + Trust -->
+    <section
+      class="py-20 bg-gradient-to-b from-background via-emerald-50/30 to-background"
+    >
+      <div class="container mx-auto px-4">
+        <div class="grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
+          <div class="reveal">
+            <p
+              class="text-xs uppercase tracking-[0.35em] text-emerald-600 font-semibold"
+            >
+              Trusted Auctions
+            </p>
+            <h2
+              class="text-4xl md:text-5xl font-black mt-4 mb-5 text-foreground"
+            >
+              Live auctions for EVs and batteries
+            </h2>
+            <p class="text-lg text-muted-foreground leading-relaxed mb-8">
+              Transparent bidding, verified listings, and escrow protection help
+              buyers feel safe while sellers get real market pricing.
+            </p>
+            <div class="grid sm:grid-cols-3 gap-4">
+              <div
+                class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
+              >
+                <p class="text-sm text-emerald-700 font-semibold">
+                  Escrow protection
+                </p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  Funds released on delivery
+                </p>
+              </div>
+              <div
+                class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
+              >
+                <p class="text-sm text-emerald-700 font-semibold">
+                  Battery inspection
+                </p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  40-point SOH checklist
+                </p>
+              </div>
+              <div
+                class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
+              >
+                <p class="text-sm text-emerald-700 font-semibold">
+                  Verified sellers
+                </p>
+                <p class="text-xs text-muted-foreground mt-1">
+                  KYC + asset ownership
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="grid gap-4">
+            <div
+              v-for="auction in liveAuctions"
+              :key="auction.id"
+              class="group rounded-3xl border border-border bg-card/90 p-5 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-700"
+                  >
+                    Live
+                  </span>
+                  <span class="text-xs text-muted-foreground"
+                    >Ends in {{ auction.endsIn }}</span
+                  >
+                </div>
+                <span class="text-xs text-muted-foreground"
+                  >{{ auction.bids }} bids</span
+                >
+              </div>
+              <div class="flex items-center gap-4">
+                <div
+                  class="h-16 w-20 rounded-2xl bg-muted/50 flex items-center justify-center overflow-hidden"
+                >
+                  <img
+                    :src="auction.image"
+                    :alt="auction.title"
+                    class="h-full w-full object-cover"
+                  />
+                </div>
+                <div class="flex-1">
+                  <h4 class="font-bold text-lg text-foreground line-clamp-1">
+                    {{ auction.title }}
+                  </h4>
+                  <p class="text-xs text-muted-foreground">
+                    {{ auction.meta }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs text-muted-foreground">Current bid</p>
+                  <p class="text-lg font-black text-emerald-600">
+                    {{ formatPrice(auction.price) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <NuxtLink
+              to="/auctions"
+              class="inline-flex items-center justify-center rounded-full border border-emerald-500/30 px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-500/10 transition-colors"
+            >
+              View all auctions
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Spotlight -->
+    <section class="py-24">
+      <div class="container mx-auto px-4">
+        <div
+          class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10 reveal"
+        >
+          <div>
+            <h2 class="text-4xl md:text-5xl font-black text-foreground mb-3">
+              Spotlight by category
+            </h2>
+            <p class="text-lg text-muted-foreground">
+              Discover EVs, batteries, and accessories with verified specs.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button
+              v-for="tab in categoryTabs"
+              :key="tab.id"
+              class="px-5 py-2 rounded-full border text-sm font-semibold transition-all"
+              :class="
+                activeCategory === tab.id
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'bg-background text-foreground border-border hover:-translate-y-0.5'
+              "
+              @click="activeCategory = tab.id"
+            >
+              {{ tab.label }}
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal"
+        >
+          <UiCard
+            v-for="item in activeCategoryItems"
+            :key="item.id"
+            class="stagger-item overflow-hidden bg-card border-border hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 group rounded-3xl"
+          >
+            <div class="aspect-[16/11] relative overflow-hidden">
+              <img
+                :src="item.image || '/placeholder.svg'"
+                :alt="item.title"
+                class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
+              ></div>
+              <span
+                v-if="item.tag"
+                class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-lg"
+              >
+                {{ item.tag }}
+              </span>
+            </div>
+            <UiCardContent class="p-5">
+              <h4
+                class="font-bold text-lg mb-2 line-clamp-1 group-hover:text-primary transition-colors"
+              >
+                {{ item.title }}
+              </h4>
+              <p class="text-xs text-muted-foreground mb-3">
+                {{ item.subtitle }}
+              </p>
+              <div class="flex items-center justify-between">
+                <p class="text-xl font-black text-primary">
+                  {{ formatPrice(item.price) }}
+                </p>
+                <span
+                  class="text-xs font-semibold bg-muted px-2 py-1 rounded-lg"
+                >
+                  {{ item.meta }}
+                </span>
+              </div>
+            </UiCardContent>
+          </UiCard>
+        </div>
+      </div>
+    </section>
+
     <!-- Features -->
     <section
       ref="featureScrollSection"
@@ -432,6 +624,133 @@ const stats = [
   { key: "locations", valueLabel: "63", target: 63, suffix: "" },
 ];
 
+const liveAuctions = [
+  {
+    id: "auc-1",
+    title: "VinFast VF8 - 2023",
+    meta: "SOH 92% · Ha Noi",
+    price: 620_000_000,
+    bids: 27,
+    endsIn: "02:14:32",
+    image: "/placeholder.svg",
+  },
+  {
+    id: "auc-2",
+    title: "LFP Battery 70 kWh",
+    meta: "Certified · 12 mo warranty",
+    price: 138_000_000,
+    bids: 12,
+    endsIn: "01:02:11",
+    image: "/placeholder.svg",
+  },
+  {
+    id: "auc-3",
+    title: "Hyundai Ioniq 5 - 2022",
+    meta: "42,000 km · HCM",
+    price: 720_000_000,
+    bids: 19,
+    endsIn: "03:44:05",
+    image: "/placeholder.svg",
+  },
+];
+
+const categoryTabs = [
+  { id: "vehicles", label: "Xe dien" },
+  { id: "batteries", label: "Pin" },
+  { id: "accessories", label: "Phu kien" },
+];
+
+const activeCategory = ref("vehicles");
+
+interface CategoryItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  price: number;
+  image?: string;
+  tag?: string;
+  meta: string;
+}
+
+const staticCategoryItems: Record<string, CategoryItem[]> = {
+  batteries: [
+    {
+      id: "bat-1",
+      title: "LFP 60 kWh Pack",
+      subtitle: "Bao hanh 12 thang",
+      price: 120_000_000,
+      image: "/placeholder.svg",
+      tag: "Certified",
+      meta: "SOH 92%",
+    },
+    {
+      id: "bat-2",
+      title: "NMC 75 kWh Pack",
+      subtitle: "Fast charge ready",
+      price: 165_000_000,
+      image: "/placeholder.svg",
+      tag: "Tested",
+      meta: "SOH 89%",
+    },
+    {
+      id: "bat-3",
+      title: "Battery Module 12 kWh",
+      subtitle: "Industrial grade",
+      price: 32_000_000,
+      image: "/placeholder.svg",
+      tag: "Grade A",
+      meta: "SOH 95%",
+    },
+    {
+      id: "bat-4",
+      title: "Home storage 10 kWh",
+      subtitle: "Safe BMS",
+      price: 58_000_000,
+      image: "/placeholder.svg",
+      tag: "Certified",
+      meta: "SOH 93%",
+    },
+  ],
+  accessories: [
+    {
+      id: "acc-1",
+      title: "11 kW Home Charger",
+      subtitle: "Wallbox · WiFi",
+      price: 14_900_000,
+      image: "/placeholder.svg",
+      tag: "Top",
+      meta: "11 kW",
+    },
+    {
+      id: "acc-2",
+      title: "Type 2 Cable 5m",
+      subtitle: "Premium copper",
+      price: 1_800_000,
+      image: "/placeholder.svg",
+      tag: "New",
+      meta: "5 m",
+    },
+    {
+      id: "acc-3",
+      title: "Battery Cooling Kit",
+      subtitle: "Universal",
+      price: 3_600_000,
+      image: "/placeholder.svg",
+      tag: "Hot",
+      meta: "OEM",
+    },
+    {
+      id: "acc-4",
+      title: "Smart OBD Scanner",
+      subtitle: "Mobile app",
+      price: 2_200_000,
+      image: "/placeholder.svg",
+      tag: "Trusted",
+      meta: "BT 5.0",
+    },
+  ],
+};
+
 const features = [
   {
     title: "safe_reliable",
@@ -675,6 +994,22 @@ const { get } = useApi();
 const { resolve: resolveAsset } = useAssetUrl();
 
 const visibleItems = computed(() => items.value);
+
+const activeCategoryItems = computed<CategoryItem[]>(() => {
+  if (activeCategory.value === "vehicles") {
+    return visibleItems.value.slice(0, 4).map((item) => ({
+      id: item.id,
+      title: item.name,
+      subtitle: item.location,
+      price: item.price,
+      image: item.image,
+      tag: "Verified",
+      meta: item.year ? String(item.year) : "EV",
+    }));
+  }
+
+  return staticCategoryItems[activeCategory.value] || [];
+});
 
 const fetchFeaturedVehicles = async () => {
   if (isLoading.value || !hasMore.value) {
