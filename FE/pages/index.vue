@@ -278,7 +278,7 @@
 
         <div class="mt-10 flex justify-center">
           <NuxtLink
-            to="/vehicles"
+            :to="categoryDetailLink"
             class="inline-flex items-center gap-2 rounded-full border border-primary/30 px-6 py-2 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
           >
             {{ $t("home.viewCategoryDetails") }}
@@ -307,7 +307,7 @@
           <div
             v-for="(feature, index) in features"
             :key="index"
-            class="feature-card group"
+            class="feature-card group is-active"
           >
             <div
               class="glass-card p-8 rounded-3xl h-full transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:border-primary/30"
@@ -709,6 +709,17 @@ const categoryTabs = [
 ];
 
 const activeCategory = ref("vehicles");
+
+const categoryDetailLink = computed(() => {
+  switch (activeCategory.value) {
+    case "batteries":
+      return "/batteries";
+    case "accessories":
+      return "/accessories";
+    default:
+      return "/vehicles";
+  }
+});
 
 interface CategoryItem {
   id: string;
