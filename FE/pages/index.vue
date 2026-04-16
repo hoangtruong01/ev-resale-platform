@@ -331,7 +331,7 @@
     </section>
 
     <!-- Trading Process Section -->
-    <section class="py-24 bg-muted/30">
+    <section ref="processSection" class="py-24 bg-muted/30">
       <div class="container mx-auto px-4">
         <div class="text-center mb-16 reveal">
           <h2 class="text-4xl md:text-5xl font-bold mb-6">
@@ -340,20 +340,23 @@
           <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
         </div>
 
-        <div class="grid md:grid-cols-4 gap-4 reveal relative">
+        <div
+          class="grid md:grid-cols-4 gap-4 reveal process-reveal process-sequence relative"
+          :class="{ 'process-play': processIsActive }"
+        >
           <!-- Connector Line (Desktop) -->
           <div
-            class="hidden md:block absolute top-[60px] left-0 right-0 h-0.5 bg-border/50 z-0"
+            class="hidden md:block absolute top-[60px] left-0 right-0 h-0.5 bg-border/50 z-0 process-line"
           ></div>
 
           <div
             v-for="(step, index) in 4"
             :key="index"
-            class="stagger-item relative z-10 text-center px-4"
-            :class="`delay-${index * 100}`"
+            class="stagger-item process-step relative z-10 text-center px-4"
+            :class="`delay-${index * 100} step-${index}`"
           >
             <div
-              class="w-14 h-14 mx-auto rounded-full bg-background border-4 border-primary flex items-center justify-center text-xl font-black text-primary mb-6 shadow-xl"
+              class="process-badge w-14 h-14 mx-auto rounded-full bg-background border-4 border-primary flex items-center justify-center text-xl font-black text-primary mb-6 shadow-xl"
             >
               {{ step }}
             </div>
@@ -687,9 +690,12 @@ const globalBases = [
 ];
 
 const globeCanvas = ref<HTMLCanvasElement | null>(null);
+const processSection = ref<HTMLElement | null>(null);
+const processIsActive = ref(false);
 let globeInstance: ReturnType<typeof createGlobe> | null = null;
 let globeAnimationId = 0;
 let globeResizeObserver: ResizeObserver | null = null;
+let processObserver: IntersectionObserver | null = null;
 let globePhi = 0;
 let globeTheta = 0.2;
 let globeDragging = false;
@@ -1141,6 +1147,18 @@ onMounted(() => {
 
   observeRevealElements();
 
+  if (processSection.value) {
+    processObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          processIsActive.value = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.35 },
+    );
+    processObserver.observe(processSection.value);
+  }
+
   countObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -1173,6 +1191,7 @@ onMounted(() => {
 onUnmounted(() => {
   observer?.disconnect();
   countObserver?.disconnect();
+  processObserver?.disconnect();
   if (globeAnimationId) {
     cancelAnimationFrame(globeAnimationId);
   }
@@ -1225,5 +1244,224 @@ onUnmounted(() => {
   border-radius: 999px;
   filter: drop-shadow(0 20px 40px rgba(15, 23, 42, 0.25));
   touch-action: none;
+}
+
+.process-line {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.7;
+}
+
+.process-reveal.is-visible .process-line {
+  transform: scaleX(1);
+}
+
+.process-step {
+  will-change: transform, opacity;
+}
+
+.process-reveal.is-visible .process-step {
+  animation: process-pop 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.process-reveal.is-visible .delay-0 {
+  animation-delay: 0s;
+}
+
+.process-reveal.is-visible .delay-100 {
+  animation-delay: 0.1s;
+}
+
+.process-reveal.is-visible .delay-200 {
+  animation-delay: 0.2s;
+}
+
+.process-reveal.is-visible .delay-300 {
+  animation-delay: 0.3s;
+}
+
+.process-reveal.is-visible .delay-400 {
+  animation-delay: 0.4s;
+}
+
+.process-reveal.is-visible .delay-500 {
+  animation-delay: 0.5s;
+}
+
+.process-badge {
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.process-reveal.is-visible .process-step:hover .process-badge {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 18px 30px rgba(16, 185, 129, 0.25);
+}
+
+.process-sequence.process-play .process-step {
+  animation: process-step-cycle 6s infinite;
+}
+
+.process-sequence.process-play .process-step .process-badge {
+  animation: process-badge-cycle 6s infinite;
+}
+
+.process-sequence.process-play .step-0 {
+  animation-delay: 0s;
+}
+
+.process-sequence.process-play .step-1 {
+  animation-delay: 1.5s;
+}
+
+.process-sequence.process-play .step-2 {
+  animation-delay: 3s;
+}
+
+.process-sequence.process-play .step-3 {
+  animation-delay: 4.5s;
+}
+
+.process-sequence.process-play .step-0 .process-badge {
+  animation-delay: 0s;
+}
+
+.process-sequence.process-play .step-1 .process-badge {
+  animation-delay: 1.5s;
+}
+
+.process-sequence.process-play .step-2 .process-badge {
+  animation-delay: 3s;
+}
+
+.process-sequence.process-play .step-3 .process-badge {
+  animation-delay: 4.5s;
+}
+
+.process-sequence:not(.process-play) .process-step,
+.process-sequence:not(.process-play) .process-step .process-badge {
+  animation: none;
+}
+
+.process-sequence.process-play .process-line {
+  background-image: linear-gradient(
+    90deg,
+    rgba(16, 185, 129, 0.15),
+    rgba(16, 185, 129, 0.55),
+    rgba(16, 185, 129, 0.15)
+  );
+  background-size: 200% 100%;
+  animation: process-line-sweep 6s linear infinite;
+}
+
+.process-step::after {
+  content: "->";
+  position: absolute;
+  top: 18px;
+  right: -12px;
+  font-weight: 700;
+  color: rgba(16, 185, 129, 0.6);
+  opacity: 0.7;
+}
+
+.process-step:last-of-type::after {
+  content: "";
+}
+
+@media (max-width: 767px) {
+  .process-step::after {
+    display: none;
+  }
+}
+
+@keyframes process-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes process-step-cycle {
+  0% {
+    opacity: 0.45;
+    transform: translateY(8px) scale(0.98);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  28% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    opacity: 0.45;
+    transform: translateY(6px) scale(0.99);
+  }
+  100% {
+    opacity: 0.45;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+@keyframes process-badge-cycle {
+  0% {
+    transform: scale(0.98);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+  12% {
+    transform: scale(1.05);
+    box-shadow: 0 18px 36px rgba(16, 185, 129, 0.35);
+    border-color: rgba(16, 185, 129, 0.9);
+  }
+  28% {
+    transform: scale(1.05);
+    box-shadow: 0 18px 36px rgba(16, 185, 129, 0.35);
+    border-color: rgba(16, 185, 129, 0.9);
+  }
+  40% {
+    transform: scale(1);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    border-color: rgba(16, 185, 129, 0.55);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
+    border-color: rgba(16, 185, 129, 0.55);
+  }
+}
+
+@keyframes process-line-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-line,
+  .process-reveal.is-visible .process-step,
+  .process-sequence.process-play .process-step,
+  .process-sequence.process-play .process-step .process-badge {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
 }
 </style>
