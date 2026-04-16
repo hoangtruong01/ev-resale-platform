@@ -78,9 +78,9 @@
       <div
         class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 animate-bounce"
       >
-        <span class="text-xs uppercase tracking-widest font-medium"
-          >Scroll</span
-        >
+        <span class="text-xs uppercase tracking-widest font-medium">
+          {{ $t("home.scrollHint") }}
+        </span>
         <Icon name="mdi:chevron-down" class="h-6 w-6" />
       </div>
     </section>
@@ -174,7 +174,7 @@
                     {{ auction.title }}
                   </h4>
                   <p class="text-xs text-muted-foreground">
-                    {{ auction.meta }}
+                    {{ auction.metaKey ? $t(auction.metaKey) : auction.meta }}
                   </p>
                 </div>
                 <div class="text-right">
@@ -247,10 +247,10 @@
                 class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
               ></div>
               <span
-                v-if="item.tag"
+                v-if="item.tagKey"
                 class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-lg"
               >
-                {{ item.tag }}
+                {{ $t(item.tagKey) }}
               </span>
             </div>
             <UiCardContent class="p-5">
@@ -260,7 +260,7 @@
                 {{ item.title }}
               </h4>
               <p class="text-xs text-muted-foreground mb-3">
-                {{ item.subtitle }}
+                {{ item.subtitleKey ? $t(item.subtitleKey) : item.subtitle }}
               </p>
               <div class="flex items-center justify-between">
                 <p class="text-xl font-black text-primary">
@@ -275,14 +275,21 @@
             </UiCardContent>
           </UiCard>
         </div>
+
+        <div class="mt-10 flex justify-center">
+          <NuxtLink
+            to="/vehicles"
+            class="inline-flex items-center gap-2 rounded-full border border-primary/30 px-6 py-2 text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+          >
+            {{ $t("home.viewCategoryDetails") }}
+            <Icon name="mdi:chevron-right" class="h-4 w-4" />
+          </NuxtLink>
+        </div>
       </div>
     </section>
 
     <!-- Features -->
-    <section
-      ref="featureScrollSection"
-      class="features-scroll relative overflow-hidden"
-    >
+    <section class="features-scroll relative overflow-hidden">
       <div
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"
       ></div>
@@ -301,9 +308,6 @@
             v-for="(feature, index) in features"
             :key="index"
             class="feature-card group"
-            :class="{
-              'is-active': index < activeFeatureCount,
-            }"
           >
             <div
               class="glass-card p-8 rounded-3xl h-full transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2 hover:border-primary/30"
@@ -552,6 +556,7 @@ const liveAuctions = [
     id: "auc-1",
     title: "VinFast VF8 - 2023",
     meta: "SOH 92% · Ha Noi",
+    metaKey: "home.auctionMeta.vf8",
     price: 620_000_000,
     bids: 27,
     endsIn: "02:14:32",
@@ -561,6 +566,7 @@ const liveAuctions = [
     id: "auc-2",
     title: "LFP Battery 70 kWh",
     meta: "Certified · 12 mo warranty",
+    metaKey: "home.auctionMeta.lfp70",
     price: 138_000_000,
     bids: 12,
     endsIn: "01:02:11",
@@ -570,6 +576,7 @@ const liveAuctions = [
     id: "auc-3",
     title: "Hyundai Ioniq 5 - 2022",
     meta: "42,000 km · HCM",
+    metaKey: "home.auctionMeta.ioniq5",
     price: 720_000_000,
     bids: 19,
     endsIn: "03:44:05",
@@ -707,9 +714,10 @@ interface CategoryItem {
   id: string;
   title: string;
   subtitle: string;
+  subtitleKey?: string;
   price: number;
   image?: string;
-  tag?: string;
+  tagKey?: string;
   meta: string;
 }
 
@@ -718,37 +726,41 @@ const staticCategoryItems: Record<string, CategoryItem[]> = {
     {
       id: "bat-1",
       title: "LFP 60 kWh Pack",
-      subtitle: "Bao hanh 12 thang",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.warranty12",
       price: 120_000_000,
       image: "/placeholder.svg",
-      tag: "Certified",
+      tagKey: "home.tagCertified",
       meta: "SOH 92%",
     },
     {
       id: "bat-2",
       title: "NMC 75 kWh Pack",
-      subtitle: "Fast charge ready",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.fastCharge",
       price: 165_000_000,
       image: "/placeholder.svg",
-      tag: "Tested",
+      tagKey: "home.tagTested",
       meta: "SOH 89%",
     },
     {
       id: "bat-3",
       title: "Battery Module 12 kWh",
-      subtitle: "Industrial grade",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.industrial",
       price: 32_000_000,
       image: "/placeholder.svg",
-      tag: "Grade A",
+      tagKey: "home.tagGradeA",
       meta: "SOH 95%",
     },
     {
       id: "bat-4",
       title: "Home storage 10 kWh",
-      subtitle: "Safe BMS",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.safeBms",
       price: 58_000_000,
       image: "/placeholder.svg",
-      tag: "Certified",
+      tagKey: "home.tagCertified",
       meta: "SOH 93%",
     },
   ],
@@ -756,37 +768,41 @@ const staticCategoryItems: Record<string, CategoryItem[]> = {
     {
       id: "acc-1",
       title: "11 kW Home Charger",
-      subtitle: "Wallbox · WiFi",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.wallboxWifi",
       price: 14_900_000,
       image: "/placeholder.svg",
-      tag: "Top",
+      tagKey: "home.tagTop",
       meta: "11 kW",
     },
     {
       id: "acc-2",
       title: "Type 2 Cable 5m",
-      subtitle: "Premium copper",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.premiumCopper",
       price: 1_800_000,
       image: "/placeholder.svg",
-      tag: "New",
+      tagKey: "home.tagNew",
       meta: "5 m",
     },
     {
       id: "acc-3",
       title: "Battery Cooling Kit",
-      subtitle: "Universal",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.universal",
       price: 3_600_000,
       image: "/placeholder.svg",
-      tag: "Hot",
+      tagKey: "home.tagHot",
       meta: "OEM",
     },
     {
       id: "acc-4",
       title: "Smart OBD Scanner",
-      subtitle: "Mobile app",
+      subtitle: "",
+      subtitleKey: "home.categorySubtitles.mobileApp",
       price: 2_200_000,
       image: "/placeholder.svg",
-      tag: "Trusted",
+      tagKey: "home.tagTrusted",
       meta: "BT 5.0",
     },
   ],
@@ -844,72 +860,6 @@ const footerCols = [
   },
 ];
 
-const featureScrollSection = ref<HTMLElement | null>(null);
-const featureStep = ref(0);
-const activeFeatureCount = computed(() => featureStep.value);
-const isFeatureLocked = ref(false);
-let lockedScrollY = 0;
-let featureAnchorY = 0;
-let featureLocking = false;
-
-const updateFeatureLockState = () => {
-  if (!featureScrollSection.value) return;
-  const rect = featureScrollSection.value.getBoundingClientRect();
-  const entersLock =
-    rect.top <= window.innerHeight * 0.4 &&
-    rect.bottom >= window.innerHeight * 0.6;
-
-  if (rect.top > window.innerHeight * 0.6) {
-    featureStep.value = 0;
-    isFeatureLocked.value = false;
-    featureLocking = false;
-    return;
-  }
-
-  if (rect.bottom < window.innerHeight * 0.4) {
-    featureStep.value = features.length;
-    isFeatureLocked.value = false;
-    featureLocking = false;
-    return;
-  }
-
-  if (entersLock && featureStep.value < features.length) {
-    if (!featureLocking) {
-      featureAnchorY = window.scrollY + rect.top;
-      lockedScrollY = featureAnchorY;
-      window.scrollTo({ top: featureAnchorY, behavior: "auto" });
-      featureLocking = true;
-    }
-    if (featureStep.value === 0) {
-      featureStep.value = 1;
-    }
-    isFeatureLocked.value = true;
-  } else if (featureStep.value >= features.length) {
-    isFeatureLocked.value = false;
-    featureLocking = false;
-  }
-};
-
-const handleFeatureWheel = (event: WheelEvent) => {
-  if (!isFeatureLocked.value) return;
-  event.preventDefault();
-
-  if (window.scrollY !== lockedScrollY) {
-    window.scrollTo({ top: lockedScrollY, behavior: "auto" });
-  }
-
-  if (event.deltaY > 0 && featureStep.value < features.length) {
-    featureStep.value += 1;
-  } else if (event.deltaY < 0 && featureStep.value > 0) {
-    featureStep.value -= 1;
-  }
-
-  if (featureStep.value >= features.length) {
-    isFeatureLocked.value = false;
-    featureLocking = false;
-  }
-};
-
 interface FeaturedVehicle {
   id: string;
   name: string;
@@ -949,8 +899,8 @@ const activeCategoryItems = computed<CategoryItem[]>(() => {
       subtitle: item.location,
       price: item.price,
       image: item.image,
-      tag: "Verified",
-      meta: item.year ? String(item.year) : "EV",
+      tagKey: "home.tagVerified",
+      meta: item.year ? String(item.year) : String(t("home.metaEv")),
     }));
   }
 
@@ -1180,11 +1130,6 @@ onMounted(() => {
 
   observeRevealElements();
 
-  updateFeatureLockState();
-  window.addEventListener("scroll", updateFeatureLockState, { passive: true });
-  window.addEventListener("resize", updateFeatureLockState);
-  window.addEventListener("wheel", handleFeatureWheel, { passive: false });
-
   countObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -1217,9 +1162,6 @@ onMounted(() => {
 onUnmounted(() => {
   observer?.disconnect();
   countObserver?.disconnect();
-  window.removeEventListener("scroll", updateFeatureLockState);
-  window.removeEventListener("resize", updateFeatureLockState);
-  window.removeEventListener("wheel", handleFeatureWheel);
   if (globeAnimationId) {
     cancelAnimationFrame(globeAnimationId);
   }

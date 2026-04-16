@@ -17,6 +17,7 @@
   "whyChooseEvn": "Why Choose EVN Market?",
   "leadingPlatform": "Leading platform with advanced technology and professional service",
   "home": {
+    "scrollHint": "Scroll",
     "auctionsKicker": "TRUSTED AUCTIONS",
     "liveAuctionsTitle": "Live auctions for EVs and batteries",
     "liveAuctionsDesc": "Transparent bidding, verified listings, and escrow protection help buyers feel safe while sellers get real market pricing.",
@@ -32,9 +33,34 @@
     "currentBid": "Current bid",
     "viewAllAuctions": "View all auctions",
     "categorySpotlightTitle": "Spotlight by category",
+    "viewCategoryDetails": "View details",
     "categorySpotlightDesc": "Discover EVs, batteries, and accessories with verified specs.",
     "socialProofTitle": "Trusted by the EV community",
     "socialProofDesc": "Real transactions, verified inspections, and consistent buyer satisfaction.",
+    "metaEv": "EV",
+    "tagVerified": "Verified",
+    "tagCertified": "Certified",
+    "tagTested": "Tested",
+    "tagGradeA": "Grade A",
+    "tagTop": "Top",
+    "tagNew": "New",
+    "tagHot": "Hot",
+    "tagTrusted": "Trusted",
+    "auctionMeta": {
+      "vf8": "SOH 92% · Hanoi",
+      "lfp70": "Certified · 12 mo warranty",
+      "ioniq5": "42,000 km · Ho Chi Minh"
+    },
+    "categorySubtitles": {
+      "warranty12": "12-month warranty",
+      "fastCharge": "Fast charge ready",
+      "industrial": "Industrial grade",
+      "safeBms": "Safe BMS",
+      "wallboxWifi": "Wallbox · WiFi",
+      "premiumCopper": "Premium copper",
+      "universal": "Universal",
+      "mobileApp": "Mobile app"
+    },
     "socialProofRoles": {
       "buyerHcm": "Buyer · Ho Chi Minh",
       "sellerHanoi": "Seller · Ha Noi"

@@ -17,6 +17,7 @@
   "whyChooseEvn": "Tại sao chọn EVN Market?",
   "leadingPlatform": "Nền tảng hàng đầu với công nghệ tiên tiến và dịch vụ chuyên nghiệp",
   "home": {
+    "scrollHint": "Cuộn xuống",
     "auctionsKicker": "ĐẤU GIÁ UY TÍN",
     "liveAuctionsTitle": "Đấu giá trực tiếp xe điện và pin",
     "liveAuctionsDesc": "Đấu giá minh bạch, tin đăng xác thực và bảo chứng thanh toán giúp người mua an tâm, người bán chốt giá tốt.",
@@ -32,9 +33,34 @@
     "currentBid": "Giá hiện tại",
     "viewAllAuctions": "Xem tất cả đấu giá",
     "categorySpotlightTitle": "Nổi bật theo danh mục",
+    "viewCategoryDetails": "Xem chi tiết",
     "categorySpotlightDesc": "Khám phá xe điện, pin và phụ kiện với thông số đã kiểm định.",
     "socialProofTitle": "Được cộng đồng EV tin chọn",
     "socialProofDesc": "Giao dịch thật, kiểm định rõ ràng và mức hài lòng ổn định từ người mua.",
+    "metaEv": "Xe điện",
+    "tagVerified": "Đã xác thực",
+    "tagCertified": "Đã kiểm định",
+    "tagTested": "Đã kiểm tra",
+    "tagGradeA": "Loại A",
+    "tagTop": "Nổi bật",
+    "tagNew": "Mới",
+    "tagHot": "Hot",
+    "tagTrusted": "Tin cậy",
+    "auctionMeta": {
+      "vf8": "SOH 92% · Hà Nội",
+      "lfp70": "Đã kiểm định · Bảo hành 12 tháng",
+      "ioniq5": "42.000 km · TP. Hồ Chí Minh"
+    },
+    "categorySubtitles": {
+      "warranty12": "Bảo hành 12 tháng",
+      "fastCharge": "Sạc nhanh",
+      "industrial": "Cấp công nghiệp",
+      "safeBms": "BMS an toàn",
+      "wallboxWifi": "Wallbox · WiFi",
+      "premiumCopper": "Đồng cao cấp",
+      "universal": "Tương thích rộng",
+      "mobileApp": "Ứng dụng di động"
+    },
     "socialProofRoles": {
       "buyerHcm": "Người mua · TP. Hồ Chí Minh",
       "sellerHanoi": "Người bán · Hà Nội"
