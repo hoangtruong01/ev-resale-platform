@@ -337,18 +337,12 @@
           <h2 class="text-4xl md:text-5xl font-bold mb-6">
             {{ $t("process.title") }}
           </h2>
-          <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
         </div>
 
         <div
           class="grid md:grid-cols-4 gap-4 reveal process-reveal process-sequence relative"
           :class="{ 'process-play': processIsActive }"
         >
-          <!-- Connector Line (Desktop) -->
-          <div
-            class="hidden md:block absolute top-[60px] left-0 right-0 h-0.5 bg-border/50 z-0 process-line"
-          ></div>
-
           <div
             v-for="(step, index) in 4"
             :key="index"
@@ -1295,11 +1289,6 @@ onUnmounted(() => {
     box-shadow 0.4s ease;
 }
 
-.process-reveal.is-visible .process-step:hover .process-badge {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 18px 30px rgba(16, 185, 129, 0.25);
-}
-
 .process-sequence.process-play .process-step {
   animation: process-step-cycle 6s infinite;
 }
@@ -1359,11 +1348,12 @@ onUnmounted(() => {
 .process-step::after {
   content: "->";
   position: absolute;
-  top: 18px;
-  right: -12px;
-  font-weight: 700;
+  top: 8px;
+  right: -18px;
+  font-size: 24px;
+  font-weight: 800;
   color: rgba(16, 185, 129, 0.6);
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 .process-step:last-of-type::after {
