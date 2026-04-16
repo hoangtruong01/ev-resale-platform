@@ -224,91 +224,115 @@
             </div>
 
             <div class="space-y-5">
-              <div>
-                <label class="filter-label">{{ t("search") }}</label>
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  class="filter-input"
-                  :placeholder="t('searchBatteryPlaceholder')"
-                />
-              </div>
-
-              <div>
-                <label class="filter-label">{{ t("priceRange") }}</label>
-                <input
-                  v-model.number="priceMax"
-                  type="range"
-                  min="0"
-                  :max="MAX_PRICE"
-                  step="1000000"
-                  class="premium-range"
-                />
-                <div class="mt-2 flex justify-between text-xs text-white/60">
-                  <span>{{ formatPrice(0) }}</span>
-                  <span>{{ formatPrice(priceMax) }}</span>
+              <template v-if="isLoading">
+                <div class="skeleton-line w-28"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-24"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-24"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-24"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-24"></div>
+                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-24"></div>
+                <div class="skeleton-input"></div>
+                <div class="flex items-center gap-3">
+                  <div class="skeleton-button"></div>
+                  <div class="skeleton-button"></div>
                 </div>
-              </div>
+              </template>
+              <template v-else>
+                <div>
+                  <label class="filter-label">{{ t("search") }}</label>
+                  <input
+                    v-model="searchQuery"
+                    type="text"
+                    class="filter-input"
+                    :placeholder="t('searchBatteryPlaceholder')"
+                  />
+                </div>
 
-              <div>
-                <label class="filter-label">{{ t("batteryType") }}</label>
-                <select v-model="typeFilter" class="filter-select">
-                  <option value="all">{{ t("all") }}</option>
-                  <option v-for="type in typeOptions" :key="type" :value="type">
-                    {{ formatTypeLabel(type) }}
-                  </option>
-                </select>
-              </div>
+                <div>
+                  <label class="filter-label">{{ t("priceRange") }}</label>
+                  <input
+                    v-model.number="priceMax"
+                    type="range"
+                    min="0"
+                    :max="MAX_PRICE"
+                    step="1000000"
+                    class="premium-range"
+                  />
+                  <div class="mt-2 flex justify-between text-xs text-white/60">
+                    <span>{{ formatPrice(0) }}</span>
+                    <span>{{ formatPrice(priceMax) }}</span>
+                  </div>
+                </div>
 
-              <div>
-                <label class="filter-label">{{ t("capacity") }}</label>
-                <select v-model="capacityFilter" class="filter-select">
-                  <option value="all">{{ t("all") }}</option>
-                  <option value="under50">{{ t("under50kwh") }}</option>
-                  <option value="50to100">{{ t("50100kwh") }}</option>
-                  <option value="over100">{{ t("over100kwh") }}</option>
-                </select>
-              </div>
+                <div>
+                  <label class="filter-label">{{ t("batteryType") }}</label>
+                  <select v-model="typeFilter" class="filter-select">
+                    <option value="all">{{ t("all") }}</option>
+                    <option
+                      v-for="type in typeOptions"
+                      :key="type"
+                      :value="type"
+                    >
+                      {{ formatTypeLabel(type) }}
+                    </option>
+                  </select>
+                </div>
 
-              <div>
-                <label class="filter-label">{{ t("condition") }}</label>
-                <select v-model="conditionFilter" class="filter-select">
-                  <option value="all">{{ t("all") }}</option>
-                  <option value="90">{{ t("new90100") }}</option>
-                  <option value="70">{{ t("good7089") }}</option>
-                  <option value="50">{{ t("fair5069") }}</option>
-                </select>
-              </div>
+                <div>
+                  <label class="filter-label">{{ t("capacity") }}</label>
+                  <select v-model="capacityFilter" class="filter-select">
+                    <option value="all">{{ t("all") }}</option>
+                    <option value="under50">{{ t("under50kwh") }}</option>
+                    <option value="50to100">{{ t("50100kwh") }}</option>
+                    <option value="over100">{{ t("over100kwh") }}</option>
+                  </select>
+                </div>
 
-              <div>
-                <label class="filter-label">{{ t("location") }}</label>
-                <select v-model="locationFilter" class="filter-select">
-                  <option value="all">{{ t("all") }}</option>
-                  <option
-                    v-for="location in locationOptions"
-                    :key="location"
-                    :value="location"
+                <div>
+                  <label class="filter-label">{{ t("condition") }}</label>
+                  <select v-model="conditionFilter" class="filter-select">
+                    <option value="all">{{ t("all") }}</option>
+                    <option value="90">{{ t("new90100") }}</option>
+                    <option value="70">{{ t("good7089") }}</option>
+                    <option value="50">{{ t("fair5069") }}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="filter-label">{{ t("location") }}</label>
+                  <select v-model="locationFilter" class="filter-select">
+                    <option value="all">{{ t("all") }}</option>
+                    <option
+                      v-for="location in locationOptions"
+                      :key="location"
+                      :value="location"
+                    >
+                      {{ location }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <UiButton
+                    variant="outline"
+                    class="flex-1"
+                    @click="clearFilters"
                   >
-                    {{ location }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <UiButton
-                  variant="outline"
-                  class="flex-1"
-                  @click="clearFilters"
-                >
-                  {{ t("clearFilters") }}
-                </UiButton>
-                <UiButton
-                  class="flex-1 bg-emerald-500 hover:bg-emerald-400"
-                  @click="showFilters = false"
-                >
-                  {{ t("applyFilters") }}
-                </UiButton>
-              </div>
+                    {{ t("clearFilters") }}
+                  </UiButton>
+                  <UiButton
+                    class="flex-1 bg-emerald-500 hover:bg-emerald-400"
+                    @click="showFilters = false"
+                  >
+                    {{ t("applyFilters") }}
+                  </UiButton>
+                </div>
+              </template>
             </div>
           </div>
         </aside>
@@ -372,12 +396,18 @@
 
           <div
             v-else-if="isLoading"
-            class="flex items-center justify-center gap-3 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-6 text-emerald-200"
+            class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           >
-            <span
-              class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-            ></span>
-            <span>{{ t("loading") }}</span>
+            <div v-for="n in 8" :key="n" class="skeleton-card">
+              <div class="skeleton-image"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-line w-3/4"></div>
+                <div class="skeleton-line w-1/2"></div>
+                <div class="skeleton-line w-2/3"></div>
+                <div class="skeleton-line w-5/6"></div>
+                <div class="skeleton-button"></div>
+              </div>
+            </div>
           </div>
 
           <div
@@ -488,6 +518,20 @@
                       <template v-else>0 {{ t("reviews") }}</template>
                     </span>
                   </div>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-[11px] text-white/70">
+                  <span class="micro-chip">
+                    {{ t("batteryWarrantyLabel") }}:
+                    {{ t("batteryWarrantyValue") }}
+                  </span>
+                  <span class="micro-chip">
+                    {{ t("batteryCompatibilityLabel") }}:
+                    {{ t("batteryCompatibilityValue") }}
+                  </span>
+                  <span class="micro-chip">
+                    {{ t("batteryGradeLabel") }}: {{ t("batteryGradeValue") }}
+                  </span>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -1165,6 +1209,72 @@ watch(
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(15, 23, 42, 0.5);
   padding: 6px 8px;
+}
+
+.micro-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(15, 23, 42, 0.55);
+  padding: 4px 10px;
+}
+
+.skeleton-card {
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.6);
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.35);
+}
+
+.skeleton-image {
+  height: 180px;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.05) 65%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-content {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.skeleton-line,
+.skeleton-input,
+.skeleton-button {
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.18) 45%,
+    rgba(255, 255, 255, 0.08) 65%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-input {
+  height: 38px;
+  border-radius: 14px;
+}
+
+.skeleton-button {
+  height: 36px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: -200% 50%;
+  }
 }
 
 :global(.battery-display) {
