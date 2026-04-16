@@ -5,6 +5,7 @@
   "register": "Register",
   "vehicles": "Electric Vehicles",
   "batteries": "Batteries",
+  "accessories": "Accessories",
   "sellNow": "Sell Now",
   "sell": "Sell",
   "messages": "Messages",
@@ -15,6 +16,34 @@
   "noMessagesYet": "No messages yet",
   "whyChooseEvn": "Why Choose EVN Market?",
   "leadingPlatform": "Leading platform with advanced technology and professional service",
+  "home": {
+    "auctionsKicker": "TRUSTED AUCTIONS",
+    "liveAuctionsTitle": "Live auctions for EVs and batteries",
+    "liveAuctionsDesc": "Transparent bidding, verified listings, and escrow protection help buyers feel safe while sellers get real market pricing.",
+    "trustEscrowTitle": "Escrow protection",
+    "trustEscrowDesc": "Funds released on delivery",
+    "trustInspectionTitle": "Battery inspection",
+    "trustInspectionDesc": "40-point SOH checklist",
+    "trustVerifiedTitle": "Verified sellers",
+    "trustVerifiedDesc": "KYC + asset ownership",
+    "liveLabel": "Live",
+    "endsIn": "Ends in {time}",
+    "bidCount": "{count} bids",
+    "currentBid": "Current bid",
+    "viewAllAuctions": "View all auctions",
+    "categorySpotlightTitle": "Spotlight by category",
+    "categorySpotlightDesc": "Discover EVs, batteries, and accessories with verified specs.",
+    "socialProofTitle": "Trusted by the EV community",
+    "socialProofDesc": "Real transactions, verified inspections, and consistent buyer satisfaction.",
+    "socialProofRoles": {
+      "buyerHcm": "Buyer · Ho Chi Minh",
+      "sellerHanoi": "Seller · Ha Noi"
+    },
+    "socialProofQuotes": {
+      "buyerHcm": "The inspection report made it easy to trust the listing. Delivery was smooth and on time.",
+      "sellerHanoi": "The auction flow is transparent and the escrow system helped close the deal quickly."
+    }
+  },
   "safeReliable": "Safe & Reliable",
   "safeReliableDesc": "User verification and reputation rating system ensures safe transactions for all customers",
   "userVerification": "100% User Verification",

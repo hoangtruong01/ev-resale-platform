@@ -5,6 +5,7 @@
   "register": "Đăng ký",
   "vehicles": "Xe điện",
   "batteries": "Pin",
+  "accessories": "Phụ kiện",
   "sellNow": "Đăng bán ngay",
   "sell": "Đăng bán",
   "messages": "Tin nhắn",
@@ -15,6 +16,34 @@
   "noMessagesYet": "Chưa có tin nhắn",
   "whyChooseEvn": "Tại sao chọn EVN Market?",
   "leadingPlatform": "Nền tảng hàng đầu với công nghệ tiên tiến và dịch vụ chuyên nghiệp",
+  "home": {
+    "auctionsKicker": "ĐẤU GIÁ UY TÍN",
+    "liveAuctionsTitle": "Đấu giá trực tiếp xe điện và pin",
+    "liveAuctionsDesc": "Đấu giá minh bạch, tin đăng xác thực và bảo chứng thanh toán giúp người mua an tâm, người bán chốt giá tốt.",
+    "trustEscrowTitle": "Bảo chứng thanh toán",
+    "trustEscrowDesc": "Giải ngân sau khi bàn giao",
+    "trustInspectionTitle": "Kiểm định pin",
+    "trustInspectionDesc": "Checklist SOH 40 điểm",
+    "trustVerifiedTitle": "Người bán xác thực",
+    "trustVerifiedDesc": "KYC + xác minh tài sản",
+    "liveLabel": "Đang diễn ra",
+    "endsIn": "Kết thúc sau {time}",
+    "bidCount": "{count} lượt đấu",
+    "currentBid": "Giá hiện tại",
+    "viewAllAuctions": "Xem tất cả đấu giá",
+    "categorySpotlightTitle": "Nổi bật theo danh mục",
+    "categorySpotlightDesc": "Khám phá xe điện, pin và phụ kiện với thông số đã kiểm định.",
+    "socialProofTitle": "Được cộng đồng EV tin chọn",
+    "socialProofDesc": "Giao dịch thật, kiểm định rõ ràng và mức hài lòng ổn định từ người mua.",
+    "socialProofRoles": {
+      "buyerHcm": "Người mua · TP. Hồ Chí Minh",
+      "sellerHanoi": "Người bán · Hà Nội"
+    },
+    "socialProofQuotes": {
+      "buyerHcm": "Báo cáo kiểm định giúp mình tin tưởng hơn, giao xe đúng hẹn và rất chuyên nghiệp.",
+      "sellerHanoi": "Quy trình đấu giá minh bạch, có bảo chứng nên chốt giao dịch nhanh hơn."
+    }
+  },
   "safeReliable": "An toàn & Tin cậy",
   "safeReliableDesc": "Hệ thống xác minh người dùng và đánh giá uy tín đảm bảo giao dịch an toàn cho mọi khách hàng",
   "userVerification": "Xác minh 100% người dùng",

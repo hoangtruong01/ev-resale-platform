@@ -85,33 +85,6 @@
       </div>
     </section>
 
-    <!-- Numbers / Stats Section -->
-    <section class="py-12 bg-background border-y border-border/50">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 reveal">
-          <div
-            v-for="(stat, index) in stats"
-            :key="index"
-            class="stagger-item flex flex-col items-center text-center p-4"
-            :class="`delay-${index * 100}`"
-          >
-            <span
-              class="stat-number text-3xl md:text-4xl font-bold title-gradient mb-2"
-              data-countup="true"
-              :data-target="stat.target"
-              :data-suffix="stat.suffix"
-            >
-              {{ stat.valueLabel }}
-            </span>
-            <span
-              class="text-sm text-muted-foreground uppercase tracking-wider font-semibold"
-              >{{ $t(`stats.${stat.key}`) }}</span
-            >
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- Live Auctions + Trust -->
     <section
       class="py-20 bg-gradient-to-b from-background via-emerald-50/30 to-background"
@@ -122,46 +95,45 @@
             <p
               class="text-xs uppercase tracking-[0.35em] text-emerald-600 font-semibold"
             >
-              Trusted Auctions
+              {{ $t("home.auctionsKicker") }}
             </p>
             <h2
               class="text-4xl md:text-5xl font-black mt-4 mb-5 text-foreground"
             >
-              Live auctions for EVs and batteries
+              {{ $t("home.liveAuctionsTitle") }}
             </h2>
             <p class="text-lg text-muted-foreground leading-relaxed mb-8">
-              Transparent bidding, verified listings, and escrow protection help
-              buyers feel safe while sellers get real market pricing.
+              {{ $t("home.liveAuctionsDesc") }}
             </p>
             <div class="grid sm:grid-cols-3 gap-4">
               <div
                 class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
               >
                 <p class="text-sm text-emerald-700 font-semibold">
-                  Escrow protection
+                  {{ $t("home.trustEscrowTitle") }}
                 </p>
                 <p class="text-xs text-muted-foreground mt-1">
-                  Funds released on delivery
+                  {{ $t("home.trustEscrowDesc") }}
                 </p>
               </div>
               <div
                 class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
               >
                 <p class="text-sm text-emerald-700 font-semibold">
-                  Battery inspection
+                  {{ $t("home.trustInspectionTitle") }}
                 </p>
                 <p class="text-xs text-muted-foreground mt-1">
-                  40-point SOH checklist
+                  {{ $t("home.trustInspectionDesc") }}
                 </p>
               </div>
               <div
                 class="rounded-2xl border border-emerald-200/50 bg-white/80 p-4 shadow-sm"
               >
                 <p class="text-sm text-emerald-700 font-semibold">
-                  Verified sellers
+                  {{ $t("home.trustVerifiedTitle") }}
                 </p>
                 <p class="text-xs text-muted-foreground mt-1">
-                  KYC + asset ownership
+                  {{ $t("home.trustVerifiedDesc") }}
                 </p>
               </div>
             </div>
@@ -177,15 +149,15 @@
                   <span
                     class="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-500/15 text-emerald-700"
                   >
-                    Live
+                    {{ $t("home.liveLabel") }}
                   </span>
-                  <span class="text-xs text-muted-foreground"
-                    >Ends in {{ auction.endsIn }}</span
-                  >
+                  <span class="text-xs text-muted-foreground">
+                    {{ $t("home.endsIn", { time: auction.endsIn }) }}
+                  </span>
                 </div>
-                <span class="text-xs text-muted-foreground"
-                  >{{ auction.bids }} bids</span
-                >
+                <span class="text-xs text-muted-foreground">{{
+                  $t("home.bidCount", { count: auction.bids })
+                }}</span>
               </div>
               <div class="flex items-center gap-4">
                 <div
@@ -206,7 +178,9 @@
                   </p>
                 </div>
                 <div class="text-right">
-                  <p class="text-xs text-muted-foreground">Current bid</p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t("home.currentBid") }}
+                  </p>
                   <p class="text-lg font-black text-emerald-600">
                     {{ formatPrice(auction.price) }}
                   </p>
@@ -217,7 +191,7 @@
               to="/auctions"
               class="inline-flex items-center justify-center rounded-full border border-emerald-500/30 px-6 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-500/10 transition-colors"
             >
-              View all auctions
+              {{ $t("home.viewAllAuctions") }}
             </NuxtLink>
           </div>
         </div>
@@ -232,10 +206,10 @@
         >
           <div>
             <h2 class="text-4xl md:text-5xl font-black text-foreground mb-3">
-              Spotlight by category
+              {{ $t("home.categorySpotlightTitle") }}
             </h2>
             <p class="text-lg text-muted-foreground">
-              Discover EVs, batteries, and accessories with verified specs.
+              {{ $t("home.categorySpotlightDesc") }}
             </p>
           </div>
           <div class="flex flex-wrap gap-3">
@@ -250,7 +224,7 @@
               "
               @click="activeCategory = tab.id"
             >
-              {{ tab.label }}
+              {{ $t(tab.labelKey) }}
             </button>
           </div>
         </div>
@@ -431,129 +405,78 @@
       </div>
     </section>
 
-    <!-- Featured Listings -->
-    <section class="py-24">
+    <!-- Social Proof -->
+    <section class="py-24 bg-muted/30">
       <div class="container mx-auto px-4">
-        <div class="flex items-end justify-between mb-12 reveal">
+        <div class="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 items-start">
           <div>
-            <h2 class="text-4xl font-bold mb-2">
-              {{ $t("featured_products") }}
-            </h2>
-            <p class="text-muted-foreground">{{ $t("leading_platform") }}</p>
-          </div>
-          <NuxtLink
-            to="/vehicles"
-            class="text-primary font-semibold hover:underline flex items-center gap-1 group"
-          >
-            {{ $t("view_details") }}
-            <Icon
-              name="mdi:chevron-right"
-              class="h-5 w-5 transition-transform group-hover:translate-x-1"
-            />
-          </NuxtLink>
-        </div>
-
-        <div
-          v-if="errorMessage"
-          class="rounded-2xl bg-red-500/10 border border-red-500/20 p-8 text-center text-red-500"
-        >
-          {{ errorMessage }}
-        </div>
-
-        <div
-          v-else-if="isLoading && !visibleItems.length"
-          class="flex justify-center p-20"
-        >
-          <div
-            class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"
-          ></div>
-        </div>
-
-        <div
-          v-else-if="visibleItems.length"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 reveal"
-        >
-          <UiCard
-            v-for="(item, index) in visibleItems"
-            :key="item.id"
-            class="stagger-item overflow-hidden bg-card border-border hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 group rounded-3xl cursor-pointer"
-            :class="`delay-${(index % 3) * 100}`"
-            @click="goToVehicleDetail(item.id)"
-          >
-            <div class="aspect-[16/10] relative overflow-hidden">
-              <img
-                v-if="item.image"
-                :src="item.image"
-                :alt="item.name"
-                class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <img
-                v-else
-                src="/placeholder.svg"
-                :alt="$t('vehicles')"
-                class="absolute inset-0 h-full w-full object-contain p-8 opacity-40"
-              />
-              <div
-                class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"
-              ></div>
-              <UiBadge
-                class="absolute top-4 left-4 bg-emerald-500 border-0 shadow-lg"
-                >{{ $t("vehicles") }}</UiBadge
-              >
+            <div class="mb-10 reveal">
+              <h2 class="text-4xl md:text-5xl font-black text-foreground mb-4">
+                {{ $t("home.socialProofTitle") }}
+              </h2>
+              <p class="text-lg text-muted-foreground">
+                {{ $t("home.socialProofDesc") }}
+              </p>
             </div>
-            <UiCardContent class="p-6">
-              <h4
-                class="font-bold text-xl mb-3 line-clamp-1 group-hover:text-primary transition-colors"
-              >
-                {{ item.name }}
-              </h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 reveal">
               <div
-                class="flex items-center gap-4 mb-4 text-sm text-muted-foreground font-medium"
+                v-for="(stat, index) in stats"
+                :key="index"
+                class="stagger-item flex flex-col items-start rounded-2xl bg-background border border-border/60 p-4"
+                :class="`delay-${index * 100}`"
               >
-                <div class="flex items-center gap-1">
-                  <Icon name="mdi:map-marker-outline" /> {{ item.location }}
-                </div>
-                <div v-if="item.year" class="flex items-center gap-1">
-                  <Icon name="mdi:calendar-outline" /> {{ item.year }}
-                </div>
-              </div>
-              <div class="flex items-center justify-between">
-                <p class="text-2xl font-black text-primary">
-                  {{ formatPrice(item.price) }}
-                </p>
-                <div
-                  class="flex items-center gap-1 text-sm bg-muted px-2 py-1 rounded-lg"
+                <span
+                  class="stat-number text-2xl md:text-3xl font-bold title-gradient mb-2"
+                  data-countup="true"
+                  :data-target="stat.target"
+                  :data-suffix="stat.suffix"
                 >
-                  <Icon name="mdi:star" class="text-amber-500 h-4 w-4" />
-                  <span>{{ item.rating?.toFixed(1) || "5.0" }}</span>
+                  {{ stat.valueLabel }}
+                </span>
+                <span
+                  class="text-xs text-muted-foreground uppercase tracking-wider font-semibold"
+                  >{{ $t(`stats.${stat.key}`) }}</span
+                >
+              </div>
+            </div>
+            <div class="mt-10 flex flex-wrap gap-3">
+              <span
+                v-for="logo in partnerLogos"
+                :key="logo"
+                class="px-4 py-2 rounded-full bg-white/80 border border-border text-xs font-semibold text-muted-foreground"
+              >
+                {{ logo }}
+              </span>
+            </div>
+          </div>
+          <div class="grid gap-4 reveal">
+            <div
+              v-for="item in testimonials"
+              :key="item.name"
+              class="rounded-3xl border border-border bg-background p-6 shadow-lg"
+            >
+              <p class="text-sm text-muted-foreground leading-relaxed">
+                "{{ $t(item.quoteKey) }}"
+              </p>
+              <div class="mt-4 flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold text-foreground">
+                    {{ item.name }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t(item.roleKey) }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-amber-500">
+                  <Icon name="mdi:star" class="h-4 w-4" />
+                  <Icon name="mdi:star" class="h-4 w-4" />
+                  <Icon name="mdi:star" class="h-4 w-4" />
+                  <Icon name="mdi:star" class="h-4 w-4" />
+                  <Icon name="mdi:star" class="h-4 w-4" />
                 </div>
               </div>
-            </UiCardContent>
-          </UiCard>
-        </div>
-
-        <div
-          v-else
-          class="rounded-2xl border border-dashed border-muted-foreground/40 bg-background p-12 text-center text-muted-foreground"
-        >
-          {{ $t("noVehiclesFound") }}
-        </div>
-
-        <div class="mt-16 flex justify-center">
-          <UiButton
-            v-if="hasMore"
-            variant="outline"
-            size="lg"
-            :disabled="isLoading"
-            class="h-14 px-12 rounded-full border-primary/30 hover:border-primary text-primary hover:bg-primary/5 transition-all"
-            @click="loadMore"
-          >
-            <span
-              v-if="isLoading"
-              class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-            ></span>
-            {{ $t("load_more") }}
-          </UiButton>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -654,10 +577,128 @@ const liveAuctions = [
   },
 ];
 
+const testimonials = [
+  {
+    name: "Minh Tran",
+    roleKey: "home.socialProofRoles.buyerHcm",
+    quoteKey: "home.socialProofQuotes.buyerHcm",
+  },
+  {
+    name: "Linh Pham",
+    roleKey: "home.socialProofRoles.sellerHanoi",
+    quoteKey: "home.socialProofQuotes.sellerHanoi",
+  },
+];
+
+const partnerLogos = ["Battery Lab", "EV Check", "SecurePay", "Green Mobility"];
+
+const globalBases = [
+  {
+    name: "Ha Noi",
+    labelKey: "globalNetwork.locations.hanoi",
+    lat: 21.03,
+    lng: 105.85,
+    id: "hn",
+  },
+  {
+    name: "Ho Chi Minh",
+    labelKey: "globalNetwork.locations.hochiminh",
+    lat: 10.82,
+    lng: 106.63,
+    id: "hcm",
+  },
+  {
+    name: "Singapore",
+    labelKey: "globalNetwork.locations.singapore",
+    lat: 1.29,
+    lng: 103.85,
+    id: "sg",
+  },
+  {
+    name: "Tokyo",
+    labelKey: "globalNetwork.locations.tokyo",
+    lat: 35.68,
+    lng: 139.76,
+    id: "tokyo",
+  },
+  {
+    name: "Seoul",
+    labelKey: "globalNetwork.locations.seoul",
+    lat: 37.56,
+    lng: 126.97,
+    id: "seoul",
+  },
+  {
+    name: "Dubai",
+    labelKey: "globalNetwork.locations.dubai",
+    lat: 25.2,
+    lng: 55.27,
+    id: "dubai",
+  },
+  {
+    name: "Frankfurt",
+    labelKey: "globalNetwork.locations.frankfurt",
+    lat: 50.11,
+    lng: 8.68,
+    id: "frankfurt",
+  },
+  {
+    name: "London",
+    labelKey: "globalNetwork.locations.london",
+    lat: 51.5,
+    lng: -0.12,
+    id: "london",
+  },
+  {
+    name: "New York",
+    labelKey: "globalNetwork.locations.newyork",
+    lat: 40.71,
+    lng: -74.01,
+    id: "nyc",
+  },
+  {
+    name: "San Francisco",
+    labelKey: "globalNetwork.locations.sanfrancisco",
+    lat: 37.78,
+    lng: -122.44,
+    id: "sf",
+  },
+  {
+    name: "Sao Paulo",
+    labelKey: "globalNetwork.locations.saopaulo",
+    lat: -23.55,
+    lng: -46.63,
+    id: "sp",
+  },
+  {
+    name: "Sydney",
+    labelKey: "globalNetwork.locations.sydney",
+    lat: -33.86,
+    lng: 151.21,
+    id: "sydney",
+  },
+];
+
+const globeCanvas = ref<HTMLCanvasElement | null>(null);
+let globeInstance: ReturnType<typeof createGlobe> | null = null;
+let globeAnimationId = 0;
+let globeResizeObserver: ResizeObserver | null = null;
+let globePhi = 0;
+let globeTheta = 0.2;
+let globeDragging = false;
+let globeDragStartX = 0;
+let globeDragStartY = 0;
+let globeDragPhiStart = 0;
+let globeDragThetaStart = 0;
+let globeTargetPhi: number | null = null;
+let globeTargetTheta: number | null = null;
+const globeFocusEase = 0.08;
+const globeFocusEpsilon = 0.01;
+
 const categoryTabs = [
-  { id: "vehicles", label: "Xe dien" },
-  { id: "batteries", label: "Pin" },
-  { id: "accessories", label: "Phu kien" },
+  { id: "vehicles", labelKey: "vehicles" },
+  { id: "batteries", labelKey: "batteries" },
+  { id: "accessories", labelKey: "accessories" },
 ];
 
 const activeCategory = ref("vehicles");
@@ -803,109 +844,6 @@ const footerCols = [
   },
 ];
 
-const globalBases = [
-  {
-    name: "Ha Noi",
-    labelKey: "globalNetwork.locations.hanoi",
-    lat: 21.03,
-    lng: 105.85,
-    id: "hn",
-  },
-  {
-    name: "Ho Chi Minh",
-    labelKey: "globalNetwork.locations.hochiminh",
-    lat: 10.82,
-    lng: 106.63,
-    id: "hcm",
-  },
-  {
-    name: "Singapore",
-    labelKey: "globalNetwork.locations.singapore",
-    lat: 1.29,
-    lng: 103.85,
-    id: "sg",
-  },
-  {
-    name: "Tokyo",
-    labelKey: "globalNetwork.locations.tokyo",
-    lat: 35.68,
-    lng: 139.76,
-    id: "tokyo",
-  },
-  {
-    name: "Seoul",
-    labelKey: "globalNetwork.locations.seoul",
-    lat: 37.56,
-    lng: 126.97,
-    id: "seoul",
-  },
-  {
-    name: "Dubai",
-    labelKey: "globalNetwork.locations.dubai",
-    lat: 25.2,
-    lng: 55.27,
-    id: "dubai",
-  },
-  {
-    name: "Frankfurt",
-    labelKey: "globalNetwork.locations.frankfurt",
-    lat: 50.11,
-    lng: 8.68,
-    id: "frankfurt",
-  },
-  {
-    name: "London",
-    labelKey: "globalNetwork.locations.london",
-    lat: 51.5,
-    lng: -0.12,
-    id: "london",
-  },
-  {
-    name: "New York",
-    labelKey: "globalNetwork.locations.newyork",
-    lat: 40.71,
-    lng: -74.01,
-    id: "nyc",
-  },
-  {
-    name: "San Francisco",
-    labelKey: "globalNetwork.locations.sanfrancisco",
-    lat: 37.78,
-    lng: -122.44,
-    id: "sf",
-  },
-  {
-    name: "Sao Paulo",
-    labelKey: "globalNetwork.locations.saopaulo",
-    lat: -23.55,
-    lng: -46.63,
-    id: "sp",
-  },
-  {
-    name: "Sydney",
-    labelKey: "globalNetwork.locations.sydney",
-    lat: -33.86,
-    lng: 151.21,
-    id: "sydney",
-  },
-];
-
-const globeCanvas = ref<HTMLCanvasElement | null>(null);
-let globeInstance: ReturnType<typeof createGlobe> | null = null;
-let globeAnimationId = 0;
-let globeResizeObserver: ResizeObserver | null = null;
-let globePhi = 0;
-let globeTheta = 0.2;
-let globeDragging = false;
-let globeDragStartX = 0;
-let globeDragStartY = 0;
-let globeDragPhiStart = 0;
-let globeDragThetaStart = 0;
-let globeTargetPhi: number | null = null;
-let globeTargetTheta: number | null = null;
-const globeFocusEase = 0.08;
-const globeFocusEpsilon = 0.01;
-
 const featureScrollSection = ref<HTMLElement | null>(null);
 const featureStep = ref(0);
 const activeFeatureCount = computed(() => featureStep.value);
@@ -994,10 +932,18 @@ const { get } = useApi();
 const { resolve: resolveAsset } = useAssetUrl();
 
 const visibleItems = computed(() => items.value);
+const dedupedVisibleItems = computed(() => {
+  const seen = new Set<string>();
+  return visibleItems.value.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+});
 
 const activeCategoryItems = computed<CategoryItem[]>(() => {
   if (activeCategory.value === "vehicles") {
-    return visibleItems.value.slice(0, 4).map((item) => ({
+    return dedupedVisibleItems.value.slice(0, 4).map((item) => ({
       id: item.id,
       title: item.name,
       subtitle: item.location,
