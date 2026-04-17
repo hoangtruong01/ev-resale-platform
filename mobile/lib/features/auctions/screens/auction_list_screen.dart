@@ -39,19 +39,30 @@ class AuctionListScreen extends ConsumerWidget {
         ),
         body: auctionsAsync.when(
           loading: () => const Center(
-              child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+            child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+          ),
           error: (e, _) => Center(child: Text('Lỗi: $e')),
           data: (auctions) {
             final active = auctions.where((a) => a.status == 'ACTIVE').toList();
-            final pending =
-                auctions.where((a) => a.status == 'PENDING').toList();
+            final pending = auctions
+                .where((a) => a.status == 'PENDING')
+                .toList();
             final ended = auctions.where((a) => a.status == 'ENDED').toList();
 
             return TabBarView(
               children: [
-                _AuctionTabContent(auctions: active, emptyMsg: 'Chưa có phiên đấu giá nào đang diễn ra'),
-                _AuctionTabContent(auctions: pending, emptyMsg: 'Không có phiên sắp tới'),
-                _AuctionTabContent(auctions: ended, emptyMsg: 'Chưa có phiên kết thúc'),
+                _AuctionTabContent(
+                  auctions: active,
+                  emptyMsg: 'Chưa có phiên đấu giá nào đang diễn ra',
+                ),
+                _AuctionTabContent(
+                  auctions: pending,
+                  emptyMsg: 'Không có phiên sắp tới',
+                ),
+                _AuctionTabContent(
+                  auctions: ended,
+                  emptyMsg: 'Chưa có phiên kết thúc',
+                ),
               ],
             );
           },
@@ -71,8 +82,7 @@ class _AuctionTabContent extends StatelessWidget {
   final List<AuctionModel> auctions;
   final String emptyMsg;
 
-  const _AuctionTabContent(
-      {required this.auctions, required this.emptyMsg});
+  const _AuctionTabContent({required this.auctions, required this.emptyMsg});
 
   @override
   Widget build(BuildContext context) {
@@ -83,8 +93,7 @@ class _AuctionTabContent extends StatelessWidget {
           children: [
             const Icon(Icons.gavel_rounded, size: 64, color: AppTheme.grey200),
             const SizedBox(height: 16),
-            Text(emptyMsg,
-                style: const TextStyle(color: AppTheme.grey600)),
+            Text(emptyMsg, style: const TextStyle(color: AppTheme.grey600)),
           ],
         ),
       );
@@ -113,8 +122,7 @@ class _AuctionCardState extends State<AuctionCard> {
   @override
   void initState() {
     super.initState();
-    _countdown =
-        AppUtils.formatCountdown(widget.auction.endDateTime);
+    _countdown = AppUtils.formatCountdown(widget.auction.endDateTime);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
         setState(() {
@@ -138,11 +146,13 @@ class _AuctionCardState extends State<AuctionCard> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -153,7 +163,8 @@ class _AuctionCardState extends State<AuctionCard> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16)),
+                    top: Radius.circular(20),
+                  ),
                   child: AppNetworkImage(
                     url: auction.thumbnailUrl,
                     height: 160,
@@ -168,23 +179,26 @@ class _AuctionCardState extends State<AuctionCard> {
                     left: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.error,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.circle,
-                              size: 8, color: Colors.white),
+                          Icon(Icons.circle, size: 8, color: Colors.white),
                           SizedBox(width: 4),
-                          Text('LIVE',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 11,
-                              )),
+                          Text(
+                            'LIVE',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -195,16 +209,21 @@ class _AuctionCardState extends State<AuctionCard> {
                   right: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(6),
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.timer_outlined,
-                            size: 12, color: Colors.white),
+                        const Icon(
+                          Icons.timer_outlined,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           _countdown,
@@ -228,13 +247,17 @@ class _AuctionCardState extends State<AuctionCard> {
                   Text(
                     auction.itemTypeLabel,
                     style: const TextStyle(
-                        color: AppTheme.grey400, fontSize: 12),
+                      color: AppTheme.grey400,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     auction.title,
                     style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w700),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -245,9 +268,13 @@ class _AuctionCardState extends State<AuctionCard> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Giá hiện tại',
-                              style: TextStyle(
-                                  color: AppTheme.grey400, fontSize: 12)),
+                          const Text(
+                            'Giá hiện tại',
+                            style: TextStyle(
+                              color: AppTheme.grey400,
+                              fontSize: 12,
+                            ),
+                          ),
                           Text(
                             AppUtils.formatCurrency(auction.currentPrice),
                             style: const TextStyle(
@@ -261,13 +288,18 @@ class _AuctionCardState extends State<AuctionCard> {
                       if (auction.bidCount != null)
                         Row(
                           children: [
-                            const Icon(Icons.people_outline,
-                                size: 16, color: AppTheme.grey400),
+                            const Icon(
+                              Icons.people_outline,
+                              size: 16,
+                              color: AppTheme.grey400,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${auction.bidCount} lượt bid',
                               style: const TextStyle(
-                                  color: AppTheme.grey600, fontSize: 13),
+                                color: AppTheme.grey600,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),

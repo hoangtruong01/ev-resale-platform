@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../features/auth/providers/auth_provider.dart';
-import '../../../core/utils/app_utils.dart';
-import '../../../widgets/app_network_image.dart';
 
 // Stub - connect to chat service
 final chatRoomsProvider = FutureProvider<List<dynamic>>((ref) async {
@@ -22,16 +19,12 @@ class ChatListScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tin nhắn'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
       ),
       body: chatRoomsAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+        ),
         error: (e, _) => Center(child: Text('Lỗi: $e')),
         data: (rooms) {
           if (rooms.isEmpty) {
@@ -42,17 +35,19 @@ class ChatListScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryGreen.withOpacity(0.1),
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.message_outlined,
-                        size: 52, color: AppTheme.primaryGreen),
+                    child: const Icon(
+                      Icons.message_outlined,
+                      size: 52,
+                      color: AppTheme.primaryGreen,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   const Text(
                     'Chưa có tin nhắn nào',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -71,8 +66,7 @@ class ChatListScreen extends ConsumerWidget {
           }
           return ListView.separated(
             itemCount: rooms.length,
-            separatorBuilder: (_, __) =>
-                const Divider(height: 1, indent: 76),
+            separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
             itemBuilder: (_, i) => const SizedBox.shrink(),
           );
         },

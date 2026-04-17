@@ -51,14 +51,12 @@ class ChatMessage {
 
 // ─── Room info provider ──────────────────────────────────────────────────────
 
-final chatRoomProvider =
-    FutureProvider.autoDispose.family<Map<String, dynamic>, String>(
-  (ref, roomId) async {
-    final dio = ref.watch(dioProvider);
-    final res = await dio.get('/chat/rooms/$roomId');
-    return Map<String, dynamic>.from(res.data as Map);
-  },
-);
+final chatRoomProvider = FutureProvider.autoDispose
+    .family<Map<String, dynamic>, String>((ref, roomId) async {
+      final dio = ref.watch(dioProvider);
+      final res = await dio.get('/chat/rooms/$roomId');
+      return Map<String, dynamic>.from(res.data as Map);
+    });
 
 // ─── Chat Room Screen ─────────────────────────────────────────────────────────
 
@@ -108,10 +106,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
     _socket!.on('connect', (_) {
       setState(() => _socketConnected = true);
-      _socket!.emit('joinRoom', {
-        'roomId': widget.roomId,
-        'userId': user.id,
-      });
+      _socket!.emit('joinRoom', {'roomId': widget.roomId, 'userId': user.id});
     });
 
     _socket!.on('chat:history', (data) {
@@ -182,7 +177,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Đề xuất hợp đồng'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -217,7 +212,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+            ),
             child: const Text('Gửi hợp đồng'),
           ),
         ],
@@ -240,8 +237,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       // But also manually add it if we got it in response
       final data = res.data as Map<String, dynamic>?;
       if (data != null && data['systemMessage'] != null) {
-        final msg =
-            ChatMessage.fromJson(data['systemMessage'] as Map<String, dynamic>);
+        final msg = ChatMessage.fromJson(
+          data['systemMessage'] as Map<String, dynamic>,
+        );
         if (mounted) {
           setState(() => _messages.add(msg));
           _scrollToBottom();
@@ -253,6 +251,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           const SnackBar(
             content: Text('Đã gửi yêu cầu ký hợp đồng!'),
             backgroundColor: AppTheme.primaryGreen,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -262,6 +261,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           SnackBar(
             content: Text(parseApiError(e)),
             backgroundColor: AppTheme.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -290,7 +290,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppTheme.primaryGreen.withOpacity(0.15),
+              backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
               child: otherUser?['avatar'] != null
                   ? ClipOval(
                       child: Image.network(
@@ -305,7 +305,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                         ),
                       ),
                     )
-                  : const Icon(Icons.person, color: AppTheme.primaryGreen, size: 18),
+                  : const Icon(
+                      Icons.person,
+                      color: AppTheme.primaryGreen,
+                      size: 18,
+                    ),
             ),
             const SizedBox(width: 12),
             Column(
@@ -313,7 +317,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
               children: [
                 Text(
                   otherUser?['fullName'] as String? ?? 'Người dùng',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Row(
                   children: [
@@ -362,37 +369,36 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             child: _loadingHistory
                 ? const Center(child: CircularProgressIndicator())
                 : _messages.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'Bắt đầu cuộc trò chuyện!',
-                          style: TextStyle(color: AppTheme.grey400),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollCtrl,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _messages.length,
-                        itemBuilder: (_, i) {
-                          final msg = _messages[i];
-                          if (msg.isContractMessage) {
-                            final meta = msg.metadata!;
-                            return ContractMessageCard(
-                              contractId: meta['contractId'] as String,
-                              transactionId: meta['transactionId'] as String,
-                              assetName: meta['assetName'] as String? ?? 'Sản phẩm',
-                              agreedPrice:
-                                  (meta['agreedPrice'] as num?)?.toDouble() ?? 0,
-                              proposedByUserId:
-                                  meta['proposedBy'] as String? ?? '',
-                              currentUserId: user?.id ?? '',
-                            );
-                          }
-                          return _MessageBubble(
-                            msg: msg,
-                            isMine: msg.senderId == user?.id,
-                          );
-                        },
-                      ),
+                ? const Center(
+                    child: Text(
+                      'Bắt đầu cuộc trò chuyện!',
+                      style: TextStyle(color: AppTheme.grey400),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: _scrollCtrl,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: _messages.length,
+                    itemBuilder: (_, i) {
+                      final msg = _messages[i];
+                      if (msg.isContractMessage) {
+                        final meta = msg.metadata!;
+                        return ContractMessageCard(
+                          contractId: meta['contractId'] as String,
+                          transactionId: meta['transactionId'] as String,
+                          assetName: meta['assetName'] as String? ?? 'Sản phẩm',
+                          agreedPrice:
+                              (meta['agreedPrice'] as num?)?.toDouble() ?? 0,
+                          proposedByUserId: meta['proposedBy'] as String? ?? '',
+                          currentUserId: user?.id ?? '',
+                        );
+                      }
+                      return _MessageBubble(
+                        msg: msg,
+                        isMine: msg.senderId == user?.id,
+                      );
+                    },
+                  ),
           ),
 
           // Input bar
@@ -400,9 +406,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
             decoration: BoxDecoration(
               color: Colors.white,
+              border: Border(top: BorderSide(color: AppTheme.grey200)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -428,8 +435,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
-                              contentPadding:
-                                  EdgeInsets.symmetric(vertical: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
                             ),
                             maxLines: 4,
                             minLines: 1,
@@ -437,8 +445,10 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.image_outlined,
-                              color: AppTheme.grey400),
+                          icon: const Icon(
+                            Icons.image_outlined,
+                            color: AppTheme.grey400,
+                          ),
                           onPressed: () {},
                         ),
                       ],
@@ -454,8 +464,11 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.send_rounded,
-                        color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _sendMessage,
                   ),
                 ),
@@ -493,9 +506,10 @@ class _MessageBubble extends StatelessWidget {
             bottomLeft: Radius.circular(isMine ? 16 : 4),
             bottomRight: Radius.circular(isMine ? 4 : 16),
           ),
+          border: isMine ? null : Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
             ),
           ],

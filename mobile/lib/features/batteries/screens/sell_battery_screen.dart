@@ -85,15 +85,15 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
       await service.createBattery(payload);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đăng bán pin thành công!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đăng bán pin thành công!')));
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $error')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -108,7 +108,9 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
 
     if (type == null || capacity == null || capacity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn loại pin và nhập dung lượng hợp lệ.')),
+        const SnackBar(
+          content: Text('Vui lòng chọn loại pin và nhập dung lượng hợp lệ.'),
+        ),
       );
       return;
     }
@@ -147,9 +149,9 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi gợi ý giá: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi gợi ý giá: $error')));
       }
     } finally {
       if (mounted) {
@@ -184,6 +186,19 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.grey200),
+                ),
+                child: const Text(
+                  'Nhập thông tin pin để đăng bán. Giao diện đã đồng bộ theo web.',
+                  style: TextStyle(color: AppTheme.grey600, fontSize: 13),
+                ),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _nameCtrl,
                 decoration: const InputDecoration(labelText: 'Tên pin *'),
@@ -209,9 +224,11 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _isSuggestingPrice ? null : _suggestPrice,
                       icon: const Icon(Icons.auto_fix_high_outlined, size: 18),
-                      label: Text(_isSuggestingPrice
-                          ? 'Đang gợi ý...'
-                          : 'Gợi ý giá từ AI'),
+                      label: Text(
+                        _isSuggestingPrice
+                            ? 'Đang gợi ý...'
+                            : 'Gợi ý giá từ AI',
+                      ),
                     ),
                   ),
                 ],
@@ -225,12 +242,21 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
               ],
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(labelText: 'Loại pin *'),
                 items: const [
-                  DropdownMenuItem(value: 'LITHIUM_ION', child: Text('Lithium-Ion')),
-                  DropdownMenuItem(value: 'LITHIUM_POLYMER', child: Text('Lithium Polymer')),
-                  DropdownMenuItem(value: 'NICKEL_METAL_HYDRIDE', child: Text('NiMH')),
+                  DropdownMenuItem(
+                    value: 'LITHIUM_ION',
+                    child: Text('Lithium-Ion'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'LITHIUM_POLYMER',
+                    child: Text('Lithium Polymer'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'NICKEL_METAL_HYDRIDE',
+                    child: Text('NiMH'),
+                  ),
                   DropdownMenuItem(value: 'LEAD_ACID', child: Text('Chì-Axit')),
                 ],
                 onChanged: (value) => setState(() => _type = value),
@@ -240,7 +266,9 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
               TextFormField(
                 controller: _capacityCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Dung lượng (kWh) *'),
+                decoration: const InputDecoration(
+                  labelText: 'Dung lượng (kWh) *',
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Bắt buộc';
                   final parsed = double.tryParse(value.trim());
@@ -260,7 +288,9 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
               TextFormField(
                 controller: _conditionCtrl,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Tình trạng (%) *'),
+                decoration: const InputDecoration(
+                  labelText: 'Tình trạng (%) *',
+                ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Bắt buộc';
                   final parsed = int.tryParse(value.trim());
@@ -298,9 +328,13 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                 decoration: const InputDecoration(labelText: 'Email'),
               ),
               const SizedBox(height: 16),
-              Text('Hình ảnh',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600, color: AppTheme.grey800)),
+              Text(
+                'Hình ảnh',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.grey800,
+                ),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -308,9 +342,13 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                 children: [
                   ..._images.map(
                     (file) => ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(file,
-                          width: 80, height: 80, fit: BoxFit.cover),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        file,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   InkWell(
@@ -320,10 +358,12 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                       height: 80,
                       decoration: BoxDecoration(
                         border: Border.all(color: AppTheme.grey200),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.add_a_photo_outlined,
-                          color: AppTheme.grey400),
+                      child: const Icon(
+                        Icons.add_a_photo_outlined,
+                        color: AppTheme.grey400,
+                      ),
                     ),
                   ),
                 ],

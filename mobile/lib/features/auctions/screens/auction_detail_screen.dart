@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_utils.dart';
 
 class AuctionDetailScreen extends StatelessWidget {
   final String id;
@@ -17,11 +16,14 @@ class AuctionDetailScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.gavel_rounded,
-                  size: 64, color: Color(0xFF8B5CF6)),
+              child: const Icon(
+                Icons.gavel_rounded,
+                size: 64,
+                color: Color(0xFF8B5CF6),
+              ),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -35,8 +37,10 @@ class AuctionDetailScreen extends StatelessWidget {
               style: TextStyle(color: AppTheme.grey600),
             ),
             const SizedBox(height: 24),
-            Text('Auction ID: $id',
-                style: const TextStyle(color: AppTheme.grey400, fontSize: 12)),
+            Text(
+              'Auction ID: $id',
+              style: const TextStyle(color: AppTheme.grey400, fontSize: 12),
+            ),
           ],
         ),
       ),

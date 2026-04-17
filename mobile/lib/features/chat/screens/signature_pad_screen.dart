@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -60,8 +59,9 @@ class _SignaturePadScreenState extends State<SignaturePadScreen> {
     }
 
     try {
-      final boundary = _repaintKey.currentContext!.findRenderObject()
-          as RenderRepaintBoundary;
+      final boundary =
+          _repaintKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 2.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
@@ -95,8 +95,10 @@ class _SignaturePadScreenState extends State<SignaturePadScreen> {
           TextButton.icon(
             onPressed: _clear,
             icon: const Icon(Icons.refresh, size: 18, color: Colors.white70),
-            label: const Text('Xóa',
-                style: TextStyle(color: Colors.white70, fontSize: 14)),
+            label: const Text(
+              'Xóa',
+              style: TextStyle(color: Colors.white70, fontSize: 14),
+            ),
           ),
         ],
       ),
@@ -119,16 +121,17 @@ class _SignaturePadScreenState extends State<SignaturePadScreen> {
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.grey200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 20,
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 child: RepaintBoundary(
                   key: _repaintKey,
                   child: GestureDetector(
@@ -165,14 +168,18 @@ class _SignaturePadScreenState extends State<SignaturePadScreen> {
               onPressed: _confirm,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 52),
-                backgroundColor:
-                    _hasDrawn ? AppTheme.primaryGreen : AppTheme.grey600,
+                backgroundColor: _hasDrawn
+                    ? AppTheme.primaryGreen
+                    : AppTheme.grey600,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              icon: const Icon(Icons.check_circle_outline,
-                  color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.check_circle_outline,
+                color: Colors.white,
+                size: 20,
+              ),
               label: const Text(
                 'Xác nhận chữ ký',
                 style: TextStyle(

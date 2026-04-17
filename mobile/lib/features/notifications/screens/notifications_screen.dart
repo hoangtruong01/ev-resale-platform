@@ -13,8 +13,10 @@ class NotificationsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {},
-            child: const Text('Đọc tất cả',
-                style: TextStyle(color: AppTheme.primaryGreen)),
+            child: const Text(
+              'Đọc tất cả',
+              style: TextStyle(color: AppTheme.primaryGreen),
+            ),
           ),
         ],
       ),
@@ -86,14 +88,21 @@ class _NotifTile extends StatelessWidget {
     final icon = _typeIcon(notification.type);
 
     return Container(
-      color: notification.isRead ? null : AppTheme.primaryGreen.withOpacity(0.04),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: notification.isRead
+            ? Colors.white
+            : AppTheme.primaryGreen.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.grey200),
+      ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: Container(
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 22),
@@ -101,9 +110,7 @@ class _NotifTile extends StatelessWidget {
         title: Text(
           notification.title,
           style: TextStyle(
-            fontWeight: notification.isRead
-                ? FontWeight.w500
-                : FontWeight.w700,
+            fontWeight: notification.isRead ? FontWeight.w500 : FontWeight.w700,
             fontSize: 14,
           ),
         ),
@@ -120,8 +127,7 @@ class _NotifTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               AppUtils.timeAgo(notification.createdAt),
-              style: const TextStyle(
-                  color: AppTheme.grey400, fontSize: 11),
+              style: const TextStyle(color: AppTheme.grey400, fontSize: 11),
             ),
           ],
         ),

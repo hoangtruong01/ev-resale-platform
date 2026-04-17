@@ -9,7 +9,8 @@ class SellAccessoryScreen extends ConsumerStatefulWidget {
   const SellAccessoryScreen({super.key});
 
   @override
-  ConsumerState<SellAccessoryScreen> createState() => _SellAccessoryScreenState();
+  ConsumerState<SellAccessoryScreen> createState() =>
+      _SellAccessoryScreenState();
 }
 
 class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
@@ -89,9 +90,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $error')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -125,6 +126,19 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.grey200),
+                ),
+                child: const Text(
+                  'Nhập thông tin phụ kiện để đăng bán. Giao diện đã đồng bộ theo web.',
+                  style: TextStyle(color: AppTheme.grey600, fontSize: 13),
+                ),
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _nameCtrl,
                 decoration: const InputDecoration(labelText: 'Tên phụ kiện *'),
@@ -141,16 +155,25 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _category,
+                initialValue: _category,
                 decoration: const InputDecoration(labelText: 'Danh mục *'),
                 items: const [
                   DropdownMenuItem(value: 'CHARGER', child: Text('Bộ sạc')),
                   DropdownMenuItem(value: 'TIRE', child: Text('Lốp xe')),
                   DropdownMenuItem(value: 'INTERIOR', child: Text('Nội thất')),
-                  DropdownMenuItem(value: 'EXTERIOR', child: Text('Ngoại thất')),
-                  DropdownMenuItem(value: 'ELECTRONICS', child: Text('Điện - điện tử')),
+                  DropdownMenuItem(
+                    value: 'EXTERIOR',
+                    child: Text('Ngoại thất'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'ELECTRONICS',
+                    child: Text('Điện - điện tử'),
+                  ),
                   DropdownMenuItem(value: 'SAFETY', child: Text('An toàn')),
-                  DropdownMenuItem(value: 'MAINTENANCE', child: Text('Bảo dưỡng')),
+                  DropdownMenuItem(
+                    value: 'MAINTENANCE',
+                    child: Text('Bảo dưỡng'),
+                  ),
                   DropdownMenuItem(value: 'OTHER', child: Text('Khác')),
                 ],
                 onChanged: (value) => setState(() => _category = value),
@@ -158,13 +181,16 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _condition,
+                initialValue: _condition,
                 decoration: const InputDecoration(labelText: 'Tình trạng *'),
                 items: const [
                   DropdownMenuItem(value: 'New', child: Text('Mới')),
                   DropdownMenuItem(value: 'Like New', child: Text('Như mới')),
                   DropdownMenuItem(value: 'Good', child: Text('Tốt')),
-                  DropdownMenuItem(value: 'Used', child: Text('Đã qua sử dụng')),
+                  DropdownMenuItem(
+                    value: 'Used',
+                    child: Text('Đã qua sử dụng'),
+                  ),
                 ],
                 onChanged: (value) => setState(() => _condition = value),
                 validator: (value) => value == null ? 'Bắt buộc' : null,
@@ -177,7 +203,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _modelCtrl,
-                decoration: const InputDecoration(labelText: 'Dòng xe tương thích'),
+                decoration: const InputDecoration(
+                  labelText: 'Dòng xe tương thích',
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -207,7 +235,13 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                 decoration: const InputDecoration(labelText: 'Email'),
               ),
               const SizedBox(height: 16),
-              Text('Hình ảnh', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.grey800)),
+              Text(
+                'Hình ảnh',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.grey800,
+                ),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -215,8 +249,13 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                 children: [
                   ..._images.map(
                     (file) => ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(file, width: 80, height: 80, fit: BoxFit.cover),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(
+                        file,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   InkWell(
@@ -226,10 +265,12 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                       height: 80,
                       decoration: BoxDecoration(
                         border: Border.all(color: AppTheme.grey200),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.add_a_photo_outlined,
-                          color: AppTheme.grey400),
+                      child: const Icon(
+                        Icons.add_a_photo_outlined,
+                        color: AppTheme.grey400,
+                      ),
                     ),
                   ),
                 ],

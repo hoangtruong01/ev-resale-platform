@@ -32,7 +32,11 @@ class KycManagementScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: AppTheme.error, size: 48),
+                const Icon(
+                  Icons.error_outline,
+                  color: AppTheme.error,
+                  size: 48,
+                ),
                 const SizedBox(height: 16),
                 Text('Lỗi: ${error.toString()}'),
                 TextButton(
@@ -51,8 +55,11 @@ class KycManagementScreen extends ConsumerWidget {
                   const Center(
                     child: Column(
                       children: [
-                        Icon(Icons.verified_user_outlined,
-                            size: 64, color: AppTheme.grey300),
+                        Icon(
+                          Icons.verified_user_outlined,
+                          size: 64,
+                          color: AppTheme.grey300,
+                        ),
                         SizedBox(height: 16),
                         Text(
                           'Không có yêu cầu eKYC nào đang chờ phê duyệt',
@@ -80,7 +87,8 @@ class KycManagementScreen extends ConsumerWidget {
                   email: user?['email'] ?? 'N/A',
                   phone: user?['phone'] ?? 'N/A',
                   avatar: user?['avatar'],
-                  submittedAt: profile['updatedAt'] ?? profile['createdAt'] ?? '',
+                  submittedAt:
+                      profile['updatedAt'] ?? profile['createdAt'] ?? '',
                   onTap: () async {
                     final result = await Navigator.push(
                       context,
@@ -109,10 +117,10 @@ class KycManagementScreen extends ConsumerWidget {
 
 final _pendingKycProvider =
     FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
-  final dio = ref.watch(dioProvider);
-  final res = await dio.get('/users/kyc/pending');
-  return List<Map<String, dynamic>>.from(res.data);
-});
+      final dio = ref.watch(dioProvider);
+      final res = await dio.get('/users/kyc/pending');
+      return List<Map<String, dynamic>>.from(res.data);
+    });
 
 // ─── Widgets ──────────────────────────────────────────────────────────────────
 
@@ -141,15 +149,16 @@ class _KycRequestCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.grey900.withOpacity(0.04),
+              color: AppTheme.grey900.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -159,7 +168,7 @@ class _KycRequestCard extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 28,
-              backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+              backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
               backgroundImage: avatar != null ? NetworkImage(avatar!) : null,
               child: avatar == null
                   ? const Icon(Icons.person, color: AppTheme.primaryGreen)
@@ -181,7 +190,10 @@ class _KycRequestCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'SĐT: $phone',
-                    style: const TextStyle(color: AppTheme.grey600, fontSize: 13),
+                    style: const TextStyle(
+                      color: AppTheme.grey600,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -200,9 +212,12 @@ class _KycRequestCard extends StatelessWidget {
                 const Icon(Icons.chevron_right, color: AppTheme.grey400),
                 const SizedBox(height: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: AppTheme.warning.withOpacity(0.1),
+                    color: AppTheme.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
