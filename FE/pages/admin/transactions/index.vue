@@ -24,9 +24,9 @@
               class="type-filter"
             />
             <UButton
-              @click="refreshData"
               icon="i-heroicons-arrow-path-20-solid"
               variant="outline"
+              @click="refreshData"
             >
               Làm mới
             </UButton>
@@ -110,10 +110,10 @@
               <h3 class="table-title">Danh sách giao dịch</h3>
               <div class="table-actions">
                 <UButton
-                  @click="exportTransactions"
                   icon="i-heroicons-arrow-down-tray-20-solid"
                   variant="outline"
                   size="sm"
+                  @click="exportTransactions"
                 >
                   Xuất Excel
                 </UButton>
@@ -175,7 +175,7 @@
                           :src="transaction.product.image"
                           :alt="transaction.product.name"
                           class="product-image"
-                        />
+                        >
                         <div class="product-text">
                           <p class="product-name">
                             {{ transaction.product.name }}
@@ -234,32 +234,32 @@
                     <td class="actions-cell">
                       <div class="action-buttons">
                         <UButton
-                          @click="viewTransactionDetails(transaction)"
                           icon="i-heroicons-eye-20-solid"
                           color="blue"
                           variant="ghost"
                           size="sm"
                           title="Xem chi tiết"
+                          @click="viewTransactionDetails(transaction)"
                         />
 
                         <UButton
                           v-if="transaction.hasDispute"
-                          @click="handleDispute(transaction)"
                           icon="i-heroicons-exclamation-triangle-20-solid"
                           color="red"
                           variant="ghost"
                           size="sm"
                           title="Xử lý khiếu nại"
+                          @click="handleDispute(transaction)"
                         />
 
                         <UButton
                           v-if="transaction.status === 'pending'"
-                          @click="processTransaction(transaction.id)"
                           icon="i-heroicons-cog-6-tooth-20-solid"
                           color="green"
                           variant="ghost"
                           size="sm"
                           title="Xử lý"
+                          @click="processTransaction(transaction.id)"
                         />
                       </div>
                     </td>
@@ -351,7 +351,7 @@
                       :src="selectedTransaction.product.image"
                       :alt="selectedTransaction.product.name"
                       class="product-detail-image"
-                    />
+                    >
                     <div class="product-detail-info">
                       <h6>{{ selectedTransaction.product.name }}</h6>
                       <p>{{ selectedTransaction.product.category }}</p>
@@ -490,7 +490,7 @@
                           :src="evidence"
                           :alt="`Evidence ${index + 1}`"
                           class="evidence-image"
-                        />
+                        >
                       </div>
                     </div>
 
@@ -499,29 +499,29 @@
                       <h6>Giải quyết khiếu nại</h6>
                       <div class="resolution-actions">
                         <UButton
+                          color="green"
+                          icon="i-heroicons-user-20-solid"
                           @click="
                             resolveDispute(selectedTransaction.id, 'buyer')
                           "
-                          color="green"
-                          icon="i-heroicons-user-20-solid"
                         >
                           Ủng hộ người mua
                         </UButton>
                         <UButton
+                          color="blue"
+                          icon="i-heroicons-building-storefront-20-solid"
                           @click="
                             resolveDispute(selectedTransaction.id, 'seller')
                           "
-                          color="blue"
-                          icon="i-heroicons-building-storefront-20-solid"
                         >
                           Ủng hộ người bán
                         </UButton>
                         <UButton
+                          color="yellow"
+                          icon="i-heroicons-scale-20-solid"
                           @click="
                             resolveDispute(selectedTransaction.id, 'partial')
                           "
-                          color="yellow"
-                          icon="i-heroicons-scale-20-solid"
                         >
                           Giải quyết một phần
                         </UButton>
@@ -534,29 +534,29 @@
 
             <template #footer>
               <div class="modal-actions">
-                <div class="action-group" v-if="selectedTransaction">
+                <div v-if="selectedTransaction" class="action-group">
                   <UButton
                     v-if="selectedTransaction.status === 'pending'"
+                    icon="i-heroicons-check-20-solid"
+                    color="green"
                     @click="
                       processTransaction(selectedTransaction.id);
                       isDetailModalOpen = false;
                     "
-                    icon="i-heroicons-check-20-solid"
-                    color="green"
                   >
                     Xử lý giao dịch
                   </UButton>
 
                   <UButton
-                    @click="exportTransactionDetail(selectedTransaction)"
                     icon="i-heroicons-arrow-down-tray-20-solid"
                     variant="outline"
+                    @click="exportTransactionDetail(selectedTransaction)"
                   >
                     Xuất báo cáo
                   </UButton>
                 </div>
 
-                <UButton @click="isDetailModalOpen = false" variant="ghost">
+                <UButton variant="ghost" @click="isDetailModalOpen = false">
                   Đóng
                 </UButton>
               </div>

@@ -17,12 +17,13 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName', '1.0
 
 android {
     namespace "com.evn.battery"
-    compileSdkVersion 34
+    compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -36,7 +37,7 @@ android {
     defaultConfig {
         applicationId "com.evn.battery"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -55,8 +56,5 @@ flutter {
 }
 
 dependencies {
-    // Ensure Flutter embedding is on the Kotlin compile classpath in CI.
-    debugImplementation "io.flutter:flutter_embedding_debug:1.0.0"
-    profileImplementation "io.flutter:flutter_embedding_profile:1.0.0"
-    releaseImplementation "io.flutter:flutter_embedding_release:1.0.0"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
 }

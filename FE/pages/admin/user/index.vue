@@ -18,9 +18,9 @@
               class="status-filter"
             />
             <UButton
-              @click="refreshData"
               icon="i-heroicons-arrow-path-20-solid"
               variant="outline"
+              @click="refreshData"
             >
               Làm mới
             </UButton>
@@ -108,7 +108,7 @@
                         v-if="user.avatar"
                         :src="user.avatar"
                         :alt="user.name"
-                      />
+                      >
                       <Icon v-else name="mdi:account-circle" />
                     </div>
                     <div class="user-details">
@@ -129,46 +129,46 @@
                     <div class="action-buttons">
                       <UButton
                         v-if="user.status === 'pending'"
-                        @click="approveUser(user.id)"
                         icon="i-heroicons-check-20-solid"
                         color="green"
                         variant="ghost"
                         size="sm"
                         title="Phê duyệt"
+                        @click="approveUser(user.id)"
                       />
                       <UButton
                         v-if="user.status === 'active'"
-                        @click="blockUser(user.id)"
                         icon="i-heroicons-lock-closed-20-solid"
                         color="red"
                         variant="ghost"
                         size="sm"
                         title="Khóa tài khoản"
+                        @click="blockUser(user.id)"
                       />
                       <UButton
                         v-if="user.status === 'blocked'"
-                        @click="unblockUser(user.id)"
                         icon="i-heroicons-lock-open-20-solid"
                         color="green"
                         variant="ghost"
                         size="sm"
                         title="Mở khóa"
+                        @click="unblockUser(user.id)"
                       />
                       <UButton
-                        @click="viewUserDetails(user)"
                         icon="i-heroicons-eye-20-solid"
                         color="blue"
                         variant="ghost"
                         size="sm"
                         title="Xem chi tiết"
+                        @click="viewUserDetails(user)"
                       />
                       <UButton
-                        @click="deleteUser(user.id)"
                         icon="i-heroicons-trash-20-solid"
                         color="red"
                         variant="ghost"
                         size="sm"
                         title="Xóa"
+                        @click="deleteUser(user.id)"
                       />
                     </div>
                   </td>
@@ -208,7 +208,7 @@
                     v-if="selectedUser.avatar"
                     :src="selectedUser.avatar"
                     :alt="selectedUser.name"
-                  />
+                  >
                   <Icon v-else name="mdi:account-circle" />
                 </div>
                 <div class="detail-info">
@@ -266,7 +266,7 @@
 
             <template #footer>
               <div class="modal-actions">
-                <UButton @click="isDetailModalOpen = false" variant="ghost">
+                <UButton variant="ghost" @click="isDetailModalOpen = false">
                   Đóng
                 </UButton>
               </div>

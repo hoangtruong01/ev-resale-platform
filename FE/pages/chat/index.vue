@@ -114,7 +114,7 @@
                 :src="getPrimaryImage(room) as string"
                 alt="product"
                 class="h-10 w-10 rounded-lg object-cover"
-              />
+              >
               <div class="flex-1">
                 <p class="font-medium text-foreground">
                   {{ describeListing(room) }}

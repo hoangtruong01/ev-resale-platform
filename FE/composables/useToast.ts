@@ -59,7 +59,7 @@ export const useCustomToast = () => {
 
     state.value = [...state.value, toast];
 
-    if (process.client) {
+    if (import.meta.client) {
       window.setTimeout(() => remove(id), duration);
     }
   };

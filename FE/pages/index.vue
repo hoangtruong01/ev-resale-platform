@@ -20,12 +20,12 @@
           <source
             src="https://assets.mixkit.co/videos/preview/mixkit-top-view-of-a-fast-car-driving-on-the-highway-at-night-34547-large.mp4"
             type="video/mp4"
-          />
+          >
         </video>
         <!-- Overlay -->
         <div
           class="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-background"
-        ></div>
+        />
       </div>
 
       <div class="container mx-auto px-4 text-center relative z-10">
@@ -34,7 +34,7 @@
             class="text-5xl md:text-8xl font-black text-white mb-6 tracking-tight leading-tight"
           >
             <span class="hero-line hero-line--primary">{{ $t("hello") }}</span>
-            <br />
+            <br >
             <span class="title-gradient hero-line hero-line--accent">
               {{ $t("welcome") }}
             </span>
@@ -167,7 +167,7 @@
                     :src="auction.image"
                     :alt="auction.title"
                     class="h-full w-full object-cover"
-                  />
+                  >
                 </div>
                 <div class="flex-1">
                   <h4 class="font-bold text-lg text-foreground line-clamp-1">
@@ -242,10 +242,10 @@
                 :src="item.image || '/placeholder.svg'"
                 :alt="item.title"
                 class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
+              >
               <div
                 class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"
-              ></div>
+              />
               <span
                 v-if="item.tagKey"
                 class="absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white shadow-lg"
@@ -292,7 +292,7 @@
     <section class="features-scroll relative overflow-hidden">
       <div
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"
-      ></div>
+      />
       <div class="container mx-auto px-4 relative features-scroll__sticky">
         <div class="text-center mb-16">
           <h2 class="text-4xl md:text-5xl font-bold mb-6 text-foreground">
@@ -399,7 +399,7 @@
           </div>
           <div class="relative flex justify-center lg:justify-end">
             <div class="globe-frame">
-              <canvas ref="globeCanvas" class="globe-canvas"></canvas>
+              <canvas ref="globeCanvas" class="globe-canvas"/>
             </div>
           </div>
         </div>

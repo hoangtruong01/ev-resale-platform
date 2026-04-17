@@ -60,13 +60,13 @@
                 :src="activeImage"
                 :alt="auction.title"
                 class="h-full w-full object-contain bg-black/5"
-              />
+              >
               <img
                 v-else
                 src="/placeholder.svg"
                 :alt="auction.title"
                 class="h-full w-full object-cover opacity-50"
-              />
+              >
 
               <button
                 v-if="auction.images?.length > 1"
@@ -96,19 +96,19 @@
                   v-for="(image, index) in auction.images"
                   :key="`${image}-${index}`"
                   type="button"
-                  @click="setActiveImage(index)"
                   class="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl border transition"
                   :class="[
                     index === activeImageIndex
                       ? 'border-emerald-500 ring-2 ring-emerald-200'
                       : 'border-gray-200 dark:border-gray-700 hover:border-emerald-400',
                   ]"
+                  @click="setActiveImage(index)"
                 >
                   <img
                     :src="image"
                     :alt="`${auction.title} ${index + 1}`"
                     class="h-full w-full object-cover"
-                  />
+                  >
                 </button>
               </div>
               <img
@@ -117,7 +117,7 @@
                 src="/placeholder.svg"
                 alt="placeholder"
                 class="h-20 w-24 shrink-0 overflow-hidden rounded-xl border object-cover opacity-50"
-              />
+              >
             </UiCardContent>
           </UiCard>
 
@@ -338,9 +338,9 @@
             </div>
 
             <UiButton
-              @click="openBidModal"
               :disabled="!canBid"
               class="w-full px-6 py-3 font-semibold text-lg"
+              @click="openBidModal"
             >
               {{ t("bidNow") }}
             </UiButton>
@@ -360,7 +360,7 @@
                   :src="resolveAsset(auction.seller.avatar)"
                   :alt="auction.seller.name"
                   class="w-full h-full object-cover"
-                />
+                >
                 <span v-else class="text-green-600 font-bold">
                   {{ auction.seller.name?.charAt?.(0)?.toUpperCase?.() || "?" }}
                 </span>
@@ -472,8 +472,8 @@
               <p class="text-green-100 opacity-90">{{ auction.title }}</p>
             </div>
             <button
-              @click="closeBidModal"
               class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+              @click="closeBidModal"
             >
               <span class="text-xl">×</span>
             </button>
@@ -507,55 +507,55 @@
                   :src="activeImage"
                   :alt="`${auction.title} ${activeImageIndex + 1}`"
                   class="max-h-full max-w-full object-contain"
-                />
+                >
                 <img
                   v-else
                   src="/placeholder.svg"
                   :alt="auction.title"
                   class="h-full w-full object-cover opacity-50"
-                />
+                >
 
                 <button
                   v-if="auction.images?.length > 1"
                   type="button"
-                  @click.stop="showPrevImage"
                   class="absolute inset-y-0 left-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
                   :aria-label="t('previous')"
+                  @click.stop="showPrevImage"
                 >
                   &lt;
                 </button>
                 <button
                   v-if="auction.images?.length > 1"
                   type="button"
-                  @click.stop="showNextImage"
                   class="absolute inset-y-0 right-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
                   :aria-label="t('next')"
+                  @click.stop="showNextImage"
                 >
                   &gt;
                 </button>
               </div>
 
               <div
-                class="flex gap-2 overflow-x-auto pb-1"
                 v-if="auction.images?.length"
+                class="flex gap-2 overflow-x-auto pb-1"
               >
                 <button
                   v-for="(image, index) in auction.images"
                   :key="`${image}-${index}`"
                   type="button"
-                  @click="setActiveImage(index)"
                   class="relative h-16 w-20 shrink-0 overflow-hidden rounded-xl border transition"
                   :class="[
                     index === activeImageIndex
                       ? 'border-emerald-500 ring-2 ring-emerald-200'
                       : 'border-gray-200 dark:border-gray-700 hover:border-emerald-400',
                   ]"
+                  @click="setActiveImage(index)"
                 >
                   <img
                     :src="image"
                     :alt="`${auction.title} ${index + 1}`"
                     class="h-full w-full object-cover"
-                  />
+                  >
                 </button>
               </div>
             </div>
@@ -685,8 +685,8 @@
                     <button
                       v-for="multiplier in quickBidMultipliers"
                       :key="multiplier"
-                      @click="setQuickBid(multiplier)"
                       class="py-2 px-3 text-sm font-medium bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      @click="setQuickBid(multiplier)"
                     >
                       +{{ formatPriceShort(auction.minBidStep * multiplier) }}
                     </button>
@@ -700,15 +700,15 @@
               >
                 <UiButton
                   variant="outline"
-                  @click="closeBidModal"
                   class="flex-1 py-3 font-semibold border-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  @click="closeBidModal"
                 >
                   {{ t("cancel") }}
                 </UiButton>
                 <UiButton
-                  @click="placeBid"
                   :disabled="!isValidBid || placingBid"
                   class="flex-1 py-3 font-semibold bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="placeBid"
                 >
                   <span class="mr-2">🔨</span>
                   {{

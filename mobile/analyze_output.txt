@@ -1,0 +1,165 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 67.0.0 (99.0.0 available)
+  analyzer 6.4.1 (12.1.0 available)
+  analyzer_plugin 0.11.3 (0.14.8 available)
+  badges 3.1.2 (3.2.0 available)
+  build 2.4.1 (4.0.5 available)
+  build_config 1.1.2 (1.3.0 available)
+  build_resolvers 2.4.2 (3.0.4 available)
+  build_runner 2.4.13 (2.13.1 available)
+  build_runner_core 7.3.2 (9.3.2 available)
+  cached_network_image 3.4.0 (3.4.1 available)
+  cached_network_image_web 1.3.0 (1.3.1 available)
+  custom_lint_core 0.6.3 (0.8.2 available)
+  dart_style 2.3.6 (3.1.8 available)
+  fl_chart 0.68.0 (1.2.0 available)
+  flutter_dotenv 5.2.1 (6.0.0 available)
+  flutter_lints 4.0.0 (6.0.0 available)
+  flutter_local_notifications 17.2.4 (21.0.0 available)
+  flutter_local_notifications_linux 4.0.1 (8.0.0 available)
+  flutter_local_notifications_platform_interface 7.2.0 (11.0.0 available)
+  flutter_riverpod 2.6.1 (3.3.1 available)
+  flutter_secure_storage 9.2.4 (10.0.0 available)
+  flutter_secure_storage_linux 1.2.3 (3.0.0 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+  flutter_secure_storage_web 1.2.1 (2.1.0 available)
+  flutter_secure_storage_windows 3.1.2 (4.1.0 available)
+  freezed_annotation 2.4.4 (3.1.0 available)
+  go_router 14.8.1 (17.2.1 available)
+  google_fonts 6.3.3 (8.0.2 available)
+  google_sign_in 6.3.0 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.10 available)
+  google_sign_in_ios 5.9.0 (6.3.0 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.3 available)
+  infinite_scroll_pagination 4.1.0 (5.1.1 available)
+  js 0.6.7 (0.7.2 available)
+  json_annotation 4.9.0 (4.11.0 available)
+  json_serializable 6.8.0 (6.13.1 available)
+  lints 4.0.0 (6.1.0 available)
+  lottie 3.3.2 (3.3.3 available)
+  meta 1.17.0 (1.18.2 available)
+  mime 1.0.6 (2.0.0 available)
+  path_provider_android 2.3.0 (2.3.1 available)
+  pinput 5.0.2 (6.0.2 available)
+  protobuf 3.1.0 (6.0.0 available)
+  retrofit_generator 8.2.1 (10.2.5 available)
+  riverpod 2.6.1 (3.2.1 available)
+  riverpod_analyzer_utils 0.5.1 (0.5.10 available)
+  riverpod_annotation 2.6.1 (4.0.2 available)
+  riverpod_generator 2.4.0 (4.0.3 available)
+  share_plus 9.0.0 (13.0.0 available)
+  share_plus_platform_interface 4.0.0 (7.0.0 available)
+  shelf_web_socket 2.0.1 (3.0.0 available)
+  smooth_page_indicator 1.2.1 (2.0.1 available)
+  socket_io_client 2.0.3+1 (3.1.4 available)
+  socket_io_common 2.0.3 (3.1.1 available)
+  source_gen 1.5.0 (4.2.2 available)
+  source_helper 1.3.5 (1.3.11 available)
+  test_api 0.7.10 (0.7.11 available)
+  timezone 0.9.4 (0.11.0 available)
+  vector_math 2.2.0 (2.3.0 available)
+  vm_service 15.0.2 (15.1.0 available)
+  web 0.5.1 (1.1.1 available)
+  win32 5.15.0 (6.0.1 available)
+Got dependencies!
+64 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing mobile...                                             
+
+warning - The value of the field '_ref' isn't used - lib\core\network\dio_client.dart:31:13 - unused_field
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\app_theme.dart:46:9 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\core\theme\app_theme.dart:50:20 - prefer_const_constructors
+   info - 'background' is deprecated and shouldn't be used. Use surface instead. This feature was deprecated after v3.18.0-0.1.pre - lib\core\theme\app_theme.dart:172:9 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\accessories\screens\accessory_detail_screen.dart:89:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\accessories\screens\accessory_detail_screen.dart:91:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\accessories\screens\sell_accessory_screen.dart:238:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\accessories\screens\sell_accessory_screen.dart:240:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\admin\screens\kyc_management_screen.dart:201:28 - prefer_const_constructors
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\login_screen.dart:235:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\login_screen.dart:237:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:180:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:209:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:240:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:242:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:268:33 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\auth\screens\register_screen.dart:270:33 - curly_braces_in_flow_control_structures
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\register_screen.dart:300:43 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\auth\screens\register_screen.dart:306:49 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\register_screen.dart:308:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\register_screen.dart:310:50 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\register_screen.dart:316:41 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\register_screen.dart:318:50 - prefer_const_constructors
+   info - Don't use 'BuildContext's across async gaps - lib\features\auth\screens\splash_screen.dart:43:7 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps - lib\features\auth\screens\splash_screen.dart:45:7 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\screens\splash_screen.dart:88:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\screens\splash_screen.dart:115:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\screens\splash_screen.dart:126:40 - deprecated_member_use
+warning - Unused import: 'dart:math' - lib\features\auth\screens\welcome_screen.dart:1:8 - unused_import
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:143:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:146:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:148:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:151:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:348:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:350:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:352:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:354:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:401:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:402:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:403:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:422:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:454:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:460:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:466:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:472:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:634:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:694:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:699:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:704:7 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:709:7 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\screens\welcome_screen.dart:1010:35 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1110:11 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1111:20 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1113:22 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\auth\screens\welcome_screen.dart:1115:27 - prefer_const_literals_to_create_immutables
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1116:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1118:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\auth\screens\welcome_screen.dart:1120:19 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\batteries\screens\battery_detail_screen.dart:412:17 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\batteries\screens\battery_detail_screen.dart:412:29 - prefer_const_constructors
+warning - Unused import: 'dart:async' - lib\features\batteries\screens\battery_monitor_screen.dart:1:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\batteries\screens\battery_monitor_screen.dart:176:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\batteries\screens\battery_monitor_screen.dart:186:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\batteries\screens\battery_monitor_screen.dart:204:53 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\batteries\screens\battery_monitor_screen.dart:225:51 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\batteries\screens\battery_monitor_screen.dart:268:51 - deprecated_member_use
+   info - Use 'const' with the constructor to improve performance - lib\features\batteries\screens\sell_battery_screen.dart:331:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\batteries\screens\sell_battery_screen.dart:333:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\chat\screens\chat_room_screen.dart:409:23 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\chat\screens\chat_room_screen.dart:409:35 - prefer_const_constructors
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:38:57 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:41:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:55:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:56:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:218:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:220:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\chat\widgets\contract_message_card.dart:277:33 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\chat\widgets\contract_message_card.dart:422:34 - use_build_context_synchronously
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\features\chat\widgets\contract_message_card.dart:433:30 - use_build_context_synchronously
+   info - Use 'const' with the constructor to improve performance - lib\features\home\screens\home_screen.dart:541:35 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\home\screens\home_screen.dart:543:35 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\home\screens\home_screen.dart:544:35 - prefer_const_literals_to_create_immutables
+   info - Unnecessary use of 'toList' in a spread - lib\features\home\screens\home_screen.dart:609:26 - unnecessary_to_list_in_spreads
+   info - Use 'const' with the constructor to improve performance - lib\features\home\screens\home_screen.dart:703:29 - prefer_const_constructors
+   info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\features\home\screens\home_screen.dart:704:29 - prefer_const_literals_to_create_immutables
+warning - A value for optional parameter 'width' isn't ever given - lib\features\home\screens\home_screen.dart:1279:10 - unused_element_parameter
+   info - Use 'const' with the constructor to improve performance - lib\features\profile\screens\kyc_verification_screen.dart:250:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\profile\screens\kyc_verification_screen.dart:337:13 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\vehicles\screens\sell_vehicle_screen.dart:281:15 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\vehicles\screens\sell_vehicle_screen.dart:283:24 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\vehicles\screens\vehicle_detail_screen.dart:245:25 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - lib\features\vehicles\screens\vehicle_detail_screen.dart:245:37 - prefer_const_constructors
+   info - Use 'const' with the constructor to improve performance - test\widget_test.dart:33:16 - prefer_const_constructors
+

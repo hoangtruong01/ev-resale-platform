@@ -1,5 +1,5 @@
 <template>
-  <select v-model="currentLocale" @change="onChange" :class="selectClass">
+  <select v-model="currentLocale" :class="selectClass" @change="onChange">
     <option v-for="loc in availableLocales" :key="loc.code" :value="loc.code">
       {{ loc.name }}
     </option>

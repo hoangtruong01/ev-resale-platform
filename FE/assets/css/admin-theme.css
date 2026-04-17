@@ -277,13 +277,13 @@
   --admin-transition-slow: 300ms ease;
 
   /* === SPACING === */
-  --admin-spacing-xs: 0.25rem;
-  --admin-spacing-sm: 0.5rem;
-  --admin-spacing-md: 0.75rem;
-  --admin-spacing-lg: 1rem;
-  --admin-spacing-xl: 1.5rem;
-  --admin-spacing-2xl: 2rem;
-  --admin-spacing-3xl: 3rem;
+  --admin-spacing-xs: var(--space-8);
+  --admin-spacing-sm: var(--space-12);
+  --admin-spacing-md: var(--space-16);
+  --admin-spacing-lg: var(--space-20);
+  --admin-spacing-xl: var(--space-24);
+  --admin-spacing-2xl: calc(var(--space-24) * 2);
+  --admin-spacing-3xl: calc(var(--space-24) * 3);
 
   /* === BORDER RADIUS === */
   --admin-radius-sm: 0.25rem;
@@ -294,19 +294,19 @@
   --admin-radius-full: 9999px;
 
   /* === TYPOGRAPHY === */
-  --admin-font-size-xs: 0.75rem;
-  --admin-font-size-sm: 0.875rem;
-  --admin-font-size-md: 1rem;
+  --admin-font-size-xs: var(--type-caption-size);
+  --admin-font-size-sm: var(--type-body-sm-size);
+  --admin-font-size-md: var(--type-body-md-size);
   --admin-font-size-lg: 1.125rem;
-  --admin-font-size-xl: 1.25rem;
-  --admin-font-size-2xl: 1.5rem;
-  --admin-font-size-3xl: 1.875rem;
-  --admin-font-size-4xl: 2.25rem;
+  --admin-font-size-xl: var(--type-title-md-size);
+  --admin-font-size-2xl: var(--type-title-lg-size);
+  --admin-font-size-3xl: var(--type-title-xl-size);
+  --admin-font-size-4xl: calc(var(--type-title-xl-size) + 0.25rem);
 
-  --admin-font-weight-normal: 400;
-  --admin-font-weight-medium: 500;
-  --admin-font-weight-semibold: 600;
-  --admin-font-weight-bold: 700;
+  --admin-font-weight-normal: var(--font-weight-regular);
+  --admin-font-weight-medium: var(--font-weight-medium);
+  --admin-font-weight-semibold: var(--font-weight-semibold);
+  --admin-font-weight-bold: var(--font-weight-bold);
 
   --admin-line-height-tight: 1.25;
   --admin-line-height-normal: 1.5;

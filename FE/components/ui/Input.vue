@@ -6,7 +6,7 @@
     :disabled="disabled"
     @input="handleInput"
     @keypress="handleKeyPress"
-  />
+  >
 </template>
 
 <script>

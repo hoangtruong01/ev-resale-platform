@@ -24,9 +24,9 @@
               class="category-filter"
             />
             <UButton
-              @click="refreshData"
               icon="i-heroicons-arrow-path-20-solid"
               variant="outline"
+              @click="refreshData"
             >
               Làm mới
             </UButton>
@@ -115,7 +115,7 @@
                   v-if="post.images?.[0]"
                   :src="post.images[0]"
                   :alt="post.title"
-                />
+                >
                 <div v-else class="no-image">
                   <Icon name="mdi:image-off" />
                 </div>
@@ -185,60 +185,60 @@
                 <div class="post-actions">
                   <UButton
                     v-if="post.status === 'pending'"
-                    @click.stop="approvePost(post.id)"
                     icon="i-heroicons-check-20-solid"
                     color="green"
                     size="sm"
+                    @click.stop="approvePost(post.id)"
                   >
                     Duyệt
                   </UButton>
 
                   <UButton
                     v-if="post.status === 'pending'"
-                    @click.stop="rejectPost(post.id)"
                     icon="i-heroicons-x-mark-20-solid"
                     color="red"
                     size="sm"
+                    @click.stop="rejectPost(post.id)"
                   >
                     Từ chối
                   </UButton>
 
                   <UButton
                     v-if="post.status === 'approved' && !post.isVerified"
-                    @click.stop="verifyPost(post.id)"
                     icon="i-heroicons-shield-check-20-solid"
                     color="blue"
                     size="sm"
+                    @click.stop="verifyPost(post.id)"
                   >
                     Kiểm định
                   </UButton>
 
                   <UButton
                     v-if="post.status === 'approved' && post.isVerified"
-                    @click.stop="unverifyPost(post.id)"
                     icon="i-heroicons-shield-exclamation-20-solid"
                     color="yellow"
                     size="sm"
+                    @click.stop="unverifyPost(post.id)"
                   >
                     Bỏ kiểm định
                   </UButton>
 
                   <UButton
-                    @click.stop="markAsSpam(post.id)"
                     icon="i-heroicons-flag-20-solid"
                     color="red"
                     variant="ghost"
                     size="sm"
+                    @click.stop="markAsSpam(post.id)"
                   >
                     Spam
                   </UButton>
 
                   <UButton
-                    @click.stop="viewPostDetails(post)"
                     icon="i-heroicons-eye-20-solid"
                     color="gray"
                     variant="ghost"
                     size="sm"
+                    @click.stop="viewPostDetails(post)"
                   >
                     Chi tiết
                   </UButton>
@@ -281,7 +281,7 @@
                       '/placeholder-image.jpg'
                     "
                     :alt="selectedPost.title"
-                  />
+                  >
                 </div>
                 <div
                   v-if="selectedPost.images && selectedPost.images.length > 1"
@@ -290,11 +290,11 @@
                   <button
                     v-for="(image, index) in selectedPost.images"
                     :key="index"
-                    @click="selectedImageIndex = index"
                     class="thumbnail"
                     :class="{ active: selectedImageIndex === index }"
+                    @click="selectedImageIndex = index"
                   >
-                    <img :src="image" :alt="`Image ${index + 1}`" />
+                    <img :src="image" :alt="`Image ${index + 1}`" >
                   </button>
                 </div>
               </div>
@@ -351,7 +351,7 @@
                           v-if="selectedPost.author.avatar"
                           :src="selectedPost.author.avatar"
                           :alt="selectedPost.author.name"
-                        />
+                        >
                         <Icon v-else name="mdi:account-circle" />
                       </div>
                       <div class="author-details">
@@ -388,7 +388,7 @@
                           class="score-fill"
                           :style="{ width: `${selectedPost.spamScore * 100}%` }"
                           :class="getSpamScoreClass(selectedPost.spamScore)"
-                        ></div>
+                        />
                       </div>
                       <span class="score-text"
                         >{{ Math.round(selectedPost.spamScore * 100) }}%</span
@@ -415,27 +415,27 @@
 
             <template #footer>
               <div class="modal-actions">
-                <div class="action-group" v-if="selectedPost">
+                <div v-if="selectedPost" class="action-group">
                   <UButton
                     v-if="selectedPost.status === 'pending'"
+                    icon="i-heroicons-check-20-solid"
+                    color="green"
                     @click="
                       approvePost(selectedPost.id);
                       isDetailModalOpen = false;
                     "
-                    icon="i-heroicons-check-20-solid"
-                    color="green"
                   >
                     Duyệt tin
                   </UButton>
 
                   <UButton
                     v-if="selectedPost.status === 'pending'"
+                    icon="i-heroicons-x-mark-20-solid"
+                    color="red"
                     @click="
                       rejectPost(selectedPost.id);
                       isDetailModalOpen = false;
                     "
-                    icon="i-heroicons-x-mark-20-solid"
-                    color="red"
                   >
                     Từ chối
                   </UButton>
@@ -445,30 +445,30 @@
                       selectedPost.status === 'approved' &&
                       !selectedPost.isVerified
                     "
+                    icon="i-heroicons-shield-check-20-solid"
+                    color="blue"
                     @click="
                       verifyPost(selectedPost.id);
                       isDetailModalOpen = false;
                     "
-                    icon="i-heroicons-shield-check-20-solid"
-                    color="blue"
                   >
                     Gắn nhãn kiểm định
                   </UButton>
 
                   <UButton
+                    icon="i-heroicons-flag-20-solid"
+                    color="red"
+                    variant="outline"
                     @click="
                       markAsSpam(selectedPost.id);
                       isDetailModalOpen = false;
                     "
-                    icon="i-heroicons-flag-20-solid"
-                    color="red"
-                    variant="outline"
                   >
                     Đánh dấu spam
                   </UButton>
                 </div>
 
-                <UButton @click="isDetailModalOpen = false" variant="ghost">
+                <UButton variant="ghost" @click="isDetailModalOpen = false">
                   Đóng
                 </UButton>
               </div>

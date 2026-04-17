@@ -40,7 +40,7 @@
       >
         <span
           class="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
-        ></span>
+        />
         <span>Đang tải thông tin pin...</span>
       </div>
 
@@ -65,7 +65,7 @@
                 :src="battery.images[currentImageIndex]"
                 :alt="`${battery.title} - Ảnh ${currentImageIndex + 1}`"
                 class="h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              >
 
               <div class="absolute top-6 left-6 flex gap-3">
                 <UiBadge
@@ -135,7 +135,7 @@
                     :src="image"
                     :alt="`Thumbnail ${index + 1}`"
                     class="w-full h-full object-cover"
-                  />
+                  >
                 </button>
               </div>
             </div>
@@ -343,7 +343,7 @@
                     :src="battery.seller.avatar"
                     alt="avatar"
                     class="w-full h-full object-cover"
-                  />
+                  >
                 </div>
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
@@ -448,7 +448,7 @@
                   Bảo hành chính hãng
                 </p>
                 <div class="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg text-sm">
-                  ✅ Bảo hành lỗi kỹ thuật<br />✅ Hỗ trợ kỹ thuật 24/7<br />✅
+                  ✅ Bảo hành lỗi kỹ thuật<br >✅ Hỗ trợ kỹ thuật 24/7<br >✅
                   Đổi trả trong 7 ngày
                 </div>
               </div>

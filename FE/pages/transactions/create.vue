@@ -31,7 +31,7 @@
                     :src="productImage"
                     alt="Hình sản phẩm"
                     class="h-full w-full object-cover"
-                  />
+                  >
                   <Icon
                     v-else
                     name="mdi:cube-outline"

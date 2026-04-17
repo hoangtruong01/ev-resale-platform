@@ -144,7 +144,7 @@
         <div
           class="mt-6 rounded-lg border border-dashed border-slate-300 bg-slate-50"
         >
-          <canvas ref="canvasRef" class="h-72 w-full touch-none"></canvas>
+          <canvas ref="canvasRef" class="h-72 w-full touch-none"/>
         </div>
 
         <div class="mt-4 flex flex-wrap gap-3">
@@ -273,7 +273,7 @@ const formatDate = (value?: string | null) => {
 };
 
 const setupCanvas = () => {
-  if (!process.client) return;
+  if (!import.meta.client) return;
   const canvas = canvasRef.value;
   if (!canvas) return;
 
@@ -342,7 +342,7 @@ const handlePointerUp = (event: PointerEvent) => {
 };
 
 const attachListeners = () => {
-  if (!process.client) return;
+  if (!import.meta.client) return;
   const canvas = canvasRef.value;
   if (!canvas) return;
 
@@ -354,7 +354,7 @@ const attachListeners = () => {
 };
 
 const detachListeners = () => {
-  if (!process.client) return;
+  if (!import.meta.client) return;
   const canvas = canvasRef.value;
   if (canvas) {
     canvas.removeEventListener("pointerdown", handlePointerDown);

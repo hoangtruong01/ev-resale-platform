@@ -79,10 +79,10 @@
 
                 <div class="form-actions">
                   <UButton
-                    @click="updateTransactionFee"
                     icon="i-heroicons-check-20-solid"
                     color="green"
                     :disabled="isTransactionSaving"
+                    @click="updateTransactionFee"
                   >
                     Cập nhật
                   </UButton>
@@ -163,10 +163,10 @@
 
               <div class="form-actions">
                 <UButton
-                  @click="updateListingFees"
                   icon="i-heroicons-check-20-solid"
                   color="green"
                   :disabled="isListingSaving"
+                  @click="updateListingFees"
                 >
                   Cập nhật phí đăng tin
                 </UButton>
@@ -228,10 +228,10 @@
 
               <div class="form-actions">
                 <UButton
-                  @click="updateCommissions"
                   icon="i-heroicons-check-20-solid"
                   color="green"
                   :disabled="isCommissionSaving"
+                  @click="updateCommissions"
                 >
                   Cập nhật hoa hồng
                 </UButton>

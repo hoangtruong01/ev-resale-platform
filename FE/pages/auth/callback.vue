@@ -3,7 +3,7 @@
     <div class="text-center">
       <div
         class="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"
-      ></div>
+      />
       <h2 class="text-2xl font-bold text-foreground mb-2">
         Đang xử lý đăng nhập...
       </h2>

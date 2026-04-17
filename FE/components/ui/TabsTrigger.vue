@@ -11,6 +11,7 @@
 <script>
 export default {
   name: 'UiTabsTrigger',
+  inject: ['activeTab', 'setActiveTab'],
   props: {
     value: {
       type: String,
@@ -21,7 +22,6 @@ export default {
       default: ''
     }
   },
-  inject: ['activeTab', 'setActiveTab'],
   computed: {
     triggerClasses() {
       const isActive = this.activeTab === this.value

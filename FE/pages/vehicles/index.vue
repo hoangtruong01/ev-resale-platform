@@ -7,8 +7,8 @@
     <section class="relative overflow-hidden border-b border-white/10">
       <div
         class="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(16,185,129,0.25),transparent_55%),radial-gradient(circle_at_80%_20%,rgba(56,189,248,0.18),transparent_50%)]"
-      ></div>
-      <div class="absolute inset-0 hero-noise"></div>
+      />
+      <div class="absolute inset-0 hero-noise"/>
 
       <div
         class="container mx-auto px-4 pb-12 pt-10 md:pb-16 md:pt-14 lg:pb-20"
@@ -86,13 +86,13 @@
                   :src="heroVehicle.image"
                   :alt="heroVehicle.name"
                   class="h-full w-full object-cover"
-                />
+                >
                 <img
                   v-else
                   src="/placeholder.svg"
                   :alt="t('vehicles')"
                   class="h-full w-full object-cover opacity-70"
-                />
+                >
               </div>
               <div class="hero-card__content">
                 <div class="flex items-center justify-between">
@@ -213,7 +213,7 @@
           <div
             class="absolute inset-0 bg-black/60 lg:hidden"
             @click="showFilters = false"
-          ></div>
+          />
           <div class="filter-panel">
             <div class="flex items-center justify-between lg:hidden">
               <h3 class="text-lg font-semibold">{{ t("filters") }}</h3>
@@ -224,21 +224,21 @@
 
             <div class="space-y-5">
               <template v-if="isLoading">
-                <div class="skeleton-line w-28"></div>
-                <div class="skeleton-input"></div>
-                <div class="skeleton-line w-24"></div>
-                <div class="skeleton-input"></div>
-                <div class="skeleton-line w-24"></div>
-                <div class="skeleton-input"></div>
-                <div class="skeleton-line w-24"></div>
-                <div class="skeleton-input"></div>
-                <div class="skeleton-line w-24"></div>
-                <div class="skeleton-input"></div>
-                <div class="skeleton-line w-24"></div>
-                <div class="skeleton-input"></div>
+                <div class="skeleton-line w-28"/>
+                <div class="skeleton-input"/>
+                <div class="skeleton-line w-24"/>
+                <div class="skeleton-input"/>
+                <div class="skeleton-line w-24"/>
+                <div class="skeleton-input"/>
+                <div class="skeleton-line w-24"/>
+                <div class="skeleton-input"/>
+                <div class="skeleton-line w-24"/>
+                <div class="skeleton-input"/>
+                <div class="skeleton-line w-24"/>
+                <div class="skeleton-input"/>
                 <div class="flex items-center gap-3">
-                  <div class="skeleton-button"></div>
-                  <div class="skeleton-button"></div>
+                  <div class="skeleton-button"/>
+                  <div class="skeleton-button"/>
                 </div>
               </template>
               <template v-else>
@@ -249,7 +249,7 @@
                     type="text"
                     class="filter-input"
                     :placeholder="t('searchVehiclePlaceholder')"
-                  />
+                  >
                 </div>
 
                 <div>
@@ -261,7 +261,7 @@
                     :max="MAX_PRICE"
                     step="10000000"
                     class="premium-range"
-                  />
+                  >
                   <div class="mt-2 flex justify-between text-xs text-white/60">
                     <span>{{ formatPrice(0) }}</span>
                     <span>{{ formatPrice(priceMax) }}</span>
@@ -346,7 +346,7 @@
               <p class="text-sm text-white/60">
                 {{ filteredVehicles.length }} {{ t("results") }}
               </p>
-              <div class="h-4 w-px bg-white/10"></div>
+              <div class="h-4 w-px bg-white/10"/>
               <p class="text-sm text-white/60">{{ t("vehicleSortHint") }}</p>
             </div>
             <div class="flex items-center gap-3">
@@ -397,13 +397,13 @@
             class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
           >
             <div v-for="n in 8" :key="n" class="skeleton-card">
-              <div class="skeleton-image"></div>
+              <div class="skeleton-image"/>
               <div class="skeleton-content">
-                <div class="skeleton-line w-3/4"></div>
-                <div class="skeleton-line w-1/2"></div>
-                <div class="skeleton-line w-2/3"></div>
-                <div class="skeleton-line w-5/6"></div>
-                <div class="skeleton-button"></div>
+                <div class="skeleton-line w-3/4"/>
+                <div class="skeleton-line w-1/2"/>
+                <div class="skeleton-line w-2/3"/>
+                <div class="skeleton-line w-5/6"/>
+                <div class="skeleton-button"/>
               </div>
             </div>
           </div>
@@ -431,16 +431,16 @@
                   :src="vehicle.image"
                   :alt="vehicle.name"
                   class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+                >
                 <img
                   v-else
                   src="/placeholder.svg"
                   :alt="t('vehicles')"
                   class="h-full w-full object-cover opacity-70"
-                />
+                >
                 <div
                   class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"
-                ></div>
+                />
                 <div class="absolute left-4 top-4 flex flex-wrap gap-2">
                   <UiBadge class="badge-chip">
                     {{ formatBrandLabel(vehicle.brand) }}
@@ -456,12 +456,12 @@
                       isVehicleFavorite(vehicle.id),
                   }"
                   type="button"
-                  @click.stop="handleToggleVehicleFavorite(vehicle)"
                   :aria-label="
                     isVehicleFavorite(vehicle.id)
                       ? t('favoriteAdded')
                       : t('addToFavorites')
                   "
+                  @click.stop="handleToggleVehicleFavorite(vehicle)"
                 >
                   <Icon
                     :name="

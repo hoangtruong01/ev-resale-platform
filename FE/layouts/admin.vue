@@ -121,7 +121,7 @@
               aria-label="Xem thông báo"
             >
               <Icon name="mdi:bell" class="notification-icon" />
-              <span class="notification-badge" v-if="notifications > 0">{{
+              <span v-if="notifications > 0" class="notification-badge">{{
                 notifications
               }}</span>
             </button>

@@ -173,7 +173,7 @@
                           v-if="getPrimaryImage(auction)"
                           :src="getPrimaryImage(auction)"
                           :alt="getItemName(auction)"
-                        />
+                        >
                         <div v-else class="thumb-placeholder">
                           <Icon name="mdi:image-off-outline" />
                         </div>
@@ -270,7 +270,7 @@
                     v-if="getPrimaryImage(selectedAuction)"
                     :src="getPrimaryImage(selectedAuction)"
                     :alt="getItemName(selectedAuction)"
-                  />
+                  >
                   <div v-else class="detail-media-placeholder">
                     <Icon name="mdi:image-off-outline" />
                   </div>
@@ -567,7 +567,7 @@ const apiRequest = async <T,>(
     headers?: Record<string, string>;
   } = {},
 ): Promise<T> => {
-  if (process.server) {
+  if (import.meta.server) {
     throw new Error(
       "API requests are only executed on the client in this view.",
     );
@@ -841,7 +841,7 @@ const resolveSortParams = (sort: typeof filters.sort) => {
 };
 
 const fetchAuctions = async () => {
-  if (process.server) {
+  if (import.meta.server) {
     return;
   }
 
@@ -888,7 +888,7 @@ const fetchAuctions = async () => {
 };
 
 const fetchSummary = async () => {
-  if (process.server) {
+  if (import.meta.server) {
     return;
   }
 
@@ -968,7 +968,7 @@ const pauseAuction = (auction: AuctionListItem) => {
 };
 
 const endAuctionEarly = async (auction: AuctionListItem) => {
-  if (process.client) {
+  if (import.meta.client) {
     const confirmed = window.confirm(
       "Bạn có chắc muốn kết thúc sớm phiên đấu giá này?",
     );
@@ -1032,7 +1032,7 @@ const approveAuction = async (auction: AuctionListItem) => {
 };
 
 const promptReason = (defaultMessage: string) => {
-  if (!process.client) {
+  if (!import.meta.client) {
     return defaultMessage;
   }
   const input = window.prompt(
@@ -1425,7 +1425,7 @@ const formatCurrency = (value: number | null | undefined) => {
 };
 
 const syncData = async () => {
-  if (process.server) {
+  if (import.meta.server) {
     return;
   }
 
@@ -1439,11 +1439,11 @@ const refreshAfterMutation = async () => {
 watch(
   () => [filters.status, filters.sort, filters.page, searchTerm.value],
   () => {
-    if (process.client) {
+    if (import.meta.client) {
       fetchAuctions();
     }
   },
-  { immediate: process.client },
+  { immediate: import.meta.client },
 );
 </script>
 

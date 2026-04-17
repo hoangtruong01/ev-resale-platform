@@ -23,7 +23,7 @@
       >
         <span
           class="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
-        ></span>
+        />
         <span>{{ t("loading") }}</span>
       </div>
 
@@ -46,7 +46,7 @@
                 :src="currentImage"
                 :alt="accessory.name"
                 class="h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              >
               <div class="absolute top-6 left-6 flex gap-3">
                 <UiBadge class="bg-emerald-600 text-white border-0">
                   {{ formatCategoryLabel(accessory.category) }}

@@ -40,7 +40,7 @@
       >
         <span
           class="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
-        ></span>
+        />
         <span>Đang tải thông tin xe...</span>
       </div>
 
@@ -64,7 +64,7 @@
                 :src="vehicle.images[currentImageIndex]"
                 :alt="`${vehicle.title} - Ảnh ${currentImageIndex + 1}`"
                 class="h-[420px] w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+              >
 
               <div class="absolute top-6 left-6 flex gap-3">
                 <UiBadge class="bg-green-600 text-white border-0"
@@ -132,7 +132,7 @@
                     :src="image"
                     :alt="`Thumbnail ${index + 1}`"
                     class="w-full h-full object-cover"
-                  />
+                  >
                 </button>
               </div>
             </div>
@@ -310,7 +310,7 @@
                     :src="vehicle.seller.avatar"
                     alt="avatar"
                     class="w-full h-full object-cover"
-                  />
+                  >
                 </div>
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-1">
@@ -374,17 +374,16 @@
                     <span>Khoảng giá thị trường</span>
                     <span
                       class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border text-[11px] text-muted-foreground"
-                    >
-                    </span>
+                    />
                   </div>
                 </div>
 
                 <div class="relative pt-8">
-                  <div class="h-2 rounded-full bg-muted/40"></div>
+                  <div class="h-2 rounded-full bg-muted/40"/>
                   <div
                     class="absolute top-0 h-2 rounded-full bg-blue-500 transition-all duration-300"
                     :style="{ width: sliderFillWidth + '%' }"
-                  ></div>
+                  />
                   <div
                     class="absolute -top-8 flex flex-col items-center"
                     :style="pointerStyle"
@@ -396,7 +395,7 @@
                     </div>
                     <div
                       class="h-0 w-0 border-l-6 border-r-6 border-t-8 border-l-transparent border-r-transparent border-t-blue-500"
-                    ></div>
+                    />
                   </div>
                   <div
                     class="mt-4 flex justify-between text-sm text-muted-foreground"

@@ -72,7 +72,7 @@
                     type="datetime-local"
                     :class="inputClasses"
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label
@@ -85,7 +85,7 @@
                     type="datetime-local"
                     :class="inputClasses"
                     required
-                  />
+                  >
                 </div>
               </div>
               <p
@@ -119,7 +119,7 @@
                     :class="inputClasses"
                     :placeholder="t('auctionTitlePlaceholder')"
                     required
-                  />
+                  >
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -141,7 +141,7 @@
                       :placeholder="t('startingPricePlaceholder')"
                       required
                       @input="handleCurrencyInput('startingPrice', $event)"
-                    />
+                    >
                     <p
                       v-if="isOverMaxPrice(form.startingPrice)"
                       class="mt-1 text-xs text-amber-300"
@@ -168,7 +168,7 @@
                       :placeholder="t('minBidStepPlaceholder')"
                       required
                       @input="handleCurrencyInput('minBidStep', $event)"
-                    />
+                    >
                     <p class="mt-1 text-xs text-slate-400">
                       {{ t("minBidStepHint") }}
                     </p>
@@ -197,7 +197,7 @@
                       ]"
                       :placeholder="t('buyNowPricePlaceholder')"
                       @input="handleCurrencyInput('buyNowPrice', $event)"
-                    />
+                    >
                     <p class="mt-1 text-xs text-slate-400">
                       {{ t("buyNowPriceHint") }}
                     </p>
@@ -222,7 +222,7 @@
                       step="1"
                       :class="inputClasses"
                       placeholder="1"
-                    />
+                    >
                     <p class="mt-1 text-xs text-slate-400">
                       {{ t("lotQuantityHint") }}
                     </p>
@@ -259,7 +259,7 @@
                     :class="inputClasses"
                     :placeholder="itemType === 'BATTERY' ? 'CATL' : 'VinFast'"
                     :required="itemType !== null"
-                  />
+                  >
                 </div>
 
                 <div>
@@ -275,7 +275,7 @@
                     :class="inputClasses"
                     placeholder="VF e34, S3, v.v."
                     :required="itemType !== null"
-                  />
+                  >
                 </div>
 
                 <div>
@@ -298,7 +298,7 @@
                         : '',
                     ]"
                     placeholder="2024"
-                  />
+                  >
                   <p
                     v-if="itemType !== 'VEHICLE'"
                     class="mt-1 text-xs text-slate-400"
@@ -326,7 +326,7 @@
                         : '',
                     ]"
                     placeholder="1200"
-                  />
+                  >
                   <p
                     v-if="itemType !== 'VEHICLE'"
                     class="mt-1 text-xs text-slate-400"
@@ -361,7 +361,7 @@
                     ]"
                     placeholder="75"
                     :required="itemType === 'BATTERY'"
-                  />
+                  >
                   <p
                     v-if="itemType !== 'BATTERY'"
                     class="mt-1 text-xs text-slate-400"
@@ -386,7 +386,7 @@
                     :class="inputClasses"
                     placeholder="90"
                     required
-                  />
+                  >
                 </div>
               </div>
 
@@ -441,7 +441,7 @@
                     :class="inputClasses"
                     placeholder="0912345678"
                     required
-                  />
+                  >
                 </div>
               </div>
 
@@ -454,7 +454,7 @@
                   type="email"
                   :class="inputClasses"
                   placeholder="example@domain.com"
-                />
+                >
               </div>
             </div>
 
@@ -472,7 +472,7 @@
                 :class="textAreaClasses"
                 placeholder="Mô tả chi tiết tình trạng, lịch sử sử dụng và các ưu đãi đi kèm"
                 required
-              ></textarea>
+              />
             </div>
 
             <div class="space-y-4">
@@ -491,7 +491,7 @@
                 accept="image/*"
                 class="hidden"
                 @change="handleImageSelection"
-              />
+              >
               <div
                 class="border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer"
                 :class="[
@@ -535,7 +535,7 @@
                         :src="resolveImageSrc(image)"
                         :alt="image.name"
                         class="h-full w-full object-cover"
-                      />
+                      >
                       <button
                         type="button"
                         class="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs font-semibold text-white hover:bg-black/80"
@@ -592,7 +592,7 @@
                 type="checkbox"
                 class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-emerald-500 focus:ring-emerald-400"
                 required
-              />
+              >
               <label for="terms" class="text-sm text-slate-300">
                 Tôi cam kết thông tin sản phẩm là chính xác và chấp nhận quy chế
                 đấu giá của nền tảng.

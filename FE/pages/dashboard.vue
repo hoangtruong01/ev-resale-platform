@@ -40,8 +40,8 @@
             <UiButton
               variant="outline"
               size="sm"
-              @click="navigateTo('/sell')"
               class="bg-green-600 text-white hover:bg-green-700 border-green-600"
+              @click="navigateTo('/sell')"
             >
               {{ $t("sell_now") }}
             </UiButton>
@@ -93,7 +93,7 @@
                 accept="image/*"
                 class="hidden"
                 @change="handleAvatarSelection"
-              />
+              >
               <UiCardTitle class="text-xl font-bold text-foreground">{{
                 user.name
               }}</UiCardTitle>
@@ -193,46 +193,46 @@
           <div class="space-y-6">
             <div class="flex bg-green-100 rounded-lg p-1">
               <button
-                @click="activeTab = 'overview'"
                 :class="[
                   'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors',
                   activeTab === 'overview'
                     ? 'bg-white text-gray-900 shadow-sm border border-green-200'
                     : 'text-gray-600 hover:text-gray-900',
                 ]"
+                @click="activeTab = 'overview'"
               >
                 Tổng quan
               </button>
               <button
-                @click="activeTab = 'orders'"
                 :class="[
                   'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors',
                   activeTab === 'orders'
                     ? 'bg-white text-gray-900 shadow-sm border border-green-200'
                     : 'text-gray-600 hover:text-gray-900',
                 ]"
+                @click="activeTab = 'orders'"
               >
                 Đơn hàng
               </button>
               <button
-                @click="activeTab = 'favorites'"
                 :class="[
                   'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors',
                   activeTab === 'favorites'
                     ? 'bg-white text-gray-900 shadow-sm border border-green-200'
                     : 'text-gray-600 hover:text-gray-900',
                 ]"
+                @click="activeTab = 'favorites'"
               >
                 Yêu thích
               </button>
               <button
-                @click="activeTab = 'settings'"
                 :class="[
                   'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors',
                   activeTab === 'settings'
                     ? 'bg-white text-gray-900 shadow-sm border border-green-200'
                     : 'text-gray-600 hover:text-gray-900',
                 ]"
+                @click="activeTab = 'settings'"
               >
                 Cài đặt
               </button>
@@ -480,7 +480,7 @@
                       :src="item.thumbnail || '/placeholder.svg'"
                       :alt="item.title"
                       class="w-full h-full object-cover"
-                    />
+                    >
                     <div
                       class="absolute top-3 right-3 w-8 h-8 bg-primary rounded flex items-center justify-center"
                     >
@@ -564,7 +564,7 @@
                         type="text"
                         disabled
                         class="w-full p-3 border border-border rounded-lg bg-muted/60 text-muted-foreground cursor-not-allowed"
-                      />
+                      >
                     </div>
                     <div>
                       <label
@@ -576,7 +576,7 @@
                         type="email"
                         disabled
                         class="w-full p-3 border border-border rounded-lg bg-muted/60 text-muted-foreground cursor-not-allowed"
-                      />
+                      >
                     </div>
                     <UiButton
                       type="button"
@@ -714,15 +714,15 @@
             type="button"
             variant="ghost"
             class="h-8 w-8 rounded-full hover:bg-muted/60 text-muted-foreground flex items-center justify-center"
-            @click="closeProfileModal"
             :disabled="isSavingProfile"
+            @click="closeProfileModal"
           >
             X
           </UiButton>
         </div>
         <form
-          @submit.prevent="saveProfileChanges"
           class="px-6 pb-6 pt-4 space-y-6"
+          @submit.prevent="saveProfileChanges"
         >
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
@@ -738,7 +738,7 @@
                 :class="{
                   'border-red-500 focus:ring-red-500/60': profileErrors.phone,
                 }"
-              />
+              >
               <p v-if="profileErrors.phone" class="mt-2 text-sm text-red-500">
                 {{ profileErrors.phone }}
               </p>
@@ -756,7 +756,7 @@
                   'border-red-500 focus:ring-red-500/60':
                     profileErrors.streetAddress,
                 }"
-              />
+              >
               <p
                 v-if="profileErrors.streetAddress"
                 class="mt-2 text-sm text-red-500"
@@ -776,7 +776,7 @@
                 :class="{
                   'border-red-500 focus:ring-red-500/60': profileErrors.ward,
                 }"
-              />
+              >
               <p v-if="profileErrors.ward" class="mt-2 text-sm text-red-500">
                 {{ profileErrors.ward }}
               </p>
@@ -794,7 +794,7 @@
                   'border-red-500 focus:ring-red-500/60':
                     profileErrors.district,
                 }"
-              />
+              >
               <p
                 v-if="profileErrors.district"
                 class="mt-2 text-sm text-red-500"
@@ -815,7 +815,7 @@
                   'border-red-500 focus:ring-red-500/60':
                     profileErrors.province,
                 }"
-              />
+              >
               <p
                 v-if="profileErrors.province"
                 class="mt-2 text-sm text-red-500"
@@ -851,8 +851,8 @@
               type="button"
               variant="outline"
               class="border-border text-muted-foreground hover:bg-muted/40"
-              @click="closeProfileModal"
               :disabled="isSavingProfile"
+              @click="closeProfileModal"
             >
               Hủy
             </UiButton>

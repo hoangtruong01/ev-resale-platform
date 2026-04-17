@@ -11,6 +11,7 @@
 <script>
 export default {
   name: 'UiTabsContent',
+  inject: ['activeTab'],
   props: {
     value: {
       type: String,
@@ -21,7 +22,6 @@ export default {
       default: ''
     }
   },
-  inject: ['activeTab'],
   computed: {
     contentClasses() {
       return this.class || ''

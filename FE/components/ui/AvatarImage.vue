@@ -3,7 +3,7 @@
     :src="src"
     :alt="alt"
     class="aspect-square h-full w-full"
-  />
+  >
 </template>
 
 <script>

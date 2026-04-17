@@ -14,7 +14,7 @@
               :src="productImage"
               alt="product"
               class="h-full w-full object-cover"
-            />
+            >
             <Icon v-else name="mdi:cube-outline" class="h-8 w-8 text-primary" />
           </div>
           <div class="flex-1">
@@ -39,7 +39,7 @@
               :src="otherParticipantAvatar"
               alt="participant avatar"
               class="h-14 w-14 rounded-full object-cover shadow-md ring-2 ring-primary/20"
-            />
+            >
             <span
               class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-muted/60"
               :class="socketReady ? 'bg-emerald-500' : 'bg-muted-foreground'"
@@ -80,7 +80,7 @@
               :src="otherParticipantAvatar"
               alt="participant avatar"
               class="h-12 w-12 rounded-full object-cover shadow-md ring-2 ring-primary/20"
-            />
+            >
             <div>
               <h1 class="text-lg font-semibold text-foreground">
                 {{
@@ -122,7 +122,7 @@
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto px-6 py-6" ref="messageContainer">
+        <div ref="messageContainer" class="flex-1 overflow-y-auto px-6 py-6">
           <div
             v-if="loading"
             class="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground"
@@ -144,7 +144,7 @@
                 :src="resolveMessageAvatar(entry.raw)"
                 alt="message avatar"
                 class="h-9 w-9 rounded-full object-cover shadow ring-2 ring-primary/20"
-              />
+              >
               <div class="max-w-[70%] space-y-1">
                 <template v-if="entry.offer">
                   <div
@@ -1074,7 +1074,7 @@ const initiateVnpayPayment = async (transactionId: string) => {
 
   try {
     let returnUrl: string | undefined;
-    if (process.client) {
+    if (import.meta.client) {
       const baseUrl = window.location.origin;
       const url = new URL("/payments/vnpay/return", baseUrl);
       url.searchParams.set("transactionId", transactionId);

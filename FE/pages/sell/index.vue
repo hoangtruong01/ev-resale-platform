@@ -86,7 +86,7 @@
             Điền thông tin chi tiết để có giá tốt nhất
           </p>
 
-          <form @submit.prevent="submitForm" class="space-y-6">
+          <form class="space-y-6" @submit.prevent="submitForm">
             <div class="grid md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -98,7 +98,7 @@
                   class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                   :placeholder="$t('example_tesla')"
                   required
-                />
+                >
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -111,7 +111,7 @@
                   class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                   placeholder="850000000"
                   required
-                />
+                >
               </div>
             </div>
 
@@ -128,7 +128,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     :placeholder="$t('choose_brand')"
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label
@@ -141,7 +141,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="VF 8"
                     required
-                  />
+                  >
                 </div>
               </div>
               <div class="grid md:grid-cols-2 gap-4">
@@ -158,7 +158,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="2023"
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label
@@ -171,7 +171,7 @@
                     min="0"
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="12000"
-                  />
+                  >
                 </div>
               </div>
               <div class="grid md:grid-cols-2 gap-4">
@@ -185,7 +185,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="Đỏ, Trắng, Đen..."
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2"
@@ -218,7 +218,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="5"
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2"
@@ -286,7 +286,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="75"
                     required
-                  />
+                  >
                 </div>
               </div>
               <div class="grid md:grid-cols-2 gap-4">
@@ -303,7 +303,7 @@
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="85"
                     required
-                  />
+                  >
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -316,7 +316,7 @@
                     max="999999.99"
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     placeholder="72"
-                  />
+                  >
                 </div>
               </div>
             </div>
@@ -364,7 +364,7 @@
                     type="text"
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     :placeholder="$t('accessory_brand_placeholder')"
-                  />
+                  >
                 </div>
               </div>
               <div class="grid md:grid-cols-2 gap-4">
@@ -377,7 +377,7 @@
                     type="text"
                     class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                     :placeholder="$t('accessory_compatible_placeholder')"
-                  />
+                  >
                 </div>
                 <div>
                   <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -435,7 +435,7 @@
                 class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors resize-none"
                 :placeholder="$t('describe_condition')"
                 required
-              ></textarea>
+              />
             </div>
 
             <div>
@@ -447,8 +447,8 @@
                   <button
                     type="button"
                     class="px-4 py-2 bg-green-100 text-green-700 border border-green-400 rounded-lg font-medium hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                    @click="triggerFilePicker"
                     :disabled="isUploadingImages"
+                    @click="triggerFilePicker"
                   >
                     {{
                       isUploadingImages
@@ -468,7 +468,7 @@
                   class="hidden"
                   multiple
                   @change="handleImageSelection"
-                />
+                >
 
                 <div
                   v-if="uploadedImages.length"
@@ -483,7 +483,7 @@
                       :src="resolveImageSrc(image)"
                       class="h-32 w-full object-cover"
                       alt="Xem trước hình ảnh sản phẩm"
-                    />
+                    >
 
                     <div
                       v-if="image.status === 'uploading'"
@@ -532,7 +532,7 @@
                   class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                   placeholder="0123456789"
                   required
-                />
+                >
               </div>
               <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">
@@ -543,7 +543,7 @@
                   type="email"
                   class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
                   placeholder="example@email.com"
-                />
+                >
               </div>
             </div>
 

@@ -5,7 +5,7 @@
       <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <button @click="$router.back()" class="p-2 hover:bg-gray-100 rounded-lg">
+            <button class="p-2 hover:bg-gray-100 rounded-lg" @click="$router.back()">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
               </svg>
@@ -14,13 +14,13 @@
           </div>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-              <img v-if="user.avatar" :src="resolveAsset(user.avatar)" :alt="user.fullName" class="w-full h-full object-cover" />
+              <img v-if="user.avatar" :src="resolveAsset(user.avatar)" :alt="user.fullName" class="w-full h-full object-cover" >
               <span v-else class="text-sm font-medium text-gray-600">
                 {{ getInitials(user.fullName || 'U') }}
               </span>
             </div>
             <span class="text-sm font-medium text-gray-700">{{ user.fullName || 'Người dùng' }}</span>
-            <button @click="handleLogout" class="text-sm text-red-600 hover:text-red-700">
+            <button class="text-sm text-red-600 hover:text-red-700" @click="handleLogout">
               Đăng xuất
             </button>
           </div>
@@ -32,13 +32,13 @@
       <!-- Loading State -->
       <div v-if="!user.id && loading" class="flex items-center justify-center py-12">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"/>
           <p class="text-gray-600">Đang tải thông tin...</p>
         </div>
       </div>
 
       <!-- Profile Form -->
-      <form v-else @submit.prevent="handleSubmit" class="space-y-8">
+      <form v-else class="space-y-8" @submit.prevent="handleSubmit">
         <!-- Avatar Section -->
         <div class="bg-white rounded-lg p-6 shadow-sm">
           <div class="mb-4">
@@ -48,15 +48,15 @@
           <div class="flex items-center gap-6">
             <div class="relative">
               <div class="h-24 w-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                <img v-if="formData.avatar" :src="resolveAsset(formData.avatar)" :alt="formData.fullName" class="h-full w-full object-cover" />
+                <img v-if="formData.avatar" :src="resolveAsset(formData.avatar)" :alt="formData.fullName" class="h-full w-full object-cover" >
                 <span v-else class="text-xl font-bold text-gray-400">
                   {{ getInitials(formData.fullName) }}
                 </span>
               </div>
               <button
                 type="button"
-                @click="triggerFileInput"
                 class="absolute -bottom-2 -right-2 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors"
+                @click="triggerFileInput"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -69,13 +69,13 @@
                 ref="fileInput"
                 type="file"
                 accept="image/*"
-                @change="handleAvatarChange"
                 class="hidden"
-              />
+                @change="handleAvatarChange"
+              >
               <button 
                 type="button" 
-                @click="triggerFileInput"
                 class="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                @click="triggerFileInput"
               >
                 Chọn ảnh mới
               </button>
@@ -101,7 +101,7 @@
                 placeholder="Nhập họ và tên"
                 required
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Tên hiển thị</label>
@@ -110,7 +110,7 @@
                 type="text"
                 placeholder="Nhập tên hiển thị"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Số điện thoại</label>
@@ -119,7 +119,7 @@
                 type="tel"
                 placeholder="Nhập số điện thoại"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Nghề nghiệp</label>
@@ -128,7 +128,7 @@
                 type="text"
                 placeholder="Nhập nghề nghiệp"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Ngày sinh</label>
@@ -136,7 +136,7 @@
                 v-model="formData.dateOfBirth" 
                 type="date"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Giới tính</label>
@@ -159,7 +159,7 @@
               rows="3"
               placeholder="Viết một chút về bản thân..."
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            ></textarea>
+            />
           </div>
         </div>
 
@@ -177,7 +177,7 @@
                 type="text"
                 placeholder="Nhập địa chỉ nhà"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -187,7 +187,7 @@
                   type="text"
                   placeholder="Nhập quận/huyện"
                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
               </div>
               <div>
                 <label class="block text-sm font-medium mb-2">Thành phố/Tỉnh</label>
@@ -196,7 +196,7 @@
                   type="text"
                   placeholder="Nhập thành phố/tỉnh"
                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
               </div>
               <div>
                 <label class="block text-sm font-medium mb-2">Quốc gia</label>
@@ -205,7 +205,7 @@
                   type="text"
                   placeholder="Nhập quốc gia"
                   class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+                >
               </div>
             </div>
           </div>
@@ -225,7 +225,7 @@
                 type="text"
                 placeholder="Nhập tên người liên hệ khẩn cấp"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Số điện thoại người liên hệ</label>
@@ -234,7 +234,7 @@
                 type="tel"
                 placeholder="Nhập số điện thoại"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
           </div>
         </div>
@@ -253,7 +253,7 @@
                 type="text"
                 placeholder="Nhập số tài khoản ngân hàng"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Tên ngân hàng</label>
@@ -262,7 +262,7 @@
                 type="text"
                 placeholder="Nhập tên ngân hàng"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
           </div>
         </div>
@@ -281,7 +281,7 @@
                 type="url"
                 placeholder="https://example.com"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
             <div>
               <label class="block text-sm font-medium mb-2">Số CMND/CCCD</label>
@@ -290,7 +290,7 @@
                 type="text"
                 placeholder="Nhập số CMND/CCCD"
                 class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              >
             </div>
           </div>
         </div>
@@ -299,9 +299,9 @@
         <div class="flex gap-4 justify-end border-t pt-6">
           <button 
             type="button" 
-            @click="$router.back()"
             :disabled="loading"
             class="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            @click="$router.back()"
           >
             Hủy
           </button>

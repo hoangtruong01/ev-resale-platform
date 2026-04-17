@@ -35,8 +35,8 @@
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <form
           v-if="step === 'request'"
-          @submit.prevent="handleEmailSubmit"
           class="space-y-4"
+          @submit.prevent="handleEmailSubmit"
         >
           <div>
             <label class="block text-sm font-medium mb-2 text-gray-700">
@@ -49,7 +49,7 @@
               placeholder="Nhập email của bạn"
               autocomplete="email"
               required
-            />
+            >
           </div>
 
           <button
@@ -63,8 +63,8 @@
 
         <form
           v-else-if="step === 'verify'"
-          @submit.prevent="handleOtpSubmit"
           class="space-y-4"
+          @submit.prevent="handleOtpSubmit"
         >
           <div
             class="bg-green-50 border border-green-100 rounded-lg p-4 text-sm text-green-700"
@@ -90,7 +90,7 @@
               placeholder="_ _ _ _ _ _"
               autocomplete="one-time-code"
               required
-            />
+            >
           </div>
 
           <button
@@ -124,7 +124,7 @@
           </div>
         </form>
 
-        <form v-else @submit.prevent="handlePasswordSubmit" class="space-y-4">
+        <form v-else class="space-y-4" @submit.prevent="handlePasswordSubmit">
           <div
             class="bg-green-50 border border-green-100 rounded-lg p-4 text-sm text-green-700"
           >
@@ -146,7 +146,7 @@
               placeholder="Nhập mật khẩu mới"
               autocomplete="new-password"
               required
-            />
+            >
           </div>
 
           <div>
@@ -160,7 +160,7 @@
               placeholder="Nhập lại mật khẩu mới"
               autocomplete="new-password"
               required
-            />
+            >
           </div>
 
           <button

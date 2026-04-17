@@ -190,13 +190,13 @@
                     :src="auction.image"
                     :alt="auction.title"
                     class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                  >
                   <img
                     v-else
                     src="/placeholder.svg"
                     :alt="auction.title"
                     class="h-full w-full object-cover opacity-50"
-                  />
+                  >
                 </div>
                 <div
                   class="absolute left-4 top-4 rounded-full px-3 py-1 text-sm font-semibold text-white"

@@ -1,6 +1,6 @@
 export default defineNuxtPlugin(() => {
   // Chỉ chạy trên client side
-  if (process.client) {
+  if (import.meta.client) {
     // Load Google Sign-In SDK
     const script = document.createElement('script')
     script.src = 'https://apis.google.com/js/api:base.js'

@@ -5,7 +5,7 @@
         <!-- Header with back button -->
         <div class="page-header">
           <div class="header-content">
-            <button @click="$router.back()" class="back-button">
+            <button class="back-button" @click="$router.back()">
               <Icon name="mdi:arrow-left" />
               Quay lại
             </button>
@@ -17,30 +17,30 @@
           <div class="header-actions">
             <UButton
               v-if="user.status === 'active'"
-              @click="blockUser"
               color="red"
               variant="outline"
               icon="i-heroicons-lock-closed-20-solid"
+              @click="blockUser"
             >
               Khóa tài khoản
             </UButton>
             <UButton
               v-else-if="user.status === 'blocked'"
-              @click="unblockUser"
               color="green"
               variant="outline"
               icon="i-heroicons-lock-open-20-solid"
+              @click="unblockUser"
             >
               Mở khóa
             </UButton>
             <UButton
-              @click="editMode = !editMode"
               :color="editMode ? 'gray' : 'blue'"
               :icon="
                 editMode
                   ? 'i-heroicons-x-mark-20-solid'
                   : 'i-heroicons-pencil-20-solid'
               "
+              @click="editMode = !editMode"
             >
               {{ editMode ? "Hủy" : "Chỉnh sửa" }}
             </UButton>
@@ -69,7 +69,7 @@
                     :src="formData.avatar"
                     :alt="formData.fullName"
                     class="user-avatar"
-                  />
+                  >
                   <Icon
                     v-else
                     name="mdi:account-circle"
@@ -77,8 +77,8 @@
                   />
                   <button
                     v-if="editMode"
-                    @click="triggerFileInput"
                     class="avatar-edit-btn"
+                    @click="triggerFileInput"
                   >
                     <Icon name="mdi:camera" />
                   </button>
@@ -87,12 +87,12 @@
                   ref="fileInput"
                   type="file"
                   accept="image/*"
-                  @change="handleAvatarChange"
                   class="hidden"
-                />
+                  @change="handleAvatarChange"
+                >
               </div>
 
-              <form @submit.prevent="handleSubmit" class="profile-form">
+              <form class="profile-form" @submit.prevent="handleSubmit">
                 <div class="form-grid">
                   <div class="form-group">
                     <label>Họ và tên</label>
@@ -274,11 +274,11 @@
                   </UButton>
                   <UButton
                     type="button"
+                    variant="ghost"
                     @click="
                       editMode = false;
                       resetForm();
                     "
-                    variant="ghost"
                   >
                     Hủy
                   </UButton>
@@ -411,28 +411,28 @@
               <div class="setting-actions">
                 <UButton
                   v-if="user.status === 'active'"
-                  @click="blockUser"
                   color="red"
                   variant="outline"
                   size="sm"
+                  @click="blockUser"
                 >
                   Khóa tài khoản
                 </UButton>
                 <UButton
                   v-else-if="user.status === 'blocked'"
-                  @click="unblockUser"
                   color="green"
                   variant="outline"
                   size="sm"
+                  @click="unblockUser"
                 >
                   Mở khóa
                 </UButton>
 
                 <UButton
-                  @click="deleteUser"
                   color="red"
                   variant="ghost"
                   size="sm"
+                  @click="deleteUser"
                 >
                   Xóa tài khoản
                 </UButton>

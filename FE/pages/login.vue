@@ -31,7 +31,7 @@
 
       <!-- Login Form -->
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-        <form @submit.prevent="handleLogin" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="handleLogin">
           <div>
             <label class="block text-sm font-medium mb-2 text-gray-700">{{
               $t("email_or_phone")
@@ -42,7 +42,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_email_phone')"
               required
-            />
+            >
           </div>
 
           <div>
@@ -50,13 +50,13 @@
               $t("password")
             }}</label>
             <input
+              ref="passwordInput"
               v-model="form.password"
               type="password"
-              ref="passwordInput"
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_password')"
               required
-            />
+            >
             <p v-if="loginError" class="mt-2 text-sm text-red-600">
               {{ loginError }}
             </p>
@@ -64,7 +64,7 @@
 
           <div class="flex items-center justify-between">
             <label class="flex items-center">
-              <input type="checkbox" class="mr-2" />
+              <input type="checkbox" class="mr-2" >
               <span class="text-sm text-gray-600">{{
                 $t("remember_login")
               }}</span>
@@ -98,7 +98,7 @@
         <div class="mt-6">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
+              <div class="w-full border-t border-gray-300"/>
             </div>
             <div class="relative flex justify-center text-sm">
               <span class="px-2 bg-white text-gray-500">{{

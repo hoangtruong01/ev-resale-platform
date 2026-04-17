@@ -30,19 +30,19 @@
               :disabled="isLoading"
             />
             <UButton
-              @click="exportReport"
               icon="i-heroicons-arrow-down-tray-20-solid"
               variant="outline"
               :loading="isExporting"
               :disabled="isLoading"
+              @click="exportReport"
             >
               Xuất báo cáo
             </UButton>
             <UButton
-              @click="refreshData"
               icon="i-heroicons-arrow-path-20-solid"
               variant="outline"
               :loading="isLoading"
+              @click="refreshData"
             >
               Làm mới
             </UButton>
@@ -193,11 +193,11 @@
                   <p>Biểu đồ doanh thu</p>
                   <div class="chart-legend">
                     <div class="legend-item">
-                      <div class="legend-color revenue"></div>
+                      <div class="legend-color revenue"/>
                       <span>Doanh thu</span>
                     </div>
                     <div class="legend-item">
-                      <div class="legend-color profit"></div>
+                      <div class="legend-color profit"/>
                       <span>Lợi nhuận</span>
                     </div>
                   </div>
@@ -292,7 +292,7 @@
                       <div
                         class="progress-fill"
                         :style="{ width: `${category.percentage}%` }"
-                      ></div>
+                      />
                     </div>
                     <span class="progress-text"
                       >{{ category.percentage }}%</span
@@ -323,7 +323,7 @@
               >
                 <div class="user-rank">{{ index + 1 }}</div>
                 <div class="user-avatar">
-                  <img v-if="user.avatar" :src="user.avatar" :alt="user.name" />
+                  <img v-if="user.avatar" :src="user.avatar" :alt="user.name" >
                   <Icon v-else name="mdi:account-circle" />
                 </div>
                 <div class="user-info">
@@ -362,7 +362,7 @@
                     {{ formatRelativeTime(activity.createdAt) }}
                   </p>
                 </div>
-                <div class="activity-value" v-if="activity.value">
+                <div v-if="activity.value" class="activity-value">
                   {{ activity.value }}
                 </div>
               </div>

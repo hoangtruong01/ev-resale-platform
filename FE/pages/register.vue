@@ -29,7 +29,7 @@
 
       <!-- Register Form -->
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-        <form @submit.prevent="handleRegister" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="handleRegister">
           <div>
             <label class="block text-sm font-medium mb-2 text-gray-700"
               >{{ $t("full_name") }} *</label
@@ -40,7 +40,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_full_name')"
               required
-            />
+            >
           </div>
 
           <div>
@@ -53,7 +53,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_email')"
               required
-            />
+            >
           </div>
 
           <div>
@@ -66,7 +66,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_phone')"
               required
-            />
+            >
           </div>
 
           <div>
@@ -79,7 +79,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_password')"
               required
-            />
+            >
           </div>
 
           <div>
@@ -92,11 +92,11 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('re_enter_password')"
               required
-            />
+            >
           </div>
 
           <div class="flex items-center">
-            <input type="checkbox" class="mr-2" required />
+            <input type="checkbox" class="mr-2" required >
             <span class="text-sm">
               {{ $t("agree_terms") }}
               <NuxtLink to="/terms" class="text-green-600 hover:underline">{{
@@ -131,7 +131,7 @@
         <div class="mt-6">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"></div>
+              <div class="w-full border-t border-gray-300"/>
             </div>
             <div class="relative flex justify-center text-sm">
               <span class="px-2 bg-white text-gray-500">{{

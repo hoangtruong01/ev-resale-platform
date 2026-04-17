@@ -3,7 +3,7 @@ export const useGoogleAuth = () => {
   const { $api } = useNuxtApp()
   
   const initGoogleSignIn = () => {
-    if (process.client && window.google) {
+    if (import.meta.client && window.google) {
       window.google.accounts.id.initialize({
         client_id: config.public.googleClientId,
         callback: handleCredentialResponse,
@@ -36,13 +36,13 @@ export const useGoogleAuth = () => {
   }
 
   const signInWithGoogle = () => {
-    if (process.client && window.google) {
+    if (import.meta.client && window.google) {
       window.google.accounts.id.prompt()
     }
   }
 
   const renderGoogleButton = (elementId: string) => {
-    if (process.client && window.google) {
+    if (import.meta.client && window.google) {
       window.google.accounts.id.renderButton(
         document.getElementById(elementId),
         {

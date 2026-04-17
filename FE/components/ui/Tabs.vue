@@ -10,6 +10,12 @@
 <script>
 export default {
   name: 'UiTabs',
+  provide() {
+    return {
+      activeTab: this.value,
+      setActiveTab: this.setActiveTab
+    }
+  },
   props: {
     value: {
       type: String,
@@ -20,12 +26,7 @@ export default {
       default: ''
     }
   },
-  provide() {
-    return {
-      activeTab: this.value,
-      setActiveTab: this.setActiveTab
-    }
-  },
+  emits: ['update:value'],
   computed: {
     tabsClasses() {
       return this.class || ''
@@ -35,7 +36,6 @@ export default {
     setActiveTab(tab) {
       this.$emit('update:value', tab)
     }
-  },
-  emits: ['update:value']
+  }
 }
 </script>

@@ -19,7 +19,7 @@ export default defineNuxtPlugin(() => {
         token.value = null
         
         // Only redirect if not already on login page
-        if (process.client && !window.location.pathname.includes('/login')) {
+        if (import.meta.client && !window.location.pathname.includes('/login')) {
           navigateTo('/login')
         }
       }
