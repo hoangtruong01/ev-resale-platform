@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // EVN Brand Colors
-  static const Color primaryGreen = Color(0xFF00A651);
-  static const Color primaryDark = Color(0xFF006B35);
+  // Brand colors aligned with web theme tokens.
+  static const Color primaryGreen = Color(0xFF16A34A);
+  static const Color primaryDark = Color(0xFF166534);
   static const Color accentOrange = Color(0xFFFF6B35);
   static const Color accentYellow = Color(0xFFFFD60A);
 
@@ -28,7 +27,7 @@ class AppTheme {
   static const Color info = Color(0xFF3B82F6);
 
   // Background
-  static const Color lightBg = Color(0xFFF0FBF4);
+  static const Color lightBg = Color(0xFFFFFFFF);
   static const Color darkBg = Color(0xFF0D1117);
   static const Color darkSurface = Color(0xFF161B22);
   static const Color darkCard = Color(0xFF21262D);
@@ -115,28 +114,31 @@ class AppTheme {
         color: Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
           side: const BorderSide(color: grey200, width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: grey50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: grey200),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: grey200),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: primaryGreen, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: error),
         ),
         labelStyle: const TextStyle(color: grey600, fontFamily: 'BeVietnamPro'),
@@ -150,14 +152,9 @@ class AppTheme {
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
-      dividerTheme: const DividerThemeData(
-        color: grey100,
-        thickness: 1,
-      ),
+      dividerTheme: const DividerThemeData(color: grey100, thickness: 1),
     );
   }
 
@@ -193,24 +190,25 @@ class AppTheme {
         elevation: 0,
         color: darkCard,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkCard,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: primaryGreen, width: 1.5),
         ),
         labelStyle: const TextStyle(color: grey400, fontFamily: 'BeVietnamPro'),

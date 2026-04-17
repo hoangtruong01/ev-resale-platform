@@ -127,13 +127,12 @@ class HomeScreen extends ConsumerWidget {
     final mediaQuery = MediaQuery.of(context);
     final reduceMotion =
         mediaQuery.disableAnimations || mediaQuery.accessibleNavigation;
-    final statsData = stats.maybeWhen(
-      data: (data) => data,
-      orElse: () => null,
-    );
-    final batteryTotal = statsData?.batteriesListed ??
+    final statsData = stats.maybeWhen(data: (data) => data, orElse: () => null);
+    final batteryTotal =
+        statsData?.batteriesListed ??
         batteries.maybeWhen(data: (data) => data.total, orElse: () => null);
-    final vehicleTotal = statsData?.vehiclesListed ??
+    final vehicleTotal =
+        statsData?.vehiclesListed ??
         vehicles.maybeWhen(data: (data) => data.total, orElse: () => null);
     final displayName = user?.displayName.split(' ').last ?? 'ban';
 
@@ -167,12 +166,15 @@ class HomeScreen extends ConsumerWidget {
                             AppTheme.primaryGreen.withValues(alpha: 0.9),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 30,
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
@@ -208,28 +210,33 @@ class HomeScreen extends ConsumerWidget {
                               ),
                               IconButton(
                                 onPressed: () => context.push('/notifications'),
-                                icon: const Icon(Icons.notifications_outlined,
-                                    color: Colors.white, size: 24),
+                                icon: const Icon(
+                                  Icons.notifications_outlined,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
                               ),
                               CircleAvatar(
                                 radius: 18,
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.2),
+                                backgroundColor: Colors.white.withValues(
+                                  alpha: 0.2,
+                                ),
                                 child: user?.avatar != null
                                     ? ClipOval(
                                         child: AppNetworkImage(
-                                            url: user!.avatar!,
-                                            width: 36,
-                                            height: 36),
+                                          url: user!.avatar!,
+                                          width: 36,
+                                          height: 36,
+                                        ),
                                       )
                                     : Text(
                                         (user?.displayName.isNotEmpty == true)
-                                            ? user!.displayName[0]
-                                                .toUpperCase()
+                                            ? user!.displayName[0].toUpperCase()
                                             : 'U',
                                         style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700),
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
                               ),
                             ],
@@ -259,7 +266,9 @@ class HomeScreen extends ConsumerWidget {
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
                                     side: const BorderSide(
-                                        color: Colors.white, width: 1.2),
+                                      color: Colors.white,
+                                      width: 1.2,
+                                    ),
                                   ),
                                   child: Text(l10n.ctaSell),
                                 ),
@@ -296,18 +305,23 @@ class HomeScreen extends ConsumerWidget {
                               height: 46,
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.grey200),
                               ),
                               child: Row(
                                 children: [
                                   const SizedBox(width: 16),
-                                  const Icon(Icons.search,
-                                      color: AppTheme.grey400),
+                                  const Icon(
+                                    Icons.search,
+                                    color: AppTheme.grey400,
+                                  ),
                                   const SizedBox(width: 10),
                                   Text(
                                     l10n.searchHint,
                                     style: const TextStyle(
-                                        color: AppTheme.grey400, fontSize: 14),
+                                      color: AppTheme.grey400,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -351,7 +365,9 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.categories,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -411,7 +427,9 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.statsTitle,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -477,7 +495,7 @@ class HomeScreen extends ConsumerWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: AppTheme.primaryGreen.withValues(alpha: 0.15),
                   ),
@@ -491,13 +509,17 @@ class HomeScreen extends ConsumerWidget {
                           Text(
                             l10n.bannerTitle,
                             style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w700),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             l10n.bannerSubtitle,
                             style: const TextStyle(
-                                color: AppTheme.grey600, fontSize: 12),
+                              color: AppTheme.grey600,
+                              fontSize: 12,
+                            ),
                           ),
                           const SizedBox(height: 10),
                           Wrap(
@@ -519,14 +541,14 @@ class HomeScreen extends ConsumerWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryGreen,
-                            AppTheme.primaryDark,
-                          ],
+                          colors: [AppTheme.primaryGreen, AppTheme.primaryDark],
                         ),
                       ),
-                      child: const Icon(Icons.verified_rounded,
-                          color: Colors.white, size: 32),
+                      child: const Icon(
+                        Icons.verified_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      ),
                     ),
                   ],
                 ),
@@ -541,25 +563,28 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.whyChoose,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Row(
-                      children: _homeFeatures
-                          .map(
-                            (feature) => Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: _FeatureCard(
-                                  feature: feature,
-                                  l10n: l10n,
-                                  compact: true,
+                      children:
+                          _homeFeatures
+                              .map(
+                                (feature) => Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: _FeatureCard(
+                                      feature: feature,
+                                      l10n: l10n,
+                                      compact: true,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          )
-                          .toList()
-                        ..removeLast(),
+                              )
+                              .toList()
+                            ..removeLast(),
                     ),
                   ],
                 ),
@@ -574,12 +599,13 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.processTitle,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     ..._homeProcessSteps
-                        .map((step) =>
-                            _ProcessStepTile(step: step, l10n: l10n))
+                        .map((step) => _ProcessStepTile(step: step, l10n: l10n))
                         .toList(),
                   ],
                 ),
@@ -594,12 +620,16 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.featuredBatteries,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.go('/batteries'),
-                      child: Text(l10n.viewAll,
-                          style: const TextStyle(color: AppTheme.primaryGreen)),
+                      child: Text(
+                        l10n.viewAll,
+                        style: const TextStyle(color: AppTheme.primaryGreen),
+                      ),
                     ),
                   ],
                 ),
@@ -636,12 +666,16 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.featuredVehicles,
                       style: const TextStyle(
-                          fontSize: 17, fontWeight: FontWeight.w700),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     TextButton(
                       onPressed: () => context.go('/vehicles'),
-                      child: Text(l10n.viewAll,
-                          style: const TextStyle(color: AppTheme.primaryGreen)),
+                      child: Text(
+                        l10n.viewAll,
+                        style: const TextStyle(color: AppTheme.primaryGreen),
+                      ),
                     ),
                   ],
                 ),
@@ -667,10 +701,7 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryDark,
-                      AppTheme.primaryGreen,
-                    ],
+                    colors: [AppTheme.primaryDark, AppTheme.primaryGreen],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -718,7 +749,9 @@ class HomeScreen extends ConsumerWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.white,
                               side: const BorderSide(
-                                  color: Colors.white, width: 1.2),
+                                color: Colors.white,
+                                width: 1.2,
+                              ),
                             ),
                             child: Text(l10n.finalCtaSecondary),
                           ),
@@ -738,7 +771,9 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.footerProducts,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 14),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Wrap(
@@ -762,7 +797,9 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.footerSupport,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 14),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     Wrap(
@@ -786,7 +823,9 @@ class HomeScreen extends ConsumerWidget {
                     Text(
                       l10n.footerRights,
                       style: const TextStyle(
-                          color: AppTheme.grey500, fontSize: 12),
+                        color: AppTheme.grey500,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -947,7 +986,7 @@ class _StatCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
@@ -1002,10 +1041,7 @@ class FadeSlideIn extends StatelessWidget {
         final offset = (1 - value) * 16;
         return Opacity(
           opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, offset),
-            child: child,
-          ),
+          child: Transform.translate(offset: Offset(0, offset), child: child),
         );
       },
     );
@@ -1097,10 +1133,7 @@ class _HeroPreviewCard extends StatelessWidget {
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 11),
                 ),
               ],
             ),
@@ -1135,7 +1168,8 @@ class _QuickCategoryItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.grey200),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -1152,7 +1186,7 @@ class _QuickCategoryItem extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 22),
               ),
@@ -1162,7 +1196,10 @@ class _QuickCategoryItem extends StatelessWidget {
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -1182,7 +1219,7 @@ class _HighlightChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.grey200),
       ),
       child: Text(
@@ -1197,11 +1234,7 @@ class PressableScale extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const PressableScale({
-    required this.child,
-    required this.onTap,
-    super.key,
-  });
+  const PressableScale({required this.child, required this.onTap, super.key});
 
   @override
   State<PressableScale> createState() => _PressableScaleState();
@@ -1212,11 +1245,13 @@ class _PressableScaleState extends State<PressableScale> {
 
   @override
   Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.of(context).disableAnimations ||
+    final reduceMotion =
+        MediaQuery.of(context).disableAnimations ||
         MediaQuery.of(context).accessibleNavigation;
     final scale = _pressed && !reduceMotion ? 0.98 : 1.0;
-    final duration =
-        reduceMotion ? Duration.zero : const Duration(milliseconds: 120);
+    final duration = reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 120);
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -1252,7 +1287,8 @@ class _FeatureCard extends StatelessWidget {
       padding: EdgeInsets.all(compact ? 10 : 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1271,8 +1307,11 @@ class _FeatureCard extends StatelessWidget {
               color: feature.color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(feature.icon,
-                color: feature.color, size: compact ? 18 : 22),
+            child: Icon(
+              feature.icon,
+              color: feature.color,
+              size: compact ? 18 : 22,
+            ),
           ),
           SizedBox(height: compact ? 8 : 10),
           Text(
@@ -1312,7 +1351,7 @@ class _ProcessStepTile extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.grey200),
       ),
       child: Row(
@@ -1328,8 +1367,9 @@ class _ProcessStepTile extends StatelessWidget {
               child: Text(
                 '${step.step}',
                 style: const TextStyle(
-                    color: AppTheme.primaryGreen,
-                    fontWeight: FontWeight.w700),
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ),
@@ -1341,13 +1381,14 @@ class _ProcessStepTile extends StatelessWidget {
                 Text(
                   _resolveHomeText(l10n, step.titleKey),
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   _resolveHomeText(l10n, step.descKey),
-                  style: const TextStyle(
-                      color: AppTheme.grey500, fontSize: 11),
+                  style: const TextStyle(color: AppTheme.grey500, fontSize: 11),
                 ),
               ],
             ),
@@ -1370,9 +1411,10 @@ class _FooterLink extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(
-            color: AppTheme.primaryGreen,
-            fontWeight: FontWeight.w600,
-            fontSize: 12),
+          color: AppTheme.primaryGreen,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -1397,12 +1439,12 @@ class _SellOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
@@ -1420,13 +1462,21 @@ class _SellOption extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: AppTheme.grey500, fontSize: 12)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.grey500,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1522,7 +1572,8 @@ class BatteryCard extends StatelessWidget {
         width: 170,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.06),
@@ -1535,7 +1586,9 @@ class BatteryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: Stack(
                 children: [
                   AppNetworkImage(
@@ -1577,13 +1630,18 @@ class BatteryCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: AppTheme.grey400),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 12,
+                        color: AppTheme.grey400,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -1591,7 +1649,9 @@ class BatteryCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              color: AppTheme.grey400, fontSize: 11),
+                            color: AppTheme.grey400,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ],
@@ -1651,7 +1711,8 @@ class VehicleListTile extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -1663,7 +1724,9 @@ class VehicleListTile extends StatelessWidget {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
+              ),
               child: AppNetworkImage(
                 url: vehicle.thumbnailUrl,
                 width: 110,
@@ -1700,7 +1763,9 @@ class VehicleListTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 14),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
@@ -1709,13 +1774,18 @@ class VehicleListTile extends StatelessWidget {
                     Text(
                       '${vehicle.brand} • ${vehicle.year}',
                       style: const TextStyle(
-                          color: AppTheme.grey600, fontSize: 12),
+                        color: AppTheme.grey600,
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 12, color: AppTheme.grey400),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 12,
+                          color: AppTheme.grey400,
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -1723,7 +1793,9 @@ class VehicleListTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                color: AppTheme.grey400, fontSize: 11),
+                              color: AppTheme.grey400,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],
@@ -1736,7 +1808,8 @@ class VehicleListTile extends StatelessWidget {
                         if (vehicle.mileage != null)
                           _SpecChip(
                             icon: Icons.speed_outlined,
-                            label: '${AppUtils.formatNumber(vehicle.mileage!)} km',
+                            label:
+                                '${AppUtils.formatNumber(vehicle.mileage!)} km',
                           ),
                         if (vehicle.condition.isNotEmpty)
                           _SpecChip(
@@ -1782,7 +1855,7 @@ class _BatteryCardSkeleton extends StatelessWidget {
         width: 170,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
     );
