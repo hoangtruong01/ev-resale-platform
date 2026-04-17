@@ -22,10 +22,7 @@ class VehicleListScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Xe điện'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.tune_rounded),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.tune_rounded), onPressed: () {}),
         ],
       ),
       body: Column(
@@ -35,8 +32,7 @@ class VehicleListScreen extends ConsumerWidget {
             child: TextField(
               decoration: const InputDecoration(
                 hintText: 'Tìm kiếm xe điện...',
-                prefixIcon:
-                    Icon(Icons.search, color: AppTheme.grey400),
+                prefixIcon: Icon(Icons.search, color: AppTheme.grey400),
               ),
               onSubmitted: (v) {
                 ref.invalidate(vehicleListProvider);
@@ -46,8 +42,8 @@ class VehicleListScreen extends ConsumerWidget {
           Expanded(
             child: vehiclesAsync.when(
               loading: () => const Center(
-                  child: CircularProgressIndicator(
-                      color: AppTheme.primaryGreen)),
+                child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+              ),
               error: (e, _) => Center(child: Text('Lỗi: $e')),
               data: (data) {
                 if (data.data.isEmpty) {
@@ -55,11 +51,16 @@ class VehicleListScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.electric_car_rounded,
-                            size: 64, color: AppTheme.grey200),
+                        Icon(
+                          Icons.electric_car_rounded,
+                          size: 64,
+                          color: AppTheme.grey200,
+                        ),
                         SizedBox(height: 16),
-                        Text('Không tìm thấy xe nào',
-                            style: TextStyle(color: AppTheme.grey600)),
+                        Text(
+                          'Không tìm thấy xe nào',
+                          style: TextStyle(color: AppTheme.grey600),
+                        ),
                       ],
                     ),
                   );
@@ -68,8 +69,7 @@ class VehicleListScreen extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: data.data.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) =>
-                      _VehicleCard(vehicle: data.data[i]),
+                  itemBuilder: (_, i) => _VehicleCard(vehicle: data.data[i]),
                 );
               },
             ),
@@ -91,12 +91,13 @@ class _VehicleCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -104,8 +105,9 @@ class _VehicleCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               child: AppNetworkImage(
                 url: vehicle.thumbnailUrl,
                 height: 180,
@@ -124,17 +126,21 @@ class _VehicleCard extends StatelessWidget {
                         child: Text(
                           vehicle.name,
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: vehicle.isAvailable
-                              ? AppTheme.success.withOpacity(0.1)
+                              ? AppTheme.success.withValues(alpha: 0.1)
                               : AppTheme.grey100,
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           vehicle.statusLabel,
@@ -152,21 +158,30 @@ class _VehicleCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.directions_car_outlined,
-                          size: 14, color: AppTheme.grey400),
+                      const Icon(
+                        Icons.directions_car_outlined,
+                        size: 14,
+                        color: AppTheme.grey400,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${vehicle.brand} • ${vehicle.year}',
                         style: const TextStyle(
-                            color: AppTheme.grey600, fontSize: 13),
+                          color: AppTheme.grey600,
+                          fontSize: 13,
+                        ),
                       ),
                       if (vehicle.mileage != null) ...[
-                        const Text(' • ',
-                            style: TextStyle(color: AppTheme.grey400)),
+                        const Text(
+                          ' • ',
+                          style: TextStyle(color: AppTheme.grey400),
+                        ),
                         Text(
                           '${AppUtils.formatNumber(vehicle.mileage)} km',
                           style: const TextStyle(
-                              color: AppTheme.grey600, fontSize: 13),
+                            color: AppTheme.grey600,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ],
@@ -174,8 +189,11 @@ class _VehicleCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 14, color: AppTheme.grey400),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: AppTheme.grey400,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -183,7 +201,9 @@ class _VehicleCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              color: AppTheme.grey400, fontSize: 13),
+                            color: AppTheme.grey400,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ],
@@ -203,23 +223,30 @@ class _VehicleCard extends StatelessWidget {
                       if (vehicle.hasWarranty == true)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.verified_outlined,
-                                  size: 12, color: AppTheme.info),
+                              Icon(
+                                Icons.verified_outlined,
+                                size: 12,
+                                color: AppTheme.info,
+                              ),
                               SizedBox(width: 3),
-                              Text('Bảo hành',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppTheme.info,
-                                    fontWeight: FontWeight.w600,
-                                  )),
+                              Text(
+                                'Bảo hành',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppTheme.info,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           ),
                         ),

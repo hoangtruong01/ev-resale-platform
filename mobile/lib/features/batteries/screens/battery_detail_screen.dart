@@ -9,8 +9,10 @@ import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 
-final batteryDetailProvider =
-    FutureProvider.family<BatteryModel, String>((ref, id) {
+final batteryDetailProvider = FutureProvider.family<BatteryModel, String>((
+  ref,
+  id,
+) {
   return ref.read(batteryServiceProvider).getBatteryById(id);
 });
 
@@ -41,7 +43,8 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
     return Scaffold(
       body: batteryAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+        ),
         error: (e, _) => Center(child: Text('Lỗi: $e')),
         data: (battery) => CustomScrollView(
           slivers: [
@@ -66,8 +69,10 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(Icons.favorite_border,
-                          color: Colors.white),
+                      icon: const Icon(
+                        Icons.favorite_border,
+                        color: Colors.white,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -77,8 +82,10 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(Icons.share_outlined,
-                          color: Colors.white),
+                      icon: const Icon(
+                        Icons.share_outlined,
+                        color: Colors.white,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -91,7 +98,9 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                       controller: _pageController,
                       onPageChanged: (i) =>
                           setState(() => _currentImageIndex = i),
-                      itemCount: battery.images.isEmpty ? 1 : battery.images.length,
+                      itemCount: battery.images.isEmpty
+                          ? 1
+                          : battery.images.length,
                       itemBuilder: (_, i) => AppNetworkImage(
                         url: battery.images.isEmpty ? null : battery.images[i],
                         fit: BoxFit.cover,
@@ -151,7 +160,9 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                         if (!battery.isAvailable) ...[
                           const SizedBox(width: 8),
                           const _StatusChip(
-                              label: 'Đã bán', color: AppTheme.error),
+                            label: 'Đã bán',
+                            color: AppTheme.error,
+                          ),
                         ],
                       ],
                     ),
@@ -160,9 +171,10 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                     Text(
                       battery.name,
                       style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.grey900),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.grey900,
+                      ),
                     ),
                     const SizedBox(height: 8),
 
@@ -177,20 +189,26 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                     ),
 
                     const SizedBox(height: 20),
-                    
+
                     // Live Monitoring Button
                     if (battery.isActive) // Only show if active
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: () => context.push('/battery-monitor/${battery.id}?name=${battery.name}'),
+                          onPressed: () => context.push(
+                            '/battery-monitor/${battery.id}?name=${battery.name}',
+                          ),
                           icon: const Icon(Icons.sensors_outlined),
                           label: const Text('Theo dõi trực tiếp qua PLC'),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppTheme.primaryGreen,
-                            side: const BorderSide(color: AppTheme.primaryGreen),
+                            side: const BorderSide(
+                              color: AppTheme.primaryGreen,
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ),
@@ -200,17 +218,25 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                     const SizedBox(height: 16),
 
                     // Specs
-                    const Text('Thông số kỹ thuật',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    const Text(
+                      'Thông số kỹ thuật',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 16),
 
                     // Condition bar
                     Row(
                       children: [
-                        const Text('Tình trạng:',
-                            style: TextStyle(
-                                color: AppTheme.grey600, fontSize: 14)),
+                        const Text(
+                          'Tình trạng:',
+                          style: TextStyle(
+                            color: AppTheme.grey600,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: LinearPercentIndicator(
@@ -235,37 +261,40 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
 
                     _SpecRow(label: 'Loại pin', value: battery.typeLabel),
                     _SpecRow(
-                        label: 'Dung lượng',
-                        value: '${battery.capacity} kWh'),
+                      label: 'Dung lượng',
+                      value: '${battery.capacity} kWh',
+                    ),
                     if (battery.voltage != null)
-                      _SpecRow(
-                          label: 'Điện áp',
-                          value: '${battery.voltage} V'),
+                      _SpecRow(label: 'Điện áp', value: '${battery.voltage} V'),
                     _SpecRow(
-                        label: 'Tình trạng',
-                        value: AppUtils.batteryConditionLabel(
-                            battery.condition)),
+                      label: 'Tình trạng',
+                      value: AppUtils.batteryConditionLabel(battery.condition),
+                    ),
+                    _SpecRow(label: 'Khu vực', value: battery.location),
                     _SpecRow(
-                        label: 'Khu vực',
-                        value: battery.location),
-                    _SpecRow(
-                        label: 'Đăng ngày',
-                        value: AppUtils.formatDate(battery.createdAt)),
+                      label: 'Đăng ngày',
+                      value: AppUtils.formatDate(battery.createdAt),
+                    ),
 
                     if (battery.description != null) ...[
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 16),
-                      const Text('Mô tả',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Mô tả',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         battery.description!,
                         style: const TextStyle(
-                            color: AppTheme.grey600,
-                            height: 1.6,
-                            fontSize: 14),
+                          color: AppTheme.grey600,
+                          height: 1.6,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
 
@@ -274,23 +303,30 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 16),
-                      const Text('Người bán',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Người bán',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Row(
                         children: [
                           CircleAvatar(
                             radius: 24,
-                            backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                            backgroundColor: AppTheme.primaryGreen.withValues(
+                              alpha: 0.1,
+                            ),
                             child: Text(
                               battery.seller!.displayName.isNotEmpty
                                   ? battery.seller!.displayName[0].toUpperCase()
                                   : 'U',
                               style: const TextStyle(
-                                  color: AppTheme.primaryGreen,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 18),
+                                color: AppTheme.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -301,21 +337,25 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                                 Text(
                                   battery.seller!.displayName,
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 15),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
                                 ),
                                 if (battery.seller!.rating != null)
                                   Row(
                                     children: [
-                                      const Icon(Icons.star_rounded,
-                                          size: 16,
-                                          color: AppTheme.accentYellow),
+                                      const Icon(
+                                        Icons.star_rounded,
+                                        size: 16,
+                                        color: AppTheme.accentYellow,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         '${battery.seller!.rating!.toStringAsFixed(1)} (${battery.seller!.totalRatings} đánh giá)',
                                         style: const TextStyle(
-                                            color: AppTheme.grey600,
-                                            fontSize: 13),
+                                          color: AppTheme.grey600,
+                                          fontSize: 13,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -362,12 +402,17 @@ class _BottomBar extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.fromLTRB(
-          20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+        20,
+        12,
+        20,
+        MediaQuery.of(context).padding.bottom + 12,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: Border(top: BorderSide(color: AppTheme.grey200)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -384,7 +429,8 @@ class _BottomBar extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => context.push(
-                        '/chat?sellerId=${battery.sellerId}&batteryId=${battery.id}'),
+                      '/chat?sellerId=${battery.sellerId}&batteryId=${battery.id}',
+                    ),
                     icon: const Icon(Icons.message_outlined),
                     label: const Text('Nhắn tin'),
                   ),
@@ -418,17 +464,19 @@ class _SpecRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 110,
-            child: Text(label,
-                style: const TextStyle(
-                    color: AppTheme.grey600, fontSize: 14)),
+            child: Text(
+              label,
+              style: const TextStyle(color: AppTheme.grey600, fontSize: 14),
+            ),
           ),
           Expanded(
             child: Text(
               value,
               style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: AppTheme.grey900,
-                  fontSize: 14),
+                fontWeight: FontWeight.w500,
+                color: AppTheme.grey900,
+                fontSize: 14,
+              ),
             ),
           ),
         ],
@@ -448,8 +496,9 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(
         label,

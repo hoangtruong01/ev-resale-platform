@@ -148,7 +148,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         content: Text(msg),
         backgroundColor: isError ? AppTheme.error : AppTheme.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
   }
@@ -170,17 +170,24 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   child: Row(
                     children: [
                       Container(
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: active ? AppTheme.primaryGreen : AppTheme.grey200,
+                          color: active
+                              ? AppTheme.primaryGreen
+                              : AppTheme.grey100,
+                          border: Border.all(
+                            color: active
+                                ? AppTheme.primaryGreen
+                                : AppTheme.grey200,
+                          ),
                         ),
                         child: Center(
                           child: Text(
                             '${i + 1}',
                             style: TextStyle(
-                              color: active ? Colors.white : AppTheme.grey400,
+                              color: active ? Colors.white : AppTheme.grey500,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -204,13 +211,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             const SizedBox(height: 32),
 
             if (_step == 1) ...[
-              const Text('Nhập email của bạn',
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
+              const Text(
+                'Nhập email của bạn',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 8),
               const Text(
-                  'Chúng tôi sẽ gửi mã OTP 6 số đến email của bạn',
-                  style: TextStyle(color: AppTheme.grey600)),
+                'Chúng tôi sẽ gửi mã OTP 6 số đến email của bạn',
+                style: TextStyle(color: AppTheme.grey600),
+              ),
               const SizedBox(height: 24),
               AppTextField(
                 controller: _emailCtrl,
@@ -228,13 +237,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ],
 
             if (_step == 2) ...[
-              const Text('Nhập mã OTP',
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
+              const Text(
+                'Nhập mã OTP',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 8),
               Text(
-                  'Mã OTP đã được gửi đến ${_emailCtrl.text}',
-                  style: const TextStyle(color: AppTheme.grey600)),
+                'Mã OTP đã được gửi đến ${_emailCtrl.text}',
+                style: const TextStyle(color: AppTheme.grey600),
+              ),
               const SizedBox(height: 24),
               AppTextField(
                 controller: _otpCtrl,
@@ -252,8 +263,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed:
-                    _resendCountdown > 0 || _isLoading ? null : _resendOtp,
+                onPressed: _resendCountdown > 0 || _isLoading
+                    ? null
+                    : _resendOtp,
                 child: Text(
                   _resendCountdown > 0
                       ? 'Gửi lại OTP sau $_resendCountdown s'
@@ -264,12 +276,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ],
 
             if (_step == 3) ...[
-              const Text('Đặt mật khẩu mới',
-                  style: TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w700)),
+              const Text(
+                'Đặt mật khẩu mới',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 8),
-              const Text('Nhập mật khẩu mới cho tài khoản của bạn',
-                  style: TextStyle(color: AppTheme.grey600)),
+              const Text(
+                'Nhập mật khẩu mới cho tài khoản của bạn',
+                style: TextStyle(color: AppTheme.grey600),
+              ),
               const SizedBox(height: 24),
               AppTextField(
                 controller: _passwordCtrl,

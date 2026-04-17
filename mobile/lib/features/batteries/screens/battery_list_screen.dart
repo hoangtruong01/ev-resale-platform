@@ -6,7 +6,6 @@ import '../../../services/battery_service.dart';
 import '../../../models/battery_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
-import '../../home/screens/home_screen.dart' show BatteryCard;
 
 // Filter state
 class BatteryFilter {
@@ -33,31 +32,33 @@ class BatteryFilter {
     double? maxPrice,
     int? minCondition,
     String? sortBy,
-  }) =>
-      BatteryFilter(
-        search: search ?? this.search,
-        type: type ?? this.type,
-        minPrice: minPrice ?? this.minPrice,
-        maxPrice: maxPrice ?? this.maxPrice,
-        minCondition: minCondition ?? this.minCondition,
-        sortBy: sortBy ?? this.sortBy,
-      );
+  }) => BatteryFilter(
+    search: search ?? this.search,
+    type: type ?? this.type,
+    minPrice: minPrice ?? this.minPrice,
+    maxPrice: maxPrice ?? this.maxPrice,
+    minCondition: minCondition ?? this.minCondition,
+    sortBy: sortBy ?? this.sortBy,
+  );
 }
 
-final batteryFilterProvider =
-    StateProvider<BatteryFilter>((ref) => const BatteryFilter());
+final batteryFilterProvider = StateProvider<BatteryFilter>(
+  (ref) => const BatteryFilter(),
+);
 
 final batteryListProvider =
     FutureProvider.family<BatteryListResponse, BatteryFilter>((ref, filter) {
-  return ref.read(batteryServiceProvider).getBatteries(
-        search: filter.search,
-        type: filter.type,
-        minPrice: filter.minPrice,
-        maxPrice: filter.maxPrice,
-        minCondition: filter.minCondition,
-        sortBy: filter.sortBy,
-      );
-});
+      return ref
+          .read(batteryServiceProvider)
+          .getBatteries(
+            search: filter.search,
+            type: filter.type,
+            minPrice: filter.minPrice,
+            maxPrice: filter.maxPrice,
+            minCondition: filter.minCondition,
+            sortBy: filter.sortBy,
+          );
+    });
 
 class BatteryListScreen extends ConsumerStatefulWidget {
   const BatteryListScreen({super.key});
@@ -99,8 +100,7 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
               controller: _searchCtrl,
               decoration: InputDecoration(
                 hintText: 'Tìm kiếm pin...',
-                prefixIcon:
-                    const Icon(Icons.search, color: AppTheme.grey400),
+                prefixIcon: const Icon(Icons.search, color: AppTheme.grey400),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -113,8 +113,8 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                     : null,
               ),
               onSubmitted: (v) {
-                ref.read(batteryFilterProvider.notifier).state =
-                    filter.copyWith(search: v.isEmpty ? null : v);
+                ref.read(batteryFilterProvider.notifier).state = filter
+                    .copyWith(search: v.isEmpty ? null : v);
               },
             ),
           ),
@@ -129,8 +129,9 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                   label: 'Tất cả',
                   selected: filter.type == null,
                   onTap: () {
-                    ref.read(batteryFilterProvider.notifier).state =
-                        BatteryFilter(
+                    ref
+                        .read(batteryFilterProvider.notifier)
+                        .state = BatteryFilter(
                       search: filter.search,
                       minPrice: filter.minPrice,
                       maxPrice: filter.maxPrice,
@@ -139,8 +140,12 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                   },
                 ),
                 const SizedBox(width: 8),
-                ...['LITHIUM_ION', 'LITHIUM_POLYMER', 'NICKEL_METAL_HYDRIDE', 'LEAD_ACID']
-                    .map((type) {
+                ...[
+                  'LITHIUM_ION',
+                  'LITHIUM_POLYMER',
+                  'NICKEL_METAL_HYDRIDE',
+                  'LEAD_ACID',
+                ].map((type) {
                   final labels = {
                     'LITHIUM_ION': 'Li-ion',
                     'LITHIUM_POLYMER': 'LiPo',
@@ -153,8 +158,8 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                       label: labels[type]!,
                       selected: filter.type == type,
                       onTap: () {
-                        ref.read(batteryFilterProvider.notifier).state =
-                            filter.copyWith(type: type);
+                        ref.read(batteryFilterProvider.notifier).state = filter
+                            .copyWith(type: type);
                       },
                     ),
                   );
@@ -174,8 +179,11 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: AppTheme.error),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: AppTheme.error,
+                    ),
                     const SizedBox(height: 12),
                     Text('Lỗi: $e'),
                     const SizedBox(height: 12),
@@ -193,19 +201,23 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.battery_alert_rounded,
-                            size: 64, color: AppTheme.grey200),
+                        Icon(
+                          Icons.battery_alert_rounded,
+                          size: 64,
+                          color: AppTheme.grey200,
+                        ),
                         SizedBox(height: 16),
-                        Text('Không tìm thấy pin nào',
-                            style: TextStyle(color: AppTheme.grey600)),
+                        Text(
+                          'Không tìm thấy pin nào',
+                          style: TextStyle(color: AppTheme.grey600),
+                        ),
                       ],
                     ),
                   );
                 }
                 return GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 0.72,
                     crossAxisSpacing: 12,
@@ -240,8 +252,11 @@ class _TypeChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _TypeChip(
-      {required this.label, required this.selected, required this.onTap});
+  const _TypeChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -253,13 +268,15 @@ class _TypeChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppTheme.primaryGreen : AppTheme.grey100,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppTheme.primaryGreen : AppTheme.grey200,
+          ),
         ),
         child: Text(
           label,
           style: TextStyle(
             color: selected ? Colors.white : AppTheme.grey600,
-            fontWeight:
-                selected ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             fontSize: 13,
           ),
         ),
@@ -279,11 +296,13 @@ class _BatteryGridCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -292,8 +311,9 @@ class _BatteryGridCard extends StatelessWidget {
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20),
+                ),
                 child: AppNetworkImage(
                   url: battery.thumbnailUrl,
                   width: double.infinity,
@@ -311,17 +331,22 @@ class _BatteryGridCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
-                          color: _conditionColor(battery.condition)
-                              .withOpacity(0.1),
+                          color: _conditionColor(
+                            battery.condition,
+                          ).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -339,7 +364,9 @@ class _BatteryGridCard extends StatelessWidget {
                           battery.typeLabel,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              color: AppTheme.grey600, fontSize: 11),
+                            color: AppTheme.grey600,
+                            fontSize: 11,
+                          ),
                         ),
                       ),
                     ],
@@ -379,17 +406,12 @@ class _FilterSheet extends ConsumerStatefulWidget {
 
 class _FilterSheetState extends ConsumerState<_FilterSheet> {
   late String? _selectedType;
-  late RangeValues _priceRange;
   late double _minCondition;
 
   @override
   void initState() {
     super.initState();
     _selectedType = widget.filter.type;
-    _priceRange = RangeValues(
-      widget.filter.minPrice ?? 0,
-      widget.filter.maxPrice ?? 100000000,
-    );
     _minCondition = (widget.filter.minCondition ?? 0).toDouble();
   }
 
@@ -417,42 +439,44 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          const Text('Bộ lọc',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text(
+            'Bộ lọc',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 20),
 
-          const Text('Loại pin',
-              style: TextStyle(fontWeight: FontWeight.w600)),
+          const Text('Loại pin', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children: [
-              null,
-              'LITHIUM_ION',
-              'LITHIUM_POLYMER',
-              'NICKEL_METAL_HYDRIDE',
-              'LEAD_ACID'
-            ].map((type) {
-              final label = type == null
-                  ? 'Tất cả'
-                  : {
-                      'LITHIUM_ION': 'Li-ion',
-                      'LITHIUM_POLYMER': 'LiPo',
-                      'NICKEL_METAL_HYDRIDE': 'NiMH',
-                      'LEAD_ACID': 'Chì-Axit',
-                    }[type]!;
-              return FilterChip(
-                label: Text(label),
-                selected: _selectedType == type,
-                onSelected: (_) => setState(() => _selectedType = type),
-                selectedColor: AppTheme.primaryGreen,
-                labelStyle: TextStyle(
-                  color: _selectedType == type
-                      ? Colors.white
-                      : AppTheme.grey800,
-                ),
-              );
-            }).toList(),
+            children:
+                [
+                  null,
+                  'LITHIUM_ION',
+                  'LITHIUM_POLYMER',
+                  'NICKEL_METAL_HYDRIDE',
+                  'LEAD_ACID',
+                ].map((type) {
+                  final label = type == null
+                      ? 'Tất cả'
+                      : {
+                          'LITHIUM_ION': 'Li-ion',
+                          'LITHIUM_POLYMER': 'LiPo',
+                          'NICKEL_METAL_HYDRIDE': 'NiMH',
+                          'LEAD_ACID': 'Chì-Axit',
+                        }[type]!;
+                  return FilterChip(
+                    label: Text(label),
+                    selected: _selectedType == type,
+                    onSelected: (_) => setState(() => _selectedType = type),
+                    selectedColor: AppTheme.primaryGreen,
+                    labelStyle: TextStyle(
+                      color: _selectedType == type
+                          ? Colors.white
+                          : AppTheme.grey800,
+                    ),
+                  );
+                }).toList(),
           ),
 
           const SizedBox(height: 16),
@@ -486,11 +510,12 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    ref.read(batteryFilterProvider.notifier).state =
-                        widget.filter.copyWith(
-                      type: _selectedType,
-                      minCondition: _minCondition.round(),
-                    );
+                    ref.read(batteryFilterProvider.notifier).state = widget
+                        .filter
+                        .copyWith(
+                          type: _selectedType,
+                          minCondition: _minCondition.round(),
+                        );
                     Navigator.pop(context);
                   },
                   child: const Text('Áp dụng'),

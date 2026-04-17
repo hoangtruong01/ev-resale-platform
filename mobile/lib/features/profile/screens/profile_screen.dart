@@ -44,7 +44,9 @@ class ProfileScreen extends ConsumerWidget {
                         children: [
                           CircleAvatar(
                             radius: 44,
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
                             child: user?.avatar != null
                                 ? ClipOval(
                                     child: AppNetworkImage(
@@ -74,10 +76,15 @@ class ProfileScreen extends ConsumerWidget {
                                 color: Colors.white,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: AppTheme.primaryGreen, width: 2),
+                                  color: AppTheme.primaryGreen,
+                                  width: 2,
+                                ),
                               ),
-                              child: const Icon(Icons.camera_alt_rounded,
-                                  size: 14, color: AppTheme.primaryGreen),
+                              child: const Icon(
+                                Icons.camera_alt_rounded,
+                                size: 14,
+                                color: AppTheme.primaryGreen,
+                              ),
                             ),
                           ),
                         ],
@@ -104,13 +111,18 @@ class ProfileScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.star_rounded,
-                                size: 16, color: AppTheme.accentYellow),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 16,
+                              color: AppTheme.accentYellow,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '${user!.rating!.toStringAsFixed(1)} (${user.totalRatings} đánh giá)',
                               style: const TextStyle(
-                                  color: Colors.white70, fontSize: 13),
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         ),
@@ -133,29 +145,28 @@ class ProfileScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.grey200),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
                     child: const Row(
                       children: [
                         Expanded(
-                          child: _StatItem(
-                              label: 'Đang bán', value: '0'),
+                          child: _StatItem(label: 'Đang bán', value: '0'),
                         ),
                         _VertDivider(),
                         Expanded(
-                          child: _StatItem(
-                              label: 'Đã bán', value: '0'),
+                          child: _StatItem(label: 'Đã bán', value: '0'),
                         ),
                         _VertDivider(),
                         Expanded(
-                          child: _StatItem(
-                              label: 'Đã mua', value: '0'),
+                          child: _StatItem(label: 'Đã mua', value: '0'),
                         ),
                       ],
                     ),
@@ -188,21 +199,32 @@ class ProfileScreen extends ConsumerWidget {
                               loading: () => const SizedBox(
                                 width: 14,
                                 height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               error: (_, __) => const SizedBox.shrink(),
                               data: (data) {
                                 final status =
-                                    data['kycStatus'] as String? ?? 'UNVERIFIED';
+                                    data['kycStatus'] as String? ??
+                                    'UNVERIFIED';
                                 final (label, color) = switch (status) {
-                                  'APPROVED' => ('Đã xác thực', AppTheme.success),
-                                  'PENDING' => ('Đang xét duyệt', AppTheme.warning),
+                                  'APPROVED' => (
+                                    'Đã xác thực',
+                                    AppTheme.success,
+                                  ),
+                                  'PENDING' => (
+                                    'Đang xét duyệt',
+                                    AppTheme.warning,
+                                  ),
                                   'REJECTED' => ('Bị từ chối', AppTheme.error),
                                   _ => ('Chưa xác thực', AppTheme.grey400),
                                 };
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: color.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(20),
@@ -330,14 +352,18 @@ class ProfileScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppTheme.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                            color: AppTheme.error.withOpacity(0.2)),
+                          color: AppTheme.error.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: const Row(
                         children: [
-                          Icon(Icons.logout_rounded,
-                              color: AppTheme.error, size: 20),
+                          Icon(
+                            Icons.logout_rounded,
+                            color: AppTheme.error,
+                            size: 20,
+                          ),
                           SizedBox(width: 12),
                           Text(
                             'Đăng xuất',
@@ -372,8 +398,7 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Huỷ',
-                style: TextStyle(color: AppTheme.grey600)),
+            child: const Text('Huỷ', style: TextStyle(color: AppTheme.grey600)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -381,8 +406,7 @@ class ProfileScreen extends ConsumerWidget {
               await ref.read(authStateProvider.notifier).logout();
               if (context.mounted) context.go('/auth/login');
             },
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.error),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
             child: const Text('Đăng xuất'),
           ),
         ],
@@ -488,9 +512,10 @@ class _StatItem extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(label,
-            style:
-                const TextStyle(color: AppTheme.grey600, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.grey600, fontSize: 12),
+        ),
       ],
     );
   }
@@ -501,11 +526,7 @@ class _VertDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      width: 1,
-      color: AppTheme.grey200,
-    );
+    return Container(height: 40, width: 1, color: AppTheme.grey200);
   }
 }
 
@@ -520,11 +541,13 @@ class _MenuSection extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.grey200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -587,8 +610,11 @@ class _MenuItem extends StatelessWidget {
               ),
             ),
             trailing ??
-                const Icon(Icons.arrow_forward_ios,
-                    size: 14, color: AppTheme.grey400),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: AppTheme.grey400,
+                ),
           ],
         ),
       ),

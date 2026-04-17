@@ -8,8 +8,10 @@ import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 // import '../../../features/auth/providers/auth_provider.dart';
 
-final vehicleDetailProvider =
-    FutureProvider.family<VehicleModel, String>((ref, id) {
+final vehicleDetailProvider = FutureProvider.family<VehicleModel, String>((
+  ref,
+  id,
+) {
   return ref.read(vehicleServiceProvider).getVehicleById(id);
 });
 
@@ -34,7 +36,8 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
     return Scaffold(
       body: vehicleAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+        ),
         error: (e, _) => Center(child: Text('Lỗi: $e')),
         data: (vehicle) => CustomScrollView(
           slivers: [
@@ -58,8 +61,10 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(Icons.favorite_border,
-                          color: Colors.white),
+                      icon: const Icon(
+                        Icons.favorite_border,
+                        color: Colors.white,
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -72,12 +77,11 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                       controller: _pageController,
                       onPageChanged: (i) =>
                           setState(() => _currentImageIndex = i),
-                      itemCount:
-                          vehicle.images.isEmpty ? 1 : vehicle.images.length,
+                      itemCount: vehicle.images.isEmpty
+                          ? 1
+                          : vehicle.images.length,
                       itemBuilder: (_, i) => AppNetworkImage(
-                        url: vehicle.images.isEmpty
-                            ? null
-                            : vehicle.images[i],
+                        url: vehicle.images.isEmpty ? null : vehicle.images[i],
                         fit: BoxFit.cover,
                         placeholderIcon: Icons.electric_car_rounded,
                       ),
@@ -95,8 +99,7 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                               duration: const Duration(milliseconds: 300),
                               width: i == _currentImageIndex ? 20 : 8,
                               height: 8,
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 2),
+                              margin: const EdgeInsets.symmetric(horizontal: 2),
                               decoration: BoxDecoration(
                                 color: i == _currentImageIndex
                                     ? Colors.white
@@ -121,10 +124,19 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppTheme.primaryGreen.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppTheme.primaryGreen.withValues(
+                              alpha: 0.12,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: AppTheme.primaryGreen.withValues(
+                                alpha: 0.25,
+                              ),
+                            ),
                           ),
                           child: Text(
                             vehicle.brand,
@@ -138,12 +150,14 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: vehicle.isAvailable
-                                ? AppTheme.success.withOpacity(0.1)
+                                ? AppTheme.success.withValues(alpha: 0.1)
                                 : AppTheme.grey100,
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             vehicle.statusLabel,
@@ -179,18 +193,26 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                     const SizedBox(height: 20),
                     const Divider(),
                     const SizedBox(height: 16),
-                    const Text('Thông số xe',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700)),
+                    const Text(
+                      'Thông số xe',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     _SpecGrid(vehicle: vehicle),
                     if (vehicle.description != null) ...[
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 16),
-                      const Text('Mô tả',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Mô tả',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         vehicle.description!,
@@ -213,15 +235,17 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
           ? null
           : Container(
               padding: EdgeInsets.fromLTRB(
-                  20,
-                  12,
-                  20,
-                  MediaQuery.of(context).padding.bottom + 12),
+                20,
+                12,
+                20,
+                MediaQuery.of(context).padding.bottom + 12,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
+                border: Border(top: BorderSide(color: AppTheme.grey200)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withValues(alpha: 0.08),
                     blurRadius: 20,
                     offset: const Offset(0, -4),
                   ),
@@ -258,14 +282,48 @@ class _SpecGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final specs = [
-      {'icon': Icons.calendar_today_outlined, 'label': 'Năm SX', 'value': '${vehicle.year}'},
-      {'icon': Icons.speed_outlined, 'label': 'Số km', 'value': vehicle.mileage != null ? '${AppUtils.formatNumber(vehicle.mileage)} km' : 'N/A'},
-      {'icon': Icons.settings_outlined, 'label': 'Hộp số', 'value': vehicle.transmission ?? 'N/A'},
-      {'icon': Icons.palette_outlined, 'label': 'Màu sắc', 'value': vehicle.color ?? 'N/A'},
-      {'icon': Icons.airline_seat_recline_normal_outlined, 'label': 'Số ghế', 'value': vehicle.seatCount?.toString() ?? 'N/A'},
-      {'icon': Icons.location_on_outlined, 'label': 'Khu vực', 'value': vehicle.location},
-      {'icon': Icons.verified_outlined, 'label': 'Bảo hành', 'value': vehicle.hasWarranty == true ? 'Có' : 'Không'},
-      {'icon': Icons.info_outline, 'label': 'Tình trạng', 'value': vehicle.condition},
+      {
+        'icon': Icons.calendar_today_outlined,
+        'label': 'Năm SX',
+        'value': '${vehicle.year}',
+      },
+      {
+        'icon': Icons.speed_outlined,
+        'label': 'Số km',
+        'value': vehicle.mileage != null
+            ? '${AppUtils.formatNumber(vehicle.mileage)} km'
+            : 'N/A',
+      },
+      {
+        'icon': Icons.settings_outlined,
+        'label': 'Hộp số',
+        'value': vehicle.transmission ?? 'N/A',
+      },
+      {
+        'icon': Icons.palette_outlined,
+        'label': 'Màu sắc',
+        'value': vehicle.color ?? 'N/A',
+      },
+      {
+        'icon': Icons.airline_seat_recline_normal_outlined,
+        'label': 'Số ghế',
+        'value': vehicle.seatCount?.toString() ?? 'N/A',
+      },
+      {
+        'icon': Icons.location_on_outlined,
+        'label': 'Khu vực',
+        'value': vehicle.location,
+      },
+      {
+        'icon': Icons.verified_outlined,
+        'label': 'Bảo hành',
+        'value': vehicle.hasWarranty == true ? 'Có' : 'Không',
+      },
+      {
+        'icon': Icons.info_outline,
+        'label': 'Tình trạng',
+        'value': vehicle.condition,
+      },
     ];
 
     return GridView.builder(
@@ -284,12 +342,16 @@ class _SpecGrid extends StatelessWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: AppTheme.grey50,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.grey200),
           ),
           child: Row(
             children: [
-              Icon(spec['icon'] as IconData,
-                  size: 18, color: AppTheme.primaryGreen),
+              Icon(
+                spec['icon'] as IconData,
+                size: 18,
+                color: AppTheme.primaryGreen,
+              ),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -299,15 +361,17 @@ class _SpecGrid extends StatelessWidget {
                     Text(
                       spec['label'] as String,
                       style: const TextStyle(
-                          color: AppTheme.grey400,
-                          fontSize: 11),
+                        color: AppTheme.grey400,
+                        fontSize: 11,
+                      ),
                     ),
                     Text(
                       spec['value'] as String,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),

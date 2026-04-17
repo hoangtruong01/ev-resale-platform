@@ -43,13 +43,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           content: const Text('Vui lòng đồng ý với điều khoản sử dụng'),
           backgroundColor: AppTheme.warning,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       return;
     }
     setState(() => _isLoading = true);
-    await ref.read(authStateProvider.notifier).register(
+    await ref
+        .read(authStateProvider.notifier)
+        .register(
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text,
           fullName: _fullNameCtrl.text.trim(),
@@ -66,7 +70,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           content: Text(authState!.error!),
           backgroundColor: AppTheme.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -95,25 +101,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  
+
                   // Custom Back Button
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       onPressed: () => context.pop(),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 10),
-                  
+
                   // Header
                   const Align(
                     alignment: Alignment.centerLeft,
@@ -138,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
 
                   // Register Card
@@ -147,6 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: AppTheme.grey200),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.15),
@@ -166,7 +176,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             hint: 'Nhập họ và tên',
                             prefixIcon: Icons.person_outline,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Nhập họ và tên';
+                              if (v == null || v.isEmpty)
+                                return 'Nhập họ và tên';
                               if (v.length < 2) return 'Tên quá ngắn';
                               return null;
                             },
@@ -194,8 +205,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             prefixIcon: Icons.phone_outlined,
                             keyboardType: TextInputType.phone,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Nhập số điện thoại';
-                              if (!RegExp(r'^(0|\+84)[3-9]\d{8}$').hasMatch(v)) {
+                              if (v == null || v.isEmpty)
+                                return 'Nhập số điện thoại';
+                              if (!RegExp(
+                                r'^(0|\+84)[3-9]\d{8}$',
+                              ).hasMatch(v)) {
                                 return 'SĐT không hợp lệ';
                               }
                               return null;
@@ -217,12 +231,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 color: AppTheme.grey400,
                                 size: 20,
                               ),
-                              onPressed: () =>
-                                  setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Nhập mật khẩu';
-                              if (v.length < 6) return 'Mật khẩu ít nhất 6 ký tự';
+                              if (v == null || v.isEmpty)
+                                return 'Nhập mật khẩu';
+                              if (v.length < 6)
+                                return 'Mật khẩu ít nhất 6 ký tự';
                               return null;
                             },
                           ),
@@ -242,12 +259,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 color: AppTheme.grey400,
                                 size: 20,
                               ),
-                              onPressed: () =>
-                                  setState(() => _obscureConfirm = !_obscureConfirm),
+                              onPressed: () => setState(
+                                () => _obscureConfirm = !_obscureConfirm,
+                              ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Xác nhận mật khẩu';
-                              if (v != _passwordCtrl.text) return 'Mật khẩu không khớp';
+                              if (v == null || v.isEmpty)
+                                return 'Xác nhận mật khẩu';
+                              if (v != _passwordCtrl.text)
+                                return 'Mật khẩu không khớp';
                               return null;
                             },
                           ),
@@ -261,21 +281,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 height: 24,
                                 child: Checkbox(
                                   value: _agreedToTerms,
-                                  onChanged: (v) =>
-                                      setState(() => _agreedToTerms = v ?? false),
+                                  onChanged: (v) => setState(
+                                    () => _agreedToTerms = v ?? false,
+                                  ),
                                   activeColor: AppTheme.primaryGreen,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6)),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
+                                  onTap: () => setState(
+                                    () => _agreedToTerms = !_agreedToTerms,
+                                  ),
                                   child: RichText(
                                     text: TextSpan(
                                       style: const TextStyle(
-                                          color: AppTheme.grey600, fontSize: 13, height: 1.4),
+                                        color: AppTheme.grey600,
+                                        fontSize: 13,
+                                        height: 1.4,
+                                      ),
                                       children: [
                                         const TextSpan(text: 'Tôi đồng ý với '),
                                         TextSpan(
@@ -313,14 +340,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
 
                   const SizedBox(height: 32),
-                  
+
                   // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         'Đã có tài khoản? ',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () => context.pop(),
@@ -344,4 +373,3 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 }
-

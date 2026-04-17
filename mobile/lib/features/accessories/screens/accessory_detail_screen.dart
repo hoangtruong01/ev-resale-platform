@@ -6,8 +6,10 @@ import '../../../models/accessory_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 
-final accessoryDetailProvider =
-    FutureProvider.family<AccessoryModel, String>((ref, id) {
+final accessoryDetailProvider = FutureProvider.family<AccessoryModel, String>((
+  ref,
+  id,
+) {
   return ref.read(accessoryServiceProvider).getAccessoryById(id);
 });
 
@@ -20,9 +22,7 @@ class AccessoryDetailScreen extends ConsumerWidget {
     final accessoryAsync = ref.watch(accessoryDetailProvider(id));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chi tiết phụ kiện'),
-      ),
+      appBar: AppBar(title: const Text('Chi tiết phụ kiện')),
       body: accessoryAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppTheme.primaryGreen),
@@ -31,8 +31,7 @@ class AccessoryDetailScreen extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline,
-                  size: 48, color: AppTheme.error),
+              const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
               const SizedBox(height: 12),
               Text('Lỗi: $e'),
             ],
@@ -43,18 +42,27 @@ class AccessoryDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: AppNetworkImage(
-                  url: accessory.thumbnailUrl,
-                  height: 240,
-                  width: double.infinity,
-                  placeholderIcon: Icons.extension_outlined,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppTheme.grey200),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: AppNetworkImage(
+                    url: accessory.thumbnailUrl,
+                    height: 240,
+                    width: double.infinity,
+                    placeholderIcon: Icons.extension_outlined,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
                 accessory.name,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -72,7 +80,10 @@ class AccessoryDetailScreen extends ConsumerWidget {
                 _InfoRow(label: 'Thương hiệu', value: accessory.brand!),
               if (accessory.compatibleModel != null &&
                   accessory.compatibleModel!.isNotEmpty)
-                _InfoRow(label: 'Tương thích', value: accessory.compatibleModel!),
+                _InfoRow(
+                  label: 'Tương thích',
+                  value: accessory.compatibleModel!,
+                ),
               _InfoRow(label: 'Khu vực', value: accessory.location),
               const SizedBox(height: 12),
               Text(
@@ -104,20 +115,25 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
           SizedBox(
             width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(color: AppTheme.grey500),
-            ),
+            child: Text(label, style: const TextStyle(color: AppTheme.grey500)),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.grey200),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ],

@@ -11,37 +11,35 @@ class AccessoryFilter {
   final String? search;
   final String? category;
 
-  const AccessoryFilter({
-    this.search,
-    this.category,
-  });
+  const AccessoryFilter({this.search, this.category});
 
-  AccessoryFilter copyWith({
-    String? search,
-    String? category,
-  }) =>
+  AccessoryFilter copyWith({String? search, String? category}) =>
       AccessoryFilter(
         search: search ?? this.search,
         category: category ?? this.category,
       );
 }
 
-final accessoryFilterProvider =
-    StateProvider<AccessoryFilter>((ref) => const AccessoryFilter());
+final accessoryFilterProvider = StateProvider<AccessoryFilter>(
+  (ref) => const AccessoryFilter(),
+);
 
 final accessoryListProvider =
-    FutureProvider.family<AccessoryListResponse, AccessoryFilter>((ref, filter) {
-  return ref.read(accessoryServiceProvider).getAccessories(
-        search: filter.search,
-        category: filter.category,
-      );
-});
+    FutureProvider.family<AccessoryListResponse, AccessoryFilter>((
+      ref,
+      filter,
+    ) {
+      return ref
+          .read(accessoryServiceProvider)
+          .getAccessories(search: filter.search, category: filter.category);
+    });
 
 class AccessoryListScreen extends ConsumerStatefulWidget {
   const AccessoryListScreen({super.key});
 
   @override
-  ConsumerState<AccessoryListScreen> createState() => _AccessoryListScreenState();
+  ConsumerState<AccessoryListScreen> createState() =>
+      _AccessoryListScreenState();
 }
 
 class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
@@ -89,8 +87,8 @@ class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
                     : null,
               ),
               onSubmitted: (v) {
-                ref.read(accessoryFilterProvider.notifier).state =
-                    filter.copyWith(search: v.isEmpty ? null : v);
+                ref.read(accessoryFilterProvider.notifier).state = filter
+                    .copyWith(search: v.isEmpty ? null : v);
               },
             ),
           ),
@@ -104,8 +102,11 @@ class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline,
-                        size: 48, color: AppTheme.error),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: AppTheme.error,
+                    ),
                     const SizedBox(height: 12),
                     Text('Lỗi: $e'),
                     const SizedBox(height: 12),
@@ -123,11 +124,16 @@ class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.extension_outlined,
-                            size: 64, color: AppTheme.grey200),
+                        Icon(
+                          Icons.extension_outlined,
+                          size: 64,
+                          color: AppTheme.grey200,
+                        ),
                         SizedBox(height: 16),
-                        Text('Không tìm thấy phụ kiện',
-                            style: TextStyle(color: AppTheme.grey600)),
+                        Text(
+                          'Không tìm thấy phụ kiện',
+                          style: TextStyle(color: AppTheme.grey600),
+                        ),
                       ],
                     ),
                   );
@@ -136,7 +142,8 @@ class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: data.data.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _AccessoryCard(accessory: data.data[i]),
+                  itemBuilder: (_, i) =>
+                      _AccessoryCard(accessory: data.data[i]),
                 );
               },
             ),
@@ -169,12 +176,13 @@ class _AccessoryCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.grey200),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -182,8 +190,9 @@ class _AccessoryCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
               child: AppNetworkImage(
                 url: accessory.thumbnailUrl,
                 height: 180,
@@ -199,13 +208,18 @@ class _AccessoryCard extends StatelessWidget {
                   Text(
                     accessory.name,
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 14, color: AppTheme.grey400),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: AppTheme.grey400,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -213,7 +227,9 @@ class _AccessoryCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                              color: AppTheme.grey400, fontSize: 13),
+                            color: AppTheme.grey400,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ],
@@ -243,7 +259,7 @@ class _FilterSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoryOptions = const [
+    const categoryOptions = <Map<String, Object?>>[
       {'label': 'Tất cả', 'value': null},
       {'label': 'Bộ sạc', 'value': 'CHARGER'},
       {'label': 'Lốp xe', 'value': 'TIRE'},
@@ -261,8 +277,10 @@ class _FilterSheet extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Bộ lọc',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+          const Text(
+            'Bộ lọc',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 16),
           const Text('Danh mục', style: TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
@@ -270,13 +288,14 @@ class _FilterSheet extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: categoryOptions.map((option) {
-              final isSelected = filter.category == option['value'];
+              final value = option['value'] as String?;
+              final isSelected = filter.category == value;
               return ChoiceChip(
                 label: Text(option['label'] as String),
                 selected: isSelected,
                 onSelected: (_) {
-                  ref.read(accessoryFilterProvider.notifier).state =
-                      filter.copyWith(category: option['value'] as String?);
+                  ref.read(accessoryFilterProvider.notifier).state = filter
+                      .copyWith(category: value);
                 },
               );
             }).toList(),
