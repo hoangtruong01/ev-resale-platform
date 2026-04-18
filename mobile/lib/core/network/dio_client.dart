@@ -17,7 +17,7 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   // Add interceptors
-  dio.interceptors.add(AuthInterceptor(ref));
+  dio.interceptors.add(AuthInterceptor());
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
@@ -28,10 +28,9 @@ final dioProvider = Provider<Dio>((ref) {
 });
 
 class AuthInterceptor extends Interceptor {
-  final Ref _ref;
   static const _storage = FlutterSecureStorage();
 
-  AuthInterceptor(this._ref);
+  AuthInterceptor();
 
   @override
   void onRequest(

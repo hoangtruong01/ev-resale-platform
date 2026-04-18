@@ -2,50 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
-import '../../../core/network/dio_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/auction_model.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../widgets/app_network_image.dart';
-
-List<AuctionModel> _parseAuctionsPayload(dynamic payload) {
-  if (payload is List) {
-    return payload
-        .whereType<Map>()
-        .map((item) => AuctionModel.fromJson(Map<String, dynamic>.from(item)))
-        .toList();
-  }
-
-  if (payload is Map<String, dynamic>) {
-    final data = payload['data'];
-    if (data is List) {
-      return data
-          .whereType<Map>()
-          .map(
-            (item) => AuctionModel.fromJson(Map<String, dynamic>.from(item)),
-          )
-          .toList();
-    }
-  }
-
-  return const [];
-}
-
-final auctionListProvider = FutureProvider<List<AuctionModel>>((ref) async {
-  final dio = ref.watch(dioProvider);
-  try {
-    final response = await dio.get(
-      '/auctions',
-      queryParameters: {
-        'page': 1,
-        'limit': 20,
-      },
-    );
-    return _parseAuctionsPayload(response.data);
-  } catch (e) {
-    throw Exception(parseApiError(e));
-  }
-});
+import '../providers/auction_providers.dart';
 
 class AuctionListScreen extends ConsumerWidget {
   const AuctionListScreen({super.key});
@@ -101,13 +62,7 @@ class AuctionListScreen extends ConsumerWidget {
           },
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Chức năng tạo đấu giá sẽ có trên phiên bản tiếp theo'),
-              ),
-            );
-          },
+          onPressed: () => context.push('/auctions/create'),
           backgroundColor: AppTheme.primaryGreen,
           icon: const Icon(Icons.add),
           label: const Text('Tạo đấu giá'),

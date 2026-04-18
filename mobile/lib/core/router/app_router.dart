@@ -18,6 +18,7 @@ import '../../features/accessories/screens/accessory_detail_screen.dart';
 import '../../features/accessories/screens/sell_accessory_screen.dart';
 import '../../features/auctions/screens/auction_list_screen.dart';
 import '../../features/auctions/screens/auction_detail_screen.dart';
+import '../../features/auctions/screens/create_auction_screen.dart';
 import '../../features/chat/screens/chat_list_screen.dart';
 import '../../features/chat/screens/chat_room_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
@@ -126,6 +127,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/auctions/:id',
             builder: (context, state) =>
                 AuctionDetailScreen(id: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/auctions/create',
+            builder: (context, state) => const CreateAuctionScreen(),
           ),
           GoRoute(
             path: '/chat',
