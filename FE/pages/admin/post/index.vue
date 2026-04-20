@@ -115,7 +115,7 @@
                   v-if="post.images?.[0]"
                   :src="post.images[0]"
                   :alt="post.title"
-                >
+                />
                 <div v-else class="no-image">
                   <Icon name="mdi:image-off" />
                 </div>
@@ -184,7 +184,7 @@
                 <!-- Action Buttons -->
                 <div class="post-actions">
                   <UButton
-                    v-if="post.status === 'pending'"
+                    v-if="post.status === 'pending' && canModeratePosts"
                     icon="i-heroicons-check-20-solid"
                     color="green"
                     size="sm"
@@ -194,7 +194,7 @@
                   </UButton>
 
                   <UButton
-                    v-if="post.status === 'pending'"
+                    v-if="post.status === 'pending' && canModeratePosts"
                     icon="i-heroicons-x-mark-20-solid"
                     color="red"
                     size="sm"
@@ -204,7 +204,11 @@
                   </UButton>
 
                   <UButton
-                    v-if="post.status === 'approved' && !post.isVerified"
+                    v-if="
+                      post.status === 'approved' &&
+                      !post.isVerified &&
+                      canModeratePosts
+                    "
                     icon="i-heroicons-shield-check-20-solid"
                     color="blue"
                     size="sm"
@@ -214,7 +218,11 @@
                   </UButton>
 
                   <UButton
-                    v-if="post.status === 'approved' && post.isVerified"
+                    v-if="
+                      post.status === 'approved' &&
+                      post.isVerified &&
+                      canModeratePosts
+                    "
                     icon="i-heroicons-shield-exclamation-20-solid"
                     color="yellow"
                     size="sm"
@@ -224,6 +232,7 @@
                   </UButton>
 
                   <UButton
+                    v-if="canMarkSpam"
                     icon="i-heroicons-flag-20-solid"
                     color="red"
                     variant="ghost"
@@ -281,7 +290,7 @@
                       '/placeholder-image.jpg'
                     "
                     :alt="selectedPost.title"
-                  >
+                  />
                 </div>
                 <div
                   v-if="selectedPost.images && selectedPost.images.length > 1"
@@ -294,7 +303,7 @@
                     :class="{ active: selectedImageIndex === index }"
                     @click="selectedImageIndex = index"
                   >
-                    <img :src="image" :alt="`Image ${index + 1}`" >
+                    <img :src="image" :alt="`Image ${index + 1}`" />
                   </button>
                 </div>
               </div>
@@ -351,7 +360,7 @@
                           v-if="selectedPost.author.avatar"
                           :src="selectedPost.author.avatar"
                           :alt="selectedPost.author.name"
-                        >
+                        />
                         <Icon v-else name="mdi:account-circle" />
                       </div>
                       <div class="author-details">
@@ -560,7 +569,11 @@ const selectedImageIndex = ref(0);
 
 const { resolve: resolveAsset } = useAssetUrl();
 const { get, put } = useApi();
+const { hasPermission } = useAuth();
 const { add: showToast } = useCustomToast();
+
+const canModeratePosts = computed(() => hasPermission("MODERATE_POSTS"));
+const canMarkSpam = computed(() => hasPermission("MARK_SPAM"));
 
 const posts = ref<Post[]>([]);
 const pagination = ref({ total: 0, page: 1, limit: pageSize, totalPages: 1 });

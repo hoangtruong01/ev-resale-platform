@@ -45,6 +45,7 @@ export interface User {
   name: string;
   phone?: string;
   role: string;
+  moderatorPermissions?: string[];
   createdAt: string;
   updatedAt: string;
 }

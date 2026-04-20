@@ -51,6 +51,7 @@ import {
 } from '../auth/permissions';
 import { UpdateSupportTicketStatusDto } from '../support-tickets/dto';
 import { SettingsService } from '../settings/settings.service';
+import { SettingType } from '../settings/dto/create-setting.dto';
 import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 interface AdminRequest extends Request {
@@ -993,19 +994,17 @@ export class AdminController {
     }
 
     const entries = Object.entries(settings ?? {});
-    const inferSettingType = (
-      value: unknown,
-    ): 'string' | 'number' | 'boolean' | 'json' => {
+    const inferSettingType = (value: unknown): SettingType => {
       if (typeof value === 'string') {
-        return 'string';
+        return SettingType.STRING;
       }
       if (typeof value === 'number') {
-        return 'number';
+        return SettingType.NUMBER;
       }
       if (typeof value === 'boolean') {
-        return 'boolean';
+        return SettingType.BOOLEAN;
       }
-      return 'json';
+      return SettingType.JSON;
     };
 
     const updated = await Promise.all(

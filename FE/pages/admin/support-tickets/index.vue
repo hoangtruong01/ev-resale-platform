@@ -57,6 +57,7 @@
                     <USelect
                       v-model="ticket.status"
                       :options="statusOptions"
+                      :disabled="!canHandleSupportTickets"
                       @update:model-value="
                         (value) => updateStatus(ticket.id, value)
                       "
@@ -113,6 +114,10 @@ interface TicketResponse {
 }
 
 const { get, patch } = useApi();
+const { hasPermission } = useAuth();
+const canHandleSupportTickets = computed(() =>
+  hasPermission("HANDLE_SUPPORT_TICKETS"),
+);
 
 const tickets = ref<SupportTicket[]>([]);
 const isLoading = ref(false);
@@ -166,6 +171,11 @@ const fetchTickets = async () => {
 };
 
 const updateStatus = async (id: string, status: string) => {
+  if (!canHandleSupportTickets.value) {
+    errorMessage.value = "Bạn không có quyền xử lý support ticket.";
+    return;
+  }
+
   try {
     await patch(`/admin/support-tickets/${id}`, { status });
   } catch (error) {

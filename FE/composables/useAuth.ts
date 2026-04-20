@@ -5,6 +5,7 @@ interface User {
   fullName?: string;
   avatar?: string;
   role?: string;
+  moderatorPermissions?: string[];
   joinDate?: string;
   totalOrders?: number;
   favoriteCount?: number;
@@ -45,6 +46,37 @@ export const useAuth = () => {
   const isLoggedIn = computed(() => !!token.value);
 
   const isAdmin = computed(() => user.value?.role === "ADMIN");
+  const isModerator = computed(() => user.value?.role === "MODERATOR");
+
+  const normalizedPermissions = computed(() => {
+    if (!Array.isArray(user.value?.moderatorPermissions)) {
+      return [] as string[];
+    }
+
+    return user
+      .value!.moderatorPermissions.map((permission) =>
+        String(permission || "")
+          .trim()
+          .toUpperCase(),
+      )
+      .filter(Boolean);
+  });
+
+  const hasPermission = (permission: string) => {
+    if (isAdmin.value) {
+      return true;
+    }
+
+    if (!isModerator.value) {
+      return false;
+    }
+
+    return normalizedPermissions.value.includes(
+      String(permission || "")
+        .trim()
+        .toUpperCase(),
+    );
+  };
 
   const currentUser = computed(() => user.value || null);
 
@@ -64,6 +96,7 @@ export const useAuth = () => {
       return {
         success: true,
         isAdmin: response.user?.role === "ADMIN",
+        isModerator: response.user?.role === "MODERATOR",
         requiresProfileCompletion: Boolean(response.requiresProfileCompletion),
       };
     } catch (error) {
@@ -129,6 +162,9 @@ export const useAuth = () => {
     currentUser,
     isLoggedIn,
     isAdmin,
+    isModerator,
+    normalizedPermissions,
+    hasPermission,
     login,
     logout,
     fetchUser,

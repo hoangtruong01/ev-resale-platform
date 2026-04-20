@@ -8,7 +8,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
     "/profile",
   ];
   const isProtectedRoute = protectedRoutes.some((route) =>
-    to.path.startsWith(route)
+    to.path.startsWith(route),
   );
 
   // If this is not a protected route, allow access
@@ -31,17 +31,43 @@ export default defineNuxtRouteMiddleware((to, from) => {
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
   });
+  const role = authUser.value?.role;
+  const moderatorPermissions = Array.isArray(
+    authUser.value?.moderatorPermissions,
+  )
+    ? authUser.value.moderatorPermissions
+        .map((permission) =>
+          String(permission || "")
+            .trim()
+            .toUpperCase(),
+        )
+        .filter(Boolean)
+    : [];
 
-  const isMockAdmin = String(token.value || "").startsWith("admin-mock-token-");
-  const isMockUser = String(token.value || "").startsWith("user-mock-token-");
-  const isAdminUser = authUser.value?.role === "ADMIN";
+  const moderatorRoutePermissionMap = {
+    "/admin/post": "MODERATE_POSTS",
+    "/admin/support-tickets": "HANDLE_SUPPORT_TICKETS",
+  };
+
+  const isModeratorRouteAllowed = (path) => {
+    const match = Object.entries(moderatorRoutePermissionMap).find(
+      ([prefix]) => path === prefix || path.startsWith(`${prefix}/`),
+    );
+
+    if (!match) {
+      return false;
+    }
+
+    const [, permission] = match;
+    return moderatorPermissions.includes(permission);
+  };
 
   // If no token and trying to access protected route, redirect to login
   if (!token.value) {
     return navigateTo(`/login?redirect=${to.path}`);
   }
 
-  if (isAdminUser || isMockAdmin) {
+  if (role === "ADMIN") {
     // For admin routes, allow access
     if (to.path.startsWith("/admin")) {
       return;
@@ -53,12 +79,14 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return;
   }
 
-  // Check if this is user mock token (for demo purposes)
-  if (isMockUser) {
-    // For user mock token, allow access to protected routes but block admin routes
+  if (role === "MODERATOR") {
     if (to.path.startsWith("/admin")) {
+      if (isModeratorRouteAllowed(to.path)) {
+        return;
+      }
       return navigateTo("/dashboard");
     }
+
     return;
   }
 

@@ -12,68 +12,14 @@
       <!-- Navigation Menu -->
       <nav class="sidebar-nav">
         <ul class="nav-list">
-          <li class="nav-item">
-            <NuxtLink
-              to="/admin/analytics"
-              class="nav-link"
-              active-class="active"
-            >
-              <Icon name="mdi:chart-line" class="nav-icon" />
-              <span>Thống kê & Báo cáo</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink to="/admin/user" class="nav-link" active-class="active">
-              <Icon name="mdi:account-group" class="nav-icon" />
-              <span>Quản lý người dùng</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink to="/admin/post" class="nav-link" active-class="active">
-              <Icon name="mdi:post" class="nav-icon" />
-              <span>Quản lý tin đăng</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink
-              to="/admin/auctions"
-              class="nav-link"
-              active-class="active"
-            >
-              <Icon name="mdi:gavel" class="nav-icon" />
-              <span>Quản lý đấu giá</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink
-              to="/admin/transactions"
-              class="nav-link"
-              active-class="active"
-            >
-              <Icon name="mdi:currency-usd" class="nav-icon" />
-              <span>Quản lý giao dịch</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink
-              to="/admin/support-tickets"
-              class="nav-link"
-              active-class="active"
-            >
-              <Icon name="mdi:lifebuoy" class="nav-icon" />
-              <span>Support tickets</span>
-            </NuxtLink>
-          </li>
-
-          <li class="nav-item">
-            <NuxtLink to="/admin/fees" class="nav-link" active-class="active">
-              <Icon name="mdi:percent" class="nav-icon" />
-              <span>Phí & Hoa hồng</span>
+          <li
+            v-for="item in visibleNavigationItems"
+            :key="item.to"
+            class="nav-item"
+          >
+            <NuxtLink :to="item.to" class="nav-link" active-class="active">
+              <Icon :name="item.icon" class="nav-icon" />
+              <span>{{ item.label }}</span>
             </NuxtLink>
           </li>
         </ul>
@@ -88,7 +34,11 @@
               currentUser?.fullName || currentUser?.name || "Admin"
             }}</span>
             <span class="user-role">{{
-              isAdmin ? "Quản trị viên" : "Người dùng"
+              isAdmin
+                ? "Quản trị viên"
+                : isModerator
+                  ? "Kiểm duyệt viên"
+                  : "Người dùng"
             }}</span>
             <span class="user-email">{{
               currentUser?.email || "admin@gmail.com"
@@ -161,6 +111,7 @@ const pageTitle = computed(() => {
   const titleMap: Record<string, string> = {
     "/admin/analytics": "Thống kê & Báo cáo",
     "/admin/user": "Quản lý người dùng",
+    "/admin/moderator-permissions": "Cấu hình quyền Moderator",
     "/admin/post": "Quản lý tin đăng",
     "/admin/auctions": "Quản lý đấu giá",
     "/admin/transactions": "Quản lý giao dịch",
@@ -176,7 +127,80 @@ const toggleSidebar = () => {
   document.querySelector(".admin-sidebar")?.classList.toggle("mobile-open");
 };
 
-const { logout, currentUser, isAdmin } = useAuth();
+const { logout, currentUser, isAdmin, isModerator, hasPermission } = useAuth();
+
+const navigationItems = [
+  {
+    to: "/admin/analytics",
+    icon: "mdi:chart-line",
+    label: "Thống kê & Báo cáo",
+    requiresAdmin: true,
+  },
+  {
+    to: "/admin/user",
+    icon: "mdi:account-group",
+    label: "Quản lý người dùng",
+    requiresAdmin: true,
+  },
+  {
+    to: "/admin/moderator-permissions",
+    icon: "mdi:shield-account",
+    label: "Quyền Moderator",
+    requiresAdmin: true,
+  },
+  {
+    to: "/admin/post",
+    icon: "mdi:post",
+    label: "Quản lý tin đăng",
+    requiredPermission: "MODERATE_POSTS",
+  },
+  {
+    to: "/admin/auctions",
+    icon: "mdi:gavel",
+    label: "Quản lý đấu giá",
+    requiredPermission: "MODERATE_POSTS",
+  },
+  {
+    to: "/admin/transactions",
+    icon: "mdi:currency-usd",
+    label: "Quản lý giao dịch",
+    requiresAdmin: true,
+  },
+  {
+    to: "/admin/support-tickets",
+    icon: "mdi:lifebuoy",
+    label: "Support tickets",
+    requiredPermission: "HANDLE_SUPPORT_TICKETS",
+  },
+  {
+    to: "/admin/fees",
+    icon: "mdi:percent",
+    label: "Phí & Hoa hồng",
+    requiresAdmin: true,
+  },
+];
+
+const visibleNavigationItems = computed(() => {
+  return navigationItems.filter((item) => {
+    if (isAdmin.value) {
+      return true;
+    }
+
+    if (!isModerator.value) {
+      return false;
+    }
+
+    if (item.requiresAdmin) {
+      return false;
+    }
+
+    if (item.requiredPermission) {
+      return hasPermission(item.requiredPermission);
+    }
+
+    return true;
+  });
+});
 
 const handleLogout = async () => {
   await logout();
