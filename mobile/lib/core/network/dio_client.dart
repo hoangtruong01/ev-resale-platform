@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
+import '../auth/session_state_provider.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
@@ -17,7 +18,7 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   // Add interceptors
-  dio.interceptors.add(AuthInterceptor());
+  dio.interceptors.add(AuthInterceptor(ref));
   dio.interceptors.add(LogInterceptor(
     requestBody: true,
     responseBody: true,
@@ -29,8 +30,9 @@ final dioProvider = Provider<Dio>((ref) {
 
 class AuthInterceptor extends Interceptor {
   static const _storage = FlutterSecureStorage();
+  final Ref _ref;
 
-  AuthInterceptor();
+  AuthInterceptor(this._ref);
 
   @override
   void onRequest(
@@ -47,7 +49,7 @@ class AuthInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       // Token expired → clear storage
       await _storage.deleteAll();
-      // TODO: navigate to login
+      _ref.read(sessionExpiredTickProvider.notifier).state++;
     }
     handler.next(err);
   }

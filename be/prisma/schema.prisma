@@ -25,6 +25,7 @@ model User {
   isProfileComplete  Boolean   @default(false) // Track if user completed profile
   profileCompletedAt DateTime? // When profile was completed
   role               UserRole  @default(USER)
+  moderatorPermissions String[] @default([])
   address            String?
   dateOfBirth        DateTime? // Date of birth
   gender             Gender? // Gender
@@ -67,6 +68,7 @@ model User {
   contractSignatures          ContractSignature[]     @relation("ContractSignatureUser")
   PaymentMethod               PaymentMethod[]
   supportTickets              SupportTicket[]
+  auditLogs                   AuditLog[]              @relation("AuditLogActor")
 
   @@map("users")
 }
@@ -857,6 +859,24 @@ model Settings {
   type  String @default("string")
 
   @@map("settings")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  actorRole String?
+  action    String
+  targetType String?
+  targetId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  actor User @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 // Chat room represents a private conversation between a buyer and a seller

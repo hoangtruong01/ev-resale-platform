@@ -29,6 +29,9 @@ import {
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AuthService } from './auth.service';
 import { OAuth2Client } from 'google-auth-library';
+import { Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
+import { UserRole } from '@prisma/client';
 import {
   LoginDto,
   RegisterDto,
@@ -52,6 +55,7 @@ class AuthResponseDto {
     avatar: string;
     isProfileComplete: boolean;
     role: string;
+    moderatorPermissions?: string[];
   };
   access_token: string;
   requiresProfileCompletion: boolean;
@@ -287,7 +291,8 @@ export class AuthController {
     summary: 'Delete user',
     description: 'Delete user by ID',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiParam({ name: 'id', description: 'User ID' })
   async deleteUser(@Param('id') id: string) {
@@ -299,7 +304,8 @@ export class AuthController {
     summary: 'Get all users',
     description: 'Get a list of all users',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiResponse({
     status: 200,
@@ -315,7 +321,8 @@ export class AuthController {
     summary: 'Update user',
     description: 'Update user information',
   })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiBody({ type: UpdateAuthDto })

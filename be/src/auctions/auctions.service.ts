@@ -70,7 +70,15 @@ export class AuctionsService {
     try {
       approvalRecipients = await this.prisma.user.findMany({
         where: {
-          role: { in: [UserRole.ADMIN, UserRole.MODERATOR] },
+          OR: [
+            { role: UserRole.ADMIN },
+            {
+              role: UserRole.MODERATOR,
+              moderatorPermissions: {
+                has: 'MODERATE_POSTS',
+              },
+            },
+          ],
           isActive: true,
         },
         select: { id: true },

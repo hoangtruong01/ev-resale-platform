@@ -12,6 +12,10 @@ import {
   ReviewKycDto,
   CreateReviewDto,
 } from './dto';
+import {
+  normalizePermissions,
+  type ModeratorPermission,
+} from '../auth/permissions';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 
@@ -28,10 +32,24 @@ export class UsersService {
     return client.favorite;
   }
 
-  async findAll(query?: { page?: number; limit?: number; search?: string }) {
-    const { page = 1, limit = 10, search } = query || {};
+  async findAll(query?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    isActive?: boolean;
+  }) {
+    const { page = 1, limit = 10, search, role, isActive } = query || {};
 
-    const where: Prisma.UserWhereInput = { isActive: true };
+    const where: Prisma.UserWhereInput = {};
+
+    if (typeof isActive === 'boolean') {
+      where.isActive = isActive;
+    }
+
+    if (role) {
+      where.role = role as UserRole;
+    }
 
     if (search) {
       where.OR = [
@@ -350,9 +368,7 @@ export class UsersService {
 
     // Must upload at least front image
     if (!files.idFrontImage) {
-      throw new BadRequestException(
-        'Ảnh mặt trước CMND/CCCD là bắt buộc.',
-      );
+      throw new BadRequestException('Ảnh mặt trước CMND/CCCD là bắt buộc.');
     }
 
     const profileData: Prisma.ProfileUpdateInput = {
@@ -385,7 +401,8 @@ export class UsersService {
     this.mockOcrAndAutoApprove(userId, dto.fullNameOnId);
 
     return {
-      message: 'Hồ sơ xác thực danh tính đang được AI xử lý tự động. Vui lòng kiểm tra lại sau vài giây.',
+      message:
+        'Hồ sơ xác thực danh tính đang được AI xử lý tự động. Vui lòng kiểm tra lại sau vài giây.',
       kycStatus: 'PENDING',
     };
   }
@@ -398,17 +415,19 @@ export class UsersService {
     setTimeout(async () => {
       try {
         console.log(`[Mock OCR] Processing KYC for user ${userId}...`);
-        
+
         // Simulate logic: if fullName exists, it "matches" the OCR
         // In this mock, we always approve for demonstration
         await this.prisma.profile.update({
           where: { userId },
-          data: { 
+          data: {
             kycStatus: KycStatus.APPROVED,
           } as any,
         });
 
-        console.log(`[Mock OCR] KYC for user ${userId} APPROVED automatically.`);
+        console.log(
+          `[Mock OCR] KYC for user ${userId} APPROVED automatically.`,
+        );
       } catch (error) {
         console.error(`[Mock OCR] Error auto-approving KYC:`, error);
       }
@@ -448,7 +467,7 @@ export class UsersService {
     targetUserId: string,
     dto: ReviewKycDto,
   ) {
-    if (adminRole !== 'ADMIN' && adminRole !== 'MODERATOR') {
+    if (adminRole !== 'ADMIN') {
       throw new ForbiddenException('Chỉ quản trị viên mới có thể duyệt KYC.');
     }
 
@@ -457,13 +476,13 @@ export class UsersService {
     });
 
     if (!profile) {
-      throw new NotFoundException('Không tìm thấy hồ sơ KYC của người dùng này.');
+      throw new NotFoundException(
+        'Không tìm thấy hồ sơ KYC của người dùng này.',
+      );
     }
 
     if ((profile as any).kycStatus !== 'PENDING') {
-      throw new BadRequestException(
-        'Hồ sơ KYC không ở trạng thái chờ duyệt.',
-      );
+      throw new BadRequestException('Hồ sơ KYC không ở trạng thái chờ duyệt.');
     }
 
     await this.prisma.profile.update({
@@ -482,8 +501,10 @@ export class UsersService {
   }
 
   async listPendingKyc(adminRole: UserRole) {
-    if (adminRole !== UserRole.ADMIN && adminRole !== UserRole.MODERATOR) {
-      throw new ForbiddenException('Chỉ quản trị viên mới có thể xem danh sách KYC.');
+    if (adminRole !== UserRole.ADMIN) {
+      throw new ForbiddenException(
+        'Chỉ quản trị viên mới có thể xem danh sách KYC.',
+      );
     }
 
     const profiles = await this.prisma.profile.findMany({
@@ -772,7 +793,61 @@ export class UsersService {
   }
 
   async update(id: string, userData: Record<string, unknown>) {
-    return this.prisma.user.update({ where: { id }, data: userData as any });
+    const updatePayload = { ...userData } as Record<string, unknown>;
+    if (updatePayload.role && updatePayload.role !== UserRole.MODERATOR) {
+      updatePayload.moderatorPermissions = [];
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: updatePayload as any,
+    });
+  }
+
+  async getModeratorPermissionProfile(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        moderatorPermissions: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Không tìm thấy người dùng.');
+    }
+
+    return {
+      ...user,
+      moderatorPermissions: normalizePermissions(user.moderatorPermissions),
+    };
+  }
+
+  async updateModeratorPermissions(
+    id: string,
+    permissions: ModeratorPermission[],
+  ) {
+    const target = await this.getModeratorPermissionProfile(id);
+    if (target.role !== UserRole.MODERATOR) {
+      throw new ForbiddenException('Chỉ có thể cập nhật quyền cho moderator.');
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        moderatorPermissions: normalizePermissions(permissions),
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        moderatorPermissions: true,
+      },
+    });
   }
 
   async remove(id: string) {

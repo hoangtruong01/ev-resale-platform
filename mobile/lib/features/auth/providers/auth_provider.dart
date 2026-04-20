@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../models/user_model.dart';
 import '../../../services/auth_service.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/auth/session_state_provider.dart';
 
 // Auth state
 class AuthState {
@@ -63,6 +64,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final authService = ref.read(authServiceProvider);
       final response = await authService.login(email: email, password: password);
       await _saveAuth(response);
+      ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));
     } catch (e) {
       state = AsyncValue.data(AuthState(error: parseApiError(e)));
@@ -85,6 +87,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         phone: phone,
       );
       await _saveAuth(response);
+      ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));
     } catch (e) {
       state = AsyncValue.data(AuthState(error: parseApiError(e)));
@@ -97,6 +100,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final authService = ref.read(authServiceProvider);
       final response = await authService.googleLogin(idToken);
       await _saveAuth(response);
+      ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));
     } catch (e) {
       state = AsyncValue.data(AuthState(error: parseApiError(e)));
@@ -122,6 +126,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final authService = ref.read(authServiceProvider);
       final response = await authService.googleLogin(idToken);
       await _saveAuth(response);
+      ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));
     } catch (e) {
       state = AsyncValue.data(AuthState(error: parseApiError(e)));
@@ -130,6 +135,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+    ref.read(sessionExpiredTickProvider.notifier).state = 0;
     state = const AsyncValue.data(AuthState());
   }
 

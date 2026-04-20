@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../auth/session_state_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
@@ -29,6 +30,7 @@ import '../../features/batteries/screens/battery_monitor_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
+  final sessionExpiredTick = ref.watch(sessionExpiredTickProvider);
 
   return GoRouter(
     initialLocation: '/splash',
@@ -37,6 +39,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
           state.matchedLocation == '/splash' ||
           state.matchedLocation == '/welcome';
+
+      if (sessionExpiredTick > 0 && !isPublicRoute) {
+        return '/auth/login';
+      }
 
       if (!isLoggedIn && !isPublicRoute) {
         return '/welcome';

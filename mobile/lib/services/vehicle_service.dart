@@ -25,11 +25,15 @@ class VehicleService {
     String? sortBy,
     String? sortOrder,
   }) async {
+    final effectiveBrand = (brand != null && brand.isNotEmpty)
+        ? brand
+        : (search != null && search.isNotEmpty ? search : null);
+
     final response = await _dio.get('/vehicles', queryParameters: {
       'page': page,
       'limit': limit,
       if (search != null && search.isNotEmpty) 'search': search,
-      if (brand != null) 'brand': brand,
+      if (effectiveBrand != null) 'brand': effectiveBrand,
       if (minPrice != null) 'minPrice': minPrice,
       if (maxPrice != null) 'maxPrice': maxPrice,
       if (minYear != null) 'minYear': minYear,

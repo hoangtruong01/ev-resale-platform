@@ -8,6 +8,8 @@ import { VehiclesModule } from '../vehicles/vehicles.module';
 import { AccessoriesModule } from '../accessories/accessories.module';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { SupportTicketsModule } from '../support-tickets/support-tickets.module';
+import { SettingsModule } from '../settings/settings.module';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { SupportTicketsModule } from '../support-tickets/support-tickets.module'
     AccessoriesModule,
     TransactionsModule,
     SupportTicketsModule,
+    SettingsModule,
+    AuditLogsModule,
   ],
   controllers: [AdminController],
   providers: [AdminAnalyticsService],

@@ -33,7 +33,15 @@ export class SupportTicketsService {
 
     const admins = await this.prisma.user.findMany({
       where: {
-        role: { in: [UserRole.ADMIN, UserRole.MODERATOR] },
+        OR: [
+          { role: UserRole.ADMIN },
+          {
+            role: UserRole.MODERATOR,
+            moderatorPermissions: {
+              has: 'HANDLE_SUPPORT_TICKETS',
+            },
+          },
+        ],
         isActive: true,
       },
       select: { id: true, email: true, phone: true, fullName: true },

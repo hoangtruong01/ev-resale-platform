@@ -134,7 +134,7 @@ class HomeScreen extends ConsumerWidget {
     final vehicleTotal =
         statsData?.vehiclesListed ??
         vehicles.maybeWhen(data: (data) => data.total, orElse: () => null);
-    final displayName = user?.displayName.split(' ').last ?? 'ban';
+    final displayName = user?.displayName.split(' ').last ?? 'bạn';
 
     return Scaffold(
       body: RefreshIndicator(

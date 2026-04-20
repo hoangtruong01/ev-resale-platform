@@ -30,7 +30,8 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { TransactionStatus, UserRole } from '@prisma/client';
-import { Roles } from 'auth/roles.decorator';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import type { Request } from 'express';
 
 @ApiTags('transactions')
@@ -123,7 +124,7 @@ export class TransactionsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a transaction' })
@@ -194,7 +195,8 @@ export class TransactionsController {
   }
 
   @Patch(':id/status')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update transaction status' })
   @ApiParam({ name: 'id', description: 'Transaction ID' })

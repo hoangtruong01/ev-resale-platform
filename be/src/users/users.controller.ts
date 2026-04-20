@@ -31,7 +31,9 @@ import { UpdateProfileDto, CreateReviewDto } from './dto';
 import { GetAllUsersDto } from './dto/get-all-users.dto';
 import { SubmitKycDto, ReviewKycDto } from './dto/submit-kyc.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { AdminGuard } from '../admin/admin.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { UserRole } from '@prisma/client';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -227,7 +229,8 @@ export class UsersController {
    * Admin: list pending KYC requests
    */
   @Get('kyc/pending')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: '[Admin] List pending KYC requests' })
   async listPendingKyc(@Req() req: AuthenticatedRequest) {
@@ -239,7 +242,8 @@ export class UsersController {
    * Admin: approve or reject a user's KYC
    */
   @Post('kyc/:userId/review')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: '[Admin] Approve or reject KYC for a user' })
   @ApiParam({ name: 'userId', description: 'Target user ID' })

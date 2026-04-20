@@ -5,10 +5,24 @@ import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/locale/locale_provider.dart';
-// import '../../../core/utils/app_utils.dart';
+import '../../../core/utils/app_utils.dart';
+import '../../../services/dashboard_service.dart';
+import '../../../models/user_model.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';
 import '../../admin/screens/kyc_management_screen.dart';
+
+final dashboardOverviewProvider = FutureProvider<DashboardOverviewData>((ref) {
+  return ref.read(dashboardServiceProvider).getOverview();
+});
+
+final dashboardOrdersProvider = FutureProvider<List<DashboardOrderData>>((ref) {
+  return ref.read(dashboardServiceProvider).getOrders();
+});
+
+final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((ref) {
+  return ref.read(dashboardServiceProvider).getFavorites();
+});
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -17,6 +31,18 @@ class ProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
+    final overviewAsync = ref.watch(dashboardOverviewProvider);
+    final ordersAsync = ref.watch(dashboardOrdersProvider);
+    final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+
+    final overview = overviewAsync.maybeWhen(
+      data: (data) => data,
+      orElse: () => const DashboardOverviewData(
+        totalOrders: 0,
+        favoriteCount: 0,
+        activeListings: 0,
+      ),
+    );
 
     return Scaffold(
       body: CustomScrollView(
@@ -155,18 +181,27 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Expanded(
-                          child: _StatItem(label: 'Đang bán', value: '0'),
+                          child: _StatItem(
+                            label: 'Đang bán',
+                            value: '${overview.activeListings}',
+                          ),
                         ),
-                        _VertDivider(),
+                        const _VertDivider(),
                         Expanded(
-                          child: _StatItem(label: 'Đã bán', value: '0'),
+                          child: _StatItem(
+                            label: 'Đã mua',
+                            value: '${overview.totalOrders}',
+                          ),
                         ),
-                        _VertDivider(),
+                        const _VertDivider(),
                         Expanded(
-                          child: _StatItem(label: 'Đã mua', value: '0'),
+                          child: _StatItem(
+                            label: 'Đã lưu',
+                            value: '${overview.favoriteCount}',
+                          ),
                         ),
                       ],
                     ),
@@ -181,7 +216,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.person_outline,
                         label: 'Thông tin cá nhân',
-                        onTap: () {},
+                        onTap: () => _showProfileInfoDialog(context, user),
                       ),
                       _MenuItem(
                         icon: Icons.verified_user_outlined,
@@ -246,7 +281,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.lock_outline,
                         label: 'Đổi mật khẩu',
-                        onTap: () {},
+                        onTap: () => context.push('/auth/forgot-password'),
                       ),
                       _MenuItem(
                         icon: Icons.notifications_outlined,
@@ -256,7 +291,11 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.credit_card_outlined,
                         label: 'Phương thức thanh toán',
-                        onTap: () {},
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tính năng đang được cập nhật.'),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.language,
@@ -274,22 +313,36 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.list_alt_outlined,
                         label: 'Tin đăng của tôi',
-                        onTap: () {},
+                        onTap: () => _showMyListingActions(context),
                       ),
                       _MenuItem(
                         icon: Icons.receipt_long_outlined,
                         label: 'Lịch sử giao dịch',
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DashboardOrdersScreen(
+                              ordersAsync: ordersAsync,
+                            ),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.favorite_outline,
                         label: 'Đã lưu',
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DashboardFavoritesScreen(
+                              favoritesAsync: favoritesAsync,
+                            ),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.gavel_outlined,
                         label: 'Lịch sử đấu giá',
-                        onTap: () {},
+                        onTap: () => context.go('/auctions'),
                       ),
                     ],
                   ),
@@ -302,17 +355,26 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.help_outline,
                         label: 'Trung tâm hỗ trợ',
-                        onTap: () {},
+                        onTap: () => context.push('/chat'),
                       ),
                       _MenuItem(
                         icon: Icons.policy_outlined,
                         label: 'Điều khoản & Chính sách',
-                        onTap: () {},
+                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Vui lòng xem điều khoản trên website.'),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.info_outline,
                         label: 'Về ứng dụng',
-                        onTap: () {},
+                        onTap: () => showAboutDialog(
+                          context: context,
+                          applicationName: 'EVN Pin Điện',
+                          applicationVersion: '1.0.0',
+                          applicationLegalese: 'Nền tảng mua bán pin xe điện cũ EVN',
+                        ),
                       ),
                     ],
                   ),
@@ -337,7 +399,7 @@ class ProfileScreen extends ConsumerWidget {
                         _MenuItem(
                           icon: Icons.analytics_outlined,
                           label: 'Thống kê hệ thống',
-                          onTap: () {},
+                          onTap: () => context.go('/'),
                         ),
                       ],
                     ),
@@ -410,6 +472,173 @@ class ProfileScreen extends ConsumerWidget {
             child: const Text('Đăng xuất'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMyListingActions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(
+              title: Text(
+                'Quản lý tin đăng',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.battery_charging_full_rounded),
+              title: const Text('Đăng bán pin điện'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/sell/battery');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.electric_car_rounded),
+              title: const Text('Đăng bán xe điện'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/sell/vehicle');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.extension_outlined),
+              title: const Text('Đăng bán phụ kiện'),
+              onTap: () {
+                Navigator.pop(ctx);
+                context.push('/sell/accessory');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showProfileInfoDialog(BuildContext context, UserModel? user) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Thông tin cá nhân'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Họ tên: ${user?.displayName ?? 'Chưa cập nhật'}'),
+            const SizedBox(height: 8),
+            Text('Email: ${user?.email ?? 'Chưa cập nhật'}'),
+            const SizedBox(height: 8),
+            Text('Số điện thoại: ${user?.phone ?? 'Chưa cập nhật'}'),
+            const SizedBox(height: 8),
+            Text('Địa chỉ: ${user?.address ?? 'Chưa cập nhật'}'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DashboardOrdersScreen extends StatelessWidget {
+  final AsyncValue<List<DashboardOrderData>> ordersAsync;
+  const DashboardOrdersScreen({super.key, required this.ordersAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Lịch sử giao dịch')),
+      body: ordersAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+        ),
+        error: (e, _) => Center(child: Text('Lỗi: $e')),
+        data: (orders) {
+          if (orders.isEmpty) {
+            return const Center(
+              child: Text(
+                'Bạn chưa có giao dịch nào',
+                style: TextStyle(color: AppTheme.grey600),
+              ),
+            );
+          }
+          return ListView.separated(
+            itemCount: orders.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final order = orders[i];
+              return ListTile(
+                title: Text(order.itemName),
+                subtitle: Text('${order.status} • ${AppUtils.timeAgo(order.createdAt)}'),
+                trailing: Text(
+                  AppUtils.formatCurrency(order.amount),
+                  style: const TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DashboardFavoritesScreen extends StatelessWidget {
+  final AsyncValue<List<DashboardFavoriteData>> favoritesAsync;
+  const DashboardFavoritesScreen({super.key, required this.favoritesAsync});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Sản phẩm đã lưu')),
+      body: favoritesAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+        ),
+        error: (e, _) => Center(child: Text('Lỗi: $e')),
+        data: (favorites) {
+          if (favorites.isEmpty) {
+            return const Center(
+              child: Text(
+                'Bạn chưa lưu sản phẩm nào',
+                style: TextStyle(color: AppTheme.grey600),
+              ),
+            );
+          }
+          return ListView.separated(
+            itemCount: favorites.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final favorite = favorites[i];
+              return ListTile(
+                title: Text(favorite.title),
+                subtitle: const Text('Sản phẩm yêu thích'),
+                trailing: Text(
+                  AppUtils.formatCurrency(favorite.price),
+                  style: const TextStyle(
+                    color: AppTheme.primaryGreen,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

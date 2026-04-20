@@ -1,25 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/network/dio_client.dart';
+import '../../../core/utils/app_utils.dart';
+import '../../../features/auth/providers/auth_provider.dart';
+import '../../../models/chat_model.dart';
 
-// Stub - connect to chat service
-final chatRoomsProvider = FutureProvider<List<dynamic>>((ref) async {
-  await Future.delayed(const Duration(milliseconds: 500));
-  return [];
+final chatRoomsProvider = FutureProvider<List<ChatRoomModel>>((ref) async {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) {
+    return const [];
+  }
+
+  final dio = ref.watch(dioProvider);
+  final response = await dio.get('/chat/rooms', queryParameters: {
+    'userId': user.id,
+  });
+
+  final payload = response.data;
+  if (payload is! List) {
+    return const [];
+  }
+
+  return payload
+      .whereType<Map>()
+      .map((item) => ChatRoomModel.fromJson(Map<String, dynamic>.from(item)))
+      .toList();
 });
 
-class ChatListScreen extends ConsumerWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      ref.invalidate(chatRoomsProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final chatRoomsAsync = ref.watch(chatRoomsProvider);
+    final user = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tin nhắn'),
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.invalidate(chatRoomsProvider),
+          ),
+        ],
       ),
       body: chatRoomsAsync.when(
         loading: () => const Center(
@@ -64,10 +112,82 @@ class ChatListScreen extends ConsumerWidget {
               ),
             );
           }
-          return ListView.separated(
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(chatRoomsProvider);
+            },
+            child: ListView.separated(
             itemCount: rooms.length,
             separatorBuilder: (_, __) => const Divider(height: 1, indent: 76),
-            itemBuilder: (_, i) => const SizedBox.shrink(),
+            itemBuilder: (_, i) {
+              final room = rooms[i];
+              final currentUserId = user?.id ?? '';
+              final otherUser = room.getOtherUser(currentUserId);
+              final lastMessage = room.lastMessage;
+
+              return ListTile(
+                onTap: () => context.push('/chat/${room.id}'),
+                leading: CircleAvatar(
+                  backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.15),
+                  child: otherUser?.avatar != null
+                      ? ClipOval(
+                          child: Image.network(
+                            otherUser!.avatar!,
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.person,
+                              color: AppTheme.primaryGreen,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.person, color: AppTheme.primaryGreen),
+                ),
+                title: Text(
+                  otherUser?.displayName ?? 'Người dùng',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  lastMessage?.content.isNotEmpty == true
+                      ? lastMessage!.content
+                      : 'Chưa có tin nhắn',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppTheme.grey600, fontSize: 13),
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      lastMessage != null
+                          ? AppUtils.timeAgo(lastMessage.createdAt)
+                          : AppUtils.timeAgo(room.updatedAt),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.grey500),
+                    ),
+                    const SizedBox(height: 4),
+                    if (room.unreadCount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.error,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${room.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
           );
         },
       ),

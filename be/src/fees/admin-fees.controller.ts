@@ -24,7 +24,9 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import { UserRole } from '../auth/dto/auth.dto';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 const FEE_CHANGE_TYPE_VALUES = [
   'TRANSACTION_FEE',
@@ -45,10 +47,13 @@ interface AdminRequest extends Request {
 @ApiTags('Admin Fees')
 @ApiBearerAuth('JWT-auth')
 @Controller('admin/fees')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminFeesController {
-  constructor(private readonly feesService: FeesService) {}
+  constructor(
+    private readonly feesService: FeesService,
+    private readonly auditLogsService: AuditLogsService,
+  ) {}
 
   @Get('transaction')
   @ApiOperation({ summary: 'Get transaction fee configuration' })
@@ -72,7 +77,20 @@ export class AdminFeesController {
       throw new UnauthorizedException('Missing authenticated admin context');
     }
 
-    return this.feesService.updateTransactionFeeSetting(adminId, body);
+    const result = await this.feesService.updateTransactionFeeSetting(
+      adminId,
+      body,
+    );
+
+    await this.auditLogsService.log({
+      actorId: adminId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_FEES',
+      targetType: 'TRANSACTION_FEE',
+      targetId: result.setting.id,
+    });
+
+    return result;
   }
 
   @Get('listing')
@@ -93,7 +111,19 @@ export class AdminFeesController {
       throw new UnauthorizedException('Missing authenticated admin context');
     }
 
-    return this.feesService.updateListingFeeTiers(adminId, body);
+    const result = await this.feesService.updateListingFeeTiers(adminId, body);
+
+    await this.auditLogsService.log({
+      actorId: adminId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_FEES',
+      targetType: 'LISTING_FEE',
+      metadata: {
+        tierCount: body.tiers.length,
+      },
+    });
+
+    return result;
   }
 
   @Get('commissions')
@@ -114,7 +144,19 @@ export class AdminFeesController {
       throw new UnauthorizedException('Missing authenticated admin context');
     }
 
-    return this.feesService.updateCommissionTiers(adminId, body);
+    const result = await this.feesService.updateCommissionTiers(adminId, body);
+
+    await this.auditLogsService.log({
+      actorId: adminId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_FEES',
+      targetType: 'COMMISSION',
+      metadata: {
+        tierCount: body.tiers.length,
+      },
+    });
+
+    return result;
   }
 
   @Get('history')

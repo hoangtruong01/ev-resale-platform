@@ -1,5 +1,6 @@
 import {
   Controller,
+  ForbiddenException,
   Get,
   Put,
   Post,
@@ -33,26 +34,38 @@ import { TransactionsService } from '../transactions/transactions.service';
 import { SupportTicketsService } from '../support-tickets/support-tickets.service';
 import { ResolveTransactionDisputeDto } from '../transactions/dto';
 import { SupportTicketStatus } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import {
   AdminAnalyticsService,
   AdminAnalyticsPeriod,
   AdminAnalyticsResponse,
 } from './admin-analytics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { AdminGuard } from './admin.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { Permissions } from '../auth/permissions.decorator';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import {
+  MODERATOR_PERMISSIONS,
+  normalizePermissions,
+} from '../auth/permissions';
 import { UpdateSupportTicketStatusDto } from '../support-tickets/dto';
+import { SettingsService } from '../settings/settings.service';
+import { AuditLogsService } from '../audit-logs/audit-logs.service';
 
 interface AdminRequest extends Request {
   user?: {
     sub: string;
     email: string;
     role: string;
+    moderatorPermissions?: string[];
   };
 }
 
 @ApiTags('Admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(UserRole.ADMIN)
 @ApiBearerAuth('JWT-auth')
 export class AdminController {
   constructor(
@@ -64,6 +77,8 @@ export class AdminController {
     private readonly transactionsService: TransactionsService,
     private readonly analyticsService: AdminAnalyticsService,
     private readonly supportTicketsService: SupportTicketsService,
+    private readonly settingsService: SettingsService,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   // Dashboard Statistics
@@ -87,7 +102,8 @@ export class AdminController {
   }
 
   @Get('support-tickets')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('HANDLE_SUPPORT_TICKETS')
   @ApiOperation({
     summary: 'Get support tickets (Admin)',
     description: 'Get paginated list of support tickets with filters',
@@ -117,7 +133,8 @@ export class AdminController {
   }
 
   @Patch('support-tickets/:id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('HANDLE_SUPPORT_TICKETS')
   @ApiOperation({
     summary: 'Update support ticket status (Admin)',
     description: 'Update the status of a support ticket',
@@ -127,8 +144,89 @@ export class AdminController {
   async updateSupportTicketStatus(
     @Param('id') id: string,
     @Body(ValidationPipe) payload: UpdateSupportTicketStatusDto,
+    @Req() req: AdminRequest,
   ) {
-    return this.supportTicketsService.updateStatus(id, payload.status);
+    const actorId = req.user?.sub;
+    const result = await this.supportTicketsService.updateStatus(
+      id,
+      payload.status,
+    );
+
+    if (actorId) {
+      await this.auditLogsService.log({
+        actorId,
+        actorRole: req.user?.role,
+        action: 'HANDLE_SUPPORT_TICKET',
+        targetType: 'SUPPORT_TICKET',
+        targetId: id,
+        metadata: {
+          status: payload.status,
+        },
+      });
+    }
+
+    return result;
+  }
+
+  @Get('moderators/:id/permissions')
+  @ApiOperation({ summary: 'Get moderator permissions' })
+  async getModeratorPermissions(@Param('id') id: string) {
+    const user = await this.usersService.getModeratorPermissionProfile(id);
+    if (user.role !== UserRole.MODERATOR) {
+      throw new ForbiddenException('Người dùng không phải moderator.');
+    }
+
+    return {
+      moderator: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+      },
+      availablePermissions: MODERATOR_PERMISSIONS,
+      permissions: user.moderatorPermissions,
+    };
+  }
+
+  @Put('moderators/:id/permissions')
+  @ApiOperation({ summary: 'Update moderator permissions' })
+  async updateModeratorPermissions(
+    @Param('id') id: string,
+    @Body() body: { permissions?: string[] },
+    @Req() req: AdminRequest,
+  ) {
+    const actorId = req.user?.sub;
+    if (!actorId) {
+      throw new UnauthorizedException('Thiếu thông tin quản trị viên');
+    }
+
+    const normalized = normalizePermissions(body.permissions);
+    const updated = await this.usersService.updateModeratorPermissions(
+      id,
+      normalized,
+    );
+
+    await this.auditLogsService.log({
+      actorId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_MODERATOR_PERMISSIONS',
+      targetType: 'USER',
+      targetId: id,
+      metadata: {
+        permissions: normalized,
+      },
+    });
+
+    return {
+      moderator: {
+        id: updated.id,
+        email: updated.email,
+        fullName: updated.fullName,
+        role: updated.role,
+      },
+      availablePermissions: MODERATOR_PERMISSIONS,
+      permissions: updated.moderatorPermissions,
+    };
   }
 
   @Get('analytics')
@@ -188,7 +286,13 @@ export class AdminController {
     @Query('role') role?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    const result = await this.usersService.findAll({ page, limit, search });
+    const result = await this.usersService.findAll({
+      page,
+      limit,
+      search,
+      role,
+      isActive,
+    });
 
     // Transform data for frontend
     const users = result.data.map((user) => ({
@@ -309,8 +413,29 @@ export class AdminController {
   async updateUserRole(
     @Param('id') id: string,
     @Body() body: { role: 'USER' | 'ADMIN' | 'MODERATOR' },
+    @Req() req: AdminRequest,
   ) {
-    return this.usersService.update(id, { role: body.role });
+    const actorId = req.user?.sub;
+    if (!actorId) {
+      throw new UnauthorizedException('Thiếu thông tin quản trị viên');
+    }
+
+    const before = await this.usersService.getModeratorPermissionProfile(id);
+    const updated = await this.usersService.update(id, { role: body.role });
+
+    await this.auditLogsService.log({
+      actorId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_USER_ROLE',
+      targetType: 'USER',
+      targetId: id,
+      metadata: {
+        fromRole: before.role,
+        toRole: body.role,
+      },
+    });
+
+    return updated;
   }
 
   @Delete('users/:id')
@@ -325,6 +450,8 @@ export class AdminController {
 
   // Battery Listing Management
   @Get('batteries')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Get all battery listings (Admin)',
     description: 'Get all battery listings with admin filters',
@@ -342,6 +469,8 @@ export class AdminController {
   }
 
   @Put('batteries/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Approve battery listing',
     description: 'Approve a battery listing for public display',
@@ -356,6 +485,8 @@ export class AdminController {
   }
 
   @Put('batteries/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Reject battery listing',
     description: 'Reject a battery listing and hide from public',
@@ -378,6 +509,8 @@ export class AdminController {
   }
 
   @Put('batteries/:id/spam')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MARK_SPAM')
   @ApiOperation({
     summary: 'Mark battery listing as spam',
     description: 'Flag a battery listing as spam and hide it',
@@ -391,18 +524,24 @@ export class AdminController {
   }
 
   @Put('batteries/:id/verify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Verify battery listing' })
   async verifyBattery(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.batteriesService.verify(id, req.user?.sub);
   }
 
   @Put('batteries/:id/unverify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Remove verification from battery listing' })
   async unverifyBattery(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.batteriesService.unverify(id, req.user?.sub);
   }
 
   @Get('accessories')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Get all accessory listings (Admin)',
     description: 'Get all accessory listings with admin filters',
@@ -417,6 +556,8 @@ export class AdminController {
   }
 
   @Put('accessories/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Approve accessory listing',
     description: 'Approve an accessory listing for public display',
@@ -430,6 +571,8 @@ export class AdminController {
   }
 
   @Put('accessories/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Reject accessory listing',
     description: 'Reject an accessory listing and hide from public',
@@ -443,6 +586,8 @@ export class AdminController {
   }
 
   @Put('accessories/:id/spam')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MARK_SPAM')
   @ApiOperation({
     summary: 'Mark accessory listing as spam',
     description: 'Flag an accessory listing as spam and hide it',
@@ -456,18 +601,24 @@ export class AdminController {
   }
 
   @Put('accessories/:id/verify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Verify accessory listing' })
   async verifyAccessory(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.accessoriesService.verify(id, req.user?.sub);
   }
 
   @Put('accessories/:id/unverify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Remove verification from accessory listing' })
   async unverifyAccessory(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.accessoriesService.unverify(id, req.user?.sub);
   }
 
   @Get('vehicles')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Get all vehicle listings (Admin)',
     description: 'Get all vehicle listings with admin filters',
@@ -502,6 +653,8 @@ export class AdminController {
   }
 
   @Get('listings')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Get combined listings',
     description:
@@ -636,6 +789,8 @@ export class AdminController {
   }
 
   @Put('vehicles/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Approve vehicle listing',
     description: 'Approve a vehicle listing for public display',
@@ -649,6 +804,8 @@ export class AdminController {
   }
 
   @Put('vehicles/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Reject vehicle listing',
     description: 'Reject a vehicle listing and hide from public',
@@ -670,6 +827,8 @@ export class AdminController {
   }
 
   @Put('vehicles/:id/spam')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MARK_SPAM')
   @ApiOperation({ summary: 'Mark vehicle listing as spam' })
   async markVehicleSpam(
     @Param('id') id: string,
@@ -680,12 +839,16 @@ export class AdminController {
   }
 
   @Put('vehicles/:id/verify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Verify vehicle listing' })
   async verifyVehicle(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.vehiclesService.verify(id, req.user?.sub);
   }
 
   @Put('vehicles/:id/unverify')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({ summary: 'Remove verification from vehicle listing' })
   async unverifyVehicle(@Param('id') id: string, @Req() req: AdminRequest) {
     return this.vehiclesService.unverify(id, req.user?.sub);
@@ -693,6 +856,8 @@ export class AdminController {
 
   // Auction Management
   @Get('auctions')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Get all auctions (Admin)',
     description: 'Get all auctions with admin filters',
@@ -709,6 +874,8 @@ export class AdminController {
   }
 
   @Put('auctions/:id/approve')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Approve auction',
     description: 'Approve an auction for activation',
@@ -722,6 +889,8 @@ export class AdminController {
   }
 
   @Put('auctions/:id/reject')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Reject auction',
     description: 'Reject an auction and release associated items',
@@ -795,13 +964,7 @@ export class AdminController {
     description: 'Get all platform configuration settings',
   })
   async getSettings() {
-    // This would fetch from Settings model
-    return {
-      commissionRate: 5,
-      maxAuctionDuration: 30,
-      minBidIncrement: 100000,
-      autoEndAuctions: true,
-    };
+    return this.settingsService.findAll();
   }
 
   @Put('settings')
@@ -820,9 +983,64 @@ export class AdminController {
       },
     },
   })
-  async updateSettings(@Body() settings: any) {
-    // This would update Settings model
-    return { message: 'Settings updated', settings };
+  async updateSettings(
+    @Body() settings: Record<string, unknown>,
+    @Req() req: AdminRequest,
+  ) {
+    const actorId = req.user?.sub;
+    if (!actorId) {
+      throw new UnauthorizedException('Thiếu thông tin quản trị viên');
+    }
+
+    const entries = Object.entries(settings ?? {});
+    const inferSettingType = (
+      value: unknown,
+    ): 'string' | 'number' | 'boolean' | 'json' => {
+      if (typeof value === 'string') {
+        return 'string';
+      }
+      if (typeof value === 'number') {
+        return 'number';
+      }
+      if (typeof value === 'boolean') {
+        return 'boolean';
+      }
+      return 'json';
+    };
+
+    const updated = await Promise.all(
+      entries.map(async ([key, value]) => {
+        const serializedValue =
+          typeof value === 'string' ? value : JSON.stringify(value);
+        try {
+          return await this.settingsService.update(key, {
+            value: serializedValue,
+          });
+        } catch {
+          return this.settingsService.create({
+            key,
+            value: serializedValue,
+            type: inferSettingType(value),
+          });
+        }
+      }),
+    );
+
+    await this.auditLogsService.log({
+      actorId,
+      actorRole: req.user?.role,
+      action: 'UPDATE_SYSTEM_SETTINGS',
+      targetType: 'SETTINGS',
+      metadata: {
+        keys: entries.map(([key]) => key),
+      },
+    });
+
+    return {
+      message: 'Settings updated',
+      count: updated.length,
+      settings: updated,
+    };
   }
 
   @Get('transactions')
@@ -897,12 +1115,25 @@ export class AdminController {
       throw new UnauthorizedException('Thiếu thông tin quản trị viên');
     }
 
-    return this.transactionsService.resolveTransactionDispute(
+    const result = await this.transactionsService.resolveTransactionDispute(
       id,
       body.resolution,
       adminId,
       body.notes,
     );
+
+    await this.auditLogsService.log({
+      actorId: adminId,
+      actorRole: req.user?.role,
+      action: 'RESOLVE_TRANSACTION_DISPUTE',
+      targetType: 'TRANSACTION',
+      targetId: id,
+      metadata: {
+        resolution: body.resolution,
+      },
+    });
+
+    return result;
   }
 
   private normalizeAnalyticsPeriod(value?: string): AdminAnalyticsPeriod {

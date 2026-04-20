@@ -7,16 +7,45 @@ import '../../../models/vehicle_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 
-final vehicleListProvider = FutureProvider<VehicleListResponse>((ref) {
-  return ref.read(vehicleServiceProvider).getVehicles();
+class VehicleFilter {
+  final String? search;
+
+  const VehicleFilter({this.search});
+
+  VehicleFilter copyWith({String? search}) {
+    return VehicleFilter(search: search ?? this.search);
+  }
+}
+
+final vehicleFilterProvider = StateProvider<VehicleFilter>(
+  (ref) => const VehicleFilter(),
+);
+
+final vehicleListProvider =
+    FutureProvider.family<VehicleListResponse, VehicleFilter>((ref, filter) {
+  return ref.read(vehicleServiceProvider).getVehicles(search: filter.search);
 });
 
-class VehicleListScreen extends ConsumerWidget {
+class VehicleListScreen extends ConsumerStatefulWidget {
   const VehicleListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final vehiclesAsync = ref.watch(vehicleListProvider);
+  ConsumerState<VehicleListScreen> createState() => _VehicleListScreenState();
+}
+
+class _VehicleListScreenState extends ConsumerState<VehicleListScreen> {
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filter = ref.watch(vehicleFilterProvider);
+    final vehiclesAsync = ref.watch(vehicleListProvider(filter));
 
     return Scaffold(
       appBar: AppBar(
@@ -30,12 +59,14 @@ class VehicleListScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: TextField(
+              controller: _searchCtrl,
               decoration: const InputDecoration(
                 hintText: 'Tìm kiếm xe điện...',
                 prefixIcon: Icon(Icons.search, color: AppTheme.grey400),
               ),
               onSubmitted: (v) {
-                ref.invalidate(vehicleListProvider);
+                ref.read(vehicleFilterProvider.notifier).state =
+                    filter.copyWith(search: v.trim().isEmpty ? null : v.trim());
               },
             ),
           ),
