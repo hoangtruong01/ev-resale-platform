@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { PurchaseStatus, UserRole } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @ApiTags('purchases')
 @Controller('purchases')
@@ -100,7 +101,7 @@ export class PurchasesController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a purchase' })

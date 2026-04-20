@@ -24,6 +24,7 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 
 @ApiTags('bids')
 @Controller('bids')
@@ -79,7 +80,7 @@ export class BidsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a bid (Admin only)' })
@@ -94,7 +95,7 @@ export class BidsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a bid (Admin only)' })

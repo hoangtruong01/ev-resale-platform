@@ -46,6 +46,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
 
   const moderatorRoutePermissionMap = {
     "/admin/post": "MODERATE_POSTS",
+    "/admin/auctions": "MODERATE_POSTS",
     "/admin/support-tickets": "HANDLE_SUPPORT_TICKETS",
   };
 
