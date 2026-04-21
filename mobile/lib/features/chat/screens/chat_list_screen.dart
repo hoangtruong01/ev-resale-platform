@@ -9,15 +9,13 @@ import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/chat_model.dart';
 
 final chatRoomsProvider = FutureProvider<List<ChatRoomModel>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) {
+  final isAuthenticated = ref.watch(authStateProvider).value?.isAuthenticated ?? false;
+  if (!isAuthenticated) {
     return const [];
   }
 
   final dio = ref.watch(dioProvider);
-  final response = await dio.get('/chat/rooms', queryParameters: {
-    'userId': user.id,
-  });
+  final response = await dio.get('/chat/rooms');
 
   final payload = response.data;
   if (payload is! List) {

@@ -116,8 +116,15 @@ export class PaymentsService {
     }
 
     const txnRef = await this.generateUniqueTxnRef();
-    const orderTypeStr = paymentType === PaymentType.DEPOSIT ? ' (Coc 50%)' : paymentType === PaymentType.BALANCE ? ' (Thanh toan not 50%)' : '';
-    const orderInfo = (dto.orderInfo ?? `Thanh toan giao dich ${transaction.id}`) + orderTypeStr;
+    const orderTypeStr =
+      paymentType === PaymentType.DEPOSIT
+        ? ' (Coc 50%)'
+        : paymentType === PaymentType.BALANCE
+          ? ' (Thanh toan not 50%)'
+          : '';
+    const orderInfo =
+      (dto.orderInfo ?? `Thanh toan giao dich ${transaction.id}`) +
+      orderTypeStr;
     const returnUrl = dto.returnUrl ?? defaultReturnUrl;
 
     const createDate = this.formatVnpayDate(new Date());
@@ -382,7 +389,12 @@ export class PaymentsService {
       this.toPlainNumber(amount) ?? this.calculateTotalAmount(transaction);
 
     try {
-      const typeLabel = paymentType === PaymentType.DEPOSIT ? 'đặt cọc 50%' : paymentType === PaymentType.BALANCE ? 'thanh toán nốt 50%' : 'thanh toán';
+      const typeLabel =
+        paymentType === PaymentType.DEPOSIT
+          ? 'đặt cọc 50%'
+          : paymentType === PaymentType.BALANCE
+            ? 'thanh toán nốt 50%'
+            : 'thanh toán';
       const message = await this.chatService.createMessage({
         roomId: chatRoom.id,
         senderId: chatRoom.buyerId,

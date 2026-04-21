@@ -35,12 +35,14 @@ export class ChatController {
   }
 
   @Get('rooms')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'List chat rooms for a user' })
-  async listRooms(@Query('userId') userId?: string) {
+  async listRooms(@Req() req: any) {
+    const userId = req.user?.id ?? req.user?.sub;
     if (!userId) {
-      throw new BadRequestException('Query parameter "userId" is required.');
+      throw new BadRequestException('User identity is required.');
     }
-
     return this.chatService.findRoomsForUser(userId);
   }
 

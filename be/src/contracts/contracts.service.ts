@@ -511,11 +511,11 @@ export class ContractsService {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4
     const { width, height } = page.getSize();
-    
+
     // Embed font
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    
+
     // 1. Header with styling
     page.drawRectangle({
       x: 0,
@@ -583,19 +583,35 @@ export class ContractsService {
     drawSection('Bên bán (Seller)', cursorY);
     cursorY -= 25;
     const seller = contract.transaction.seller;
-    page.drawText(`Họ và tên: ${seller.fullName ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText(`Họ và tên: ${seller.fullName ?? '...'}`, {
+      x: 50,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
     cursorY -= 15;
-    page.drawText(`Email: ${seller.email ?? '...' } | SĐT: ${seller.phone ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
-    
+    page.drawText(
+      `Email: ${seller.email ?? '...'} | SĐT: ${seller.phone ?? '...'}`,
+      { x: 50, y: cursorY, size: 10, font: fontRegular },
+    );
+
     cursorY -= 35;
 
     // --- BÊN MUA ---
     drawSection('Bên mua (Buyer)', cursorY);
     cursorY -= 25;
     const buyer = this.extractBuyer(contract);
-    page.drawText(`Họ và tên: ${buyer?.fullName ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText(`Họ và tên: ${buyer?.fullName ?? '...'}`, {
+      x: 50,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
     cursorY -= 15;
-    page.drawText(`Email: ${buyer?.email ?? '...' } | SĐT: ${buyer?.phone ?? '...' }`, { x: 50, y: cursorY, size: 10, font: fontRegular });
+    page.drawText(
+      `Email: ${buyer?.email ?? '...'} | SĐT: ${buyer?.phone ?? '...'}`,
+      { x: 50, y: cursorY, size: 10, font: fontRegular },
+    );
 
     cursorY -= 35;
 
@@ -604,45 +620,134 @@ export class ContractsService {
     cursorY -= 25;
 
     // Table Header
-    page.drawRectangle({ x: 40, y: cursorY - 5, width: width - 80, height: 20, color: rgb(0.95, 0.95, 0.95) });
+    page.drawRectangle({
+      x: 40,
+      y: cursorY - 5,
+      width: width - 80,
+      height: 20,
+      color: rgb(0.95, 0.95, 0.95),
+    });
     page.drawText('Hạng mục', { x: 50, y: cursorY, size: 10, font: fontBold });
     page.drawText('Chi tiết', { x: 200, y: cursorY, size: 10, font: fontBold });
-    
-    cursorY -= 20;
-    const assetDescription = this.buildAssetDescription(contract);
-    page.drawText('Tên tài sản:', { x: 50, y: cursorY, size: 10, font: fontRegular });
-    page.drawText(assetDescription.toUpperCase(), { x: 200, y: cursorY, size: 10, font: fontBold });
-    
-    cursorY -= 20;
-    page.drawText('Giá thỏa thuận:', { x: 50, y: cursorY, size: 10, font: fontRegular });
-    page.drawText(`${Number(contract.transaction.amount).toLocaleString('vi-VN')} VNĐ`, { x: 200, y: cursorY, size: 10, font: fontBold, color: rgb(0.8, 0.1, 0.1) });
 
     cursorY -= 20;
-    page.drawText('Trạng thái thanh toán:', { x: 50, y: cursorY, size: 10, font: fontRegular });
-    page.drawText('Đã thanh toán cọc 50% - Chờ thanh toán hoàn tất', { x: 200, y: cursorY, size: 10, font: fontRegular });
+    const assetDescription = this.buildAssetDescription(contract);
+    page.drawText('Tên tài sản:', {
+      x: 50,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
+    page.drawText(assetDescription.toUpperCase(), {
+      x: 200,
+      y: cursorY,
+      size: 10,
+      font: fontBold,
+    });
+
+    cursorY -= 20;
+    page.drawText('Giá thỏa thuận:', {
+      x: 50,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
+    page.drawText(
+      `${Number(contract.transaction.amount).toLocaleString('vi-VN')} VNĐ`,
+      {
+        x: 200,
+        y: cursorY,
+        size: 10,
+        font: fontBold,
+        color: rgb(0.8, 0.1, 0.1),
+      },
+    );
+
+    cursorY -= 20;
+    page.drawText('Trạng thái thanh toán:', {
+      x: 50,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
+    page.drawText('Đã thanh toán cọc 50% - Chờ thanh toán hoàn tất', {
+      x: 200,
+      y: cursorY,
+      size: 10,
+      font: fontRegular,
+    });
 
     // 4. Signatures Section
     cursorY = 250;
-    page.drawText('BÊN MUA KÝ TÊN', { x: 80, y: cursorY, size: 11, font: fontBold });
-    page.drawText('BÊN BÁN KÝ TÊN', { x: width - 200, y: cursorY, size: 11, font: fontBold });
+    page.drawText('BÊN MUA KÝ TÊN', {
+      x: 80,
+      y: cursorY,
+      size: 11,
+      font: fontBold,
+    });
+    page.drawText('BÊN BÁN KÝ TÊN', {
+      x: width - 200,
+      y: cursorY,
+      size: 11,
+      font: fontBold,
+    });
 
-    const buyerSignature = contract.signatures.find(item => item.role === ContractPartyRole.BUYER);
-    const sellerSignature = contract.signatures.find(item => item.role === ContractPartyRole.SELLER);
+    const buyerSignature = contract.signatures.find(
+      (item) => item.role === ContractPartyRole.BUYER,
+    );
+    const sellerSignature = contract.signatures.find(
+      (item) => item.role === ContractPartyRole.SELLER,
+    );
 
     if (buyerSignature) {
-      const buyerImage = await this.embedSignatureImage(pdfDoc, buyerSignature.signaturePath);
+      const buyerImage = await this.embedSignatureImage(
+        pdfDoc,
+        buyerSignature.signaturePath,
+      );
       page.drawImage(buyerImage, { x: 60, y: 150, width: 140, height: 70 });
-      page.drawText(`Ký ngày: ${buyerSignature.signedAt.toLocaleDateString('vi-VN')}`, { x: 80, y: 135, size: 9, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+      page.drawText(
+        `Ký ngày: ${buyerSignature.signedAt.toLocaleDateString('vi-VN')}`,
+        {
+          x: 80,
+          y: 135,
+          size: 9,
+          font: fontRegular,
+          color: rgb(0.5, 0.5, 0.5),
+        },
+      );
     }
 
     if (sellerSignature) {
-      const sellerImage = await this.embedSignatureImage(pdfDoc, sellerSignature.signaturePath);
-      page.drawImage(sellerImage, { x: width - 220, y: 150, width: 140, height: 70 });
-      page.drawText(`Ký ngày: ${sellerSignature.signedAt.toLocaleDateString('vi-VN')}`, { x: width - 200, y: 135, size: 9, font: fontRegular, color: rgb(0.5, 0.5, 0.5) });
+      const sellerImage = await this.embedSignatureImage(
+        pdfDoc,
+        sellerSignature.signaturePath,
+      );
+      page.drawImage(sellerImage, {
+        x: width - 220,
+        y: 150,
+        width: 140,
+        height: 70,
+      });
+      page.drawText(
+        `Ký ngày: ${sellerSignature.signedAt.toLocaleDateString('vi-VN')}`,
+        {
+          x: width - 200,
+          y: 135,
+          size: 9,
+          font: fontRegular,
+          color: rgb(0.5, 0.5, 0.5),
+        },
+      );
     }
 
     // 5. Footer
-    page.drawRectangle({ x: 0, y: 0, width, height: 30, color: rgb(0.95, 0.95, 0.95) });
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width,
+      height: 30,
+      color: rgb(0.95, 0.95, 0.95),
+    });
     page.drawText('© 2026 EVN Battery Marketplace. Mọi quyền được bảo lưu.', {
       x: width / 2 - 130,
       y: 10,
@@ -933,7 +1038,9 @@ export class ContractsService {
     await this.prisma.contractSignature.create({
       data: {
         contractId,
-        userId: isBuyer ? (contract as any).buyerId : (contract as any).sellerId,
+        userId: isBuyer
+          ? (contract as any).buyerId
+          : (contract as any).sellerId,
         role,
         signedAt: new Date(),
         signaturePath,
@@ -982,7 +1089,6 @@ export class ContractsService {
       });
       await this.generateAndSendFinalContract(updatedContract);
     }
-
   }
 
   private async saveSignatureFile(
@@ -994,13 +1100,13 @@ export class ContractsService {
     const path = await import('path');
     const signatureDir = path.join(process.cwd(), 'uploads', 'signatures');
     await fs.mkdir(signatureDir, { recursive: true });
-    
+
     const fileName = `${contractId}_${role}_${Date.now()}.png`;
     const filePath = path.join(signatureDir, fileName);
-    
+
     const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
     await fs.writeFile(filePath, Buffer.from(base64Image, 'base64'));
-    
+
     return `/uploads/signatures/${fileName}`;
   }
 
@@ -1020,4 +1126,3 @@ export class ContractsService {
     return room.buyer;
   }
 }
-

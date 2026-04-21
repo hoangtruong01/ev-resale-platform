@@ -12,8 +12,8 @@ class NotificationService {
   final Dio _dio;
   NotificationService(this._dio);
 
-  Future<List<NotificationModel>> getMyNotifications(String userId) async {
-    final response = await _dio.get('/notifications/user/$userId', queryParameters: {
+  Future<List<NotificationModel>> getMyNotifications() async {
+    final response = await _dio.get('/notifications/me', queryParameters: {
       'page': 1,
       'limit': 30,
     });
@@ -30,8 +30,8 @@ class NotificationService {
         .toList();
   }
 
-  Future<int> getUnreadCount(String userId) async {
-    final response = await _dio.get('/notifications/user/$userId/unread-count');
+  Future<int> getUnreadCount() async {
+    final response = await _dio.get('/notifications/me/unread-count');
     final payload = response.data;
     if (payload is Map && payload['count'] is num) {
       return (payload['count'] as num).toInt();
@@ -43,7 +43,7 @@ class NotificationService {
     await _dio.patch('/notifications/$notificationId/read');
   }
 
-  Future<void> markAllAsRead(String userId) async {
-    await _dio.patch('/notifications/user/$userId/mark-all-read');
+  Future<void> markAllAsRead() async {
+    await _dio.patch('/notifications/me/mark-all-read');
   }
 }

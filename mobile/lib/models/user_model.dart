@@ -67,17 +67,20 @@ class UserModel {
 class AuthResponse {
   final UserModel user;
   final String accessToken;
+  final String refreshToken;
   final bool requiresProfileCompletion;
 
   const AuthResponse({
     required this.user,
     required this.accessToken,
+    required this.refreshToken,
     required this.requiresProfileCompletion,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
         user: UserModel.fromJson(json['user'] ?? {}),
         accessToken: json['access_token'] ?? '',
+        refreshToken: json['refresh_token'] ?? '',
         requiresProfileCompletion: json['requiresProfileCompletion'] ?? false,
       );
 }

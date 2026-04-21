@@ -49,8 +49,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<AuthState> _loadFromStorage() async {
     try {
       final token = await _storage.read(key: 'access_token');
+      final refreshToken = await _storage.read(key: 'refresh_token');
       final userJson = await _storage.read(key: 'user_data');
       if (token != null && userJson != null) {
+        // Keep backward compatibility for older sessions that do not yet store refresh token.
+        if (refreshToken == null || refreshToken.isEmpty) {
+          await _storage.deleteAll();
+          return const AuthState();
+        }
         final user = UserModel.fromJson(jsonDecode(userJson));
         return AuthState(user: user);
       }
@@ -152,6 +158,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> _saveAuth(AuthResponse response) async {
     await _storage.write(
         key: 'access_token', value: response.accessToken);
+    await _storage.write(
+      key: 'refresh_token', value: response.refreshToken);
     await _storage.write(
         key: 'user_data', value: jsonEncode(response.user.toJson()));
   }

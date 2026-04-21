@@ -256,7 +256,6 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
               items: const [
                 DropdownMenuItem(value: 'BATTERY', child: Text('Pin điện')),
                 DropdownMenuItem(value: 'VEHICLE', child: Text('Xe điện')),
-                DropdownMenuItem(value: 'OTHER', child: Text('Khác')),
               ],
               onChanged: (value) {
                 if (value == null) return;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
@@ -69,6 +70,7 @@ class ChatRoomScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
+  static const _storage = FlutterSecureStorage();
   final _messageCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final List<ChatMessage> _messages = [];
@@ -91,22 +93,24 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     super.dispose();
   }
 
-  void _initSocket() {
+  Future<void> _initSocket() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+    final accessToken = await _storage.read(key: AppConstants.accessTokenKey);
+    if (accessToken == null || accessToken.isEmpty) return;
 
     _socket = io.io(
       '${AppConstants.baseUrl.replaceAll('/api', '')}/chat',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth({'userId': user.id})
+          .setAuth({'token': accessToken})
           .disableAutoConnect()
           .build(),
     );
 
     _socket!.on('connect', (_) {
       setState(() => _socketConnected = true);
-      _socket!.emit('joinRoom', {'roomId': widget.roomId, 'userId': user.id});
+      _socket!.emit('joinRoom', {'roomId': widget.roomId});
     });
 
     _socket!.on('chat:history', (data) {
@@ -147,7 +151,6 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
     _socket!.emit('sendMessage', {
       'roomId': widget.roomId,
-      'senderId': user.id,
       'content': text,
     });
 

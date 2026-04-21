@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../features/auth/providers/auth_provider.dart';
@@ -23,6 +24,7 @@ class BatteryMonitorScreen extends ConsumerStatefulWidget {
 }
 
 class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
+  static const _storage = FlutterSecureStorage();
   io.Socket? _socket;
   bool _connected = false;
   Map<String, dynamic>? _currentStats;
@@ -44,14 +46,17 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
     super.dispose();
   }
 
-  void _initSocket() {
+  Future<void> _initSocket() async {
     final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    final accessToken = await _storage.read(key: AppConstants.accessTokenKey);
+    if (accessToken == null || accessToken.isEmpty) return;
     
     _socket = io.io(
       '${AppConstants.baseUrl.replaceAll('/api', '')}/iot',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .setAuth({'userId': user?.id})
+          .setAuth({'token': accessToken})
           .disableAutoConnect()
           .build(),
     );

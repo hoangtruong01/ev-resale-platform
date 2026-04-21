@@ -30,7 +30,7 @@ export class PlcSimulatorService {
 
     for (const battery of batteries) {
       const telemetry = this.generateJitterData(battery);
-      
+
       // Update DB (optional, but good for persistence)
       await this.prisma.battery.update({
         where: { id: battery.id },
@@ -59,10 +59,14 @@ export class PlcSimulatorService {
     const prevTemp = Number(battery.temperature) || 32.0;
 
     // Simulate small changes
-    const voltage = parseFloat((prevVoltage + (Math.random() - 0.5) * 0.5).toFixed(2));
+    const voltage = parseFloat(
+      (prevVoltage + (Math.random() - 0.5) * 0.5).toFixed(2),
+    );
     const current = parseFloat((Math.random() * 5).toFixed(2)); // 0-5A
-    const temperature = parseFloat((prevTemp + (Math.random() - 0.5) * 0.2).toFixed(1));
-    
+    const temperature = parseFloat(
+      (prevTemp + (Math.random() - 0.5) * 0.2).toFixed(1),
+    );
+
     // SOC slowly drains if current > 0 (simulated discharge)
     let soc = prevSoc;
     if (current > 0 && Math.random() > 0.7) {

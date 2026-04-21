@@ -251,8 +251,8 @@ export class UsersService {
     const profileCreatePayload: Record<string, unknown> = { userId };
 
     const setProfileValue = (key: string, value: unknown) => {
-      (profileUpdatePayload as Record<string, unknown>)[key] = value;
-      (profileCreatePayload as Record<string, unknown>)[key] = value;
+      profileUpdatePayload[key] = value;
+      profileCreatePayload[key] = value;
     };
 
     if (sanitizedBio !== undefined) {

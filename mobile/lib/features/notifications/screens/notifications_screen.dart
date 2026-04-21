@@ -8,21 +8,21 @@ import '../../../services/notification_service.dart';
 import 'dart:async';
 
 final myNotificationsProvider = FutureProvider<List<NotificationModel>>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) {
+  final isAuthenticated = ref.watch(authStateProvider).value?.isAuthenticated ?? false;
+  if (!isAuthenticated) {
     return const [];
   }
   final service = ref.watch(notificationServiceProvider);
-  return service.getMyNotifications(user.id);
+  return service.getMyNotifications();
 });
 
 final unreadNotificationsCountProvider = FutureProvider<int>((ref) async {
-  final user = ref.watch(currentUserProvider);
-  if (user == null) {
+  final isAuthenticated = ref.watch(authStateProvider).value?.isAuthenticated ?? false;
+  if (!isAuthenticated) {
     return 0;
   }
   final service = ref.watch(notificationServiceProvider);
-  return service.getUnreadCount(user.id);
+  return service.getUnreadCount();
 });
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -56,10 +56,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Future<void> _markAllAsRead() async {
-    final user = ref.read(currentUserProvider);
-    if (user == null) return;
     final service = ref.read(notificationServiceProvider);
-    await service.markAllAsRead(user.id);
+    await service.markAllAsRead();
     await _refreshAll();
   }
 

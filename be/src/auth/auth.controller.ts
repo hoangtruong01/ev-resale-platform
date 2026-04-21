@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+
 import {
   Controller,
   Post,
@@ -11,7 +13,6 @@ import {
   Delete,
   Param,
   ValidationPipe,
-  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
@@ -58,6 +59,7 @@ class AuthResponseDto {
     moderatorPermissions?: string[];
   };
   access_token: string;
+  refresh_token: string;
   requiresProfileCompletion: boolean;
 }
 
@@ -89,9 +91,32 @@ export class AuthController {
   ) {
     try {
       return await this.authService.localLogin(loginDto);
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Đăng nhập thất bại';
+      throw new BadRequestException(message);
     }
+  }
+
+  @Post('refresh')
+  @ApiOperation({
+    summary: 'Refresh access token',
+    description: 'Issue a new token pair using a valid refresh token',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refresh_token: { type: 'string' },
+      },
+      required: ['refresh_token'],
+    },
+  })
+  async refresh(@Body('refresh_token') refreshToken: string) {
+    if (!refreshToken) {
+      throw new BadRequestException('Missing refresh_token');
+    }
+    return this.authService.refreshAccessToken(refreshToken);
   }
 
   @Post('register')
@@ -209,7 +234,7 @@ export class AuthController {
       picture: payload.picture ?? '',
       accessToken: credential,
     });
-    const result = await this.authService.login(user);
+    const result = this.authService.login(user);
     return result;
   }
 
@@ -219,7 +244,7 @@ export class AuthController {
     description: 'Initiate Google OAuth authentication flow',
   })
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {
+  async googleAuth() {
     // Initiates Google OAuth flow
   }
 
@@ -230,7 +255,7 @@ export class AuthController {
   })
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const { access_token, user } = await this.authService.login(req.user);
+    const { access_token, user } = this.authService.login(req.user);
 
     // Redirect to frontend with token
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:3001';
@@ -245,7 +270,7 @@ export class AuthController {
     description: 'Initiate Facebook OAuth authentication flow',
   })
   @UseGuards(AuthGuard('facebook'))
-  async facebookAuth(@Req() req) {
+  async facebookAuth() {
     // Initiates Facebook OAuth flow
   }
 
@@ -256,7 +281,7 @@ export class AuthController {
   })
   @UseGuards(AuthGuard('facebook'))
   async facebookAuthRedirect(@Req() req, @Res() res: Response) {
-    const { access_token, user } = await this.authService.login(req.user);
+    const { access_token, user } = this.authService.login(req.user);
 
     // Redirect to frontend with token
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:3001';

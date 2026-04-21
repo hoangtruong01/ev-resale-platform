@@ -2,7 +2,10 @@ import { IsString, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ProposeContractDto {
-  @ApiProperty({ description: 'The negotiated price for the deal', example: '50000000' })
+  @ApiProperty({
+    description: 'The negotiated price for the deal',
+    example: '50000000',
+  })
   @IsString()
   agreedPrice: string;
 

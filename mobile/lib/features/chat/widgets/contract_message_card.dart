@@ -406,7 +406,7 @@ class _PaymentButtonState extends State<_PaymentButton> {
     try {
       final dio = ref.read(dioProvider);
       final res = await dio.post(
-        '/payments/create-vnpay',
+        '/payments/vnpay/create-url',
         data: {
           'transactionId': widget.transactionId,
           'paymentType': widget.paymentType,

@@ -28,10 +28,7 @@ export class ContractsController {
   @Get('admin/list')
   @ApiOperation({ summary: '[Admin] List all contracts' })
   listForAdmin(@Req() req: any, @Query('status') status?: string) {
-    return this.contractsService.listContractsForAdmin(
-      req.user.role,
-      status,
-    );
+    return this.contractsService.listContractsForAdmin(req.user.role, status);
   }
 
   /**
@@ -43,17 +40,14 @@ export class ContractsController {
   @ApiOperation({ summary: 'Get contract status by contractId' })
   @ApiParam({ name: 'contractId', description: 'Contract ID' })
   getContractStatus(@Param('contractId') contractId: string, @Req() req: any) {
-    const userId = (req.user as any)?.id ?? (req.user as any)?.sub;
+    const userId = req.user?.id ?? req.user?.sub;
     return this.contractsService.getContractStatus(contractId, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':transactionId')
   @ApiOperation({ summary: 'Get contract by transactionId' })
-  getContract(
-    @Param('transactionId') transactionId: string,
-    @Req() req: any,
-  ) {
+  getContract(@Param('transactionId') transactionId: string, @Req() req: any) {
     return this.contractsService.getContractForUser(
       transactionId,
       req.user.id,
@@ -74,7 +68,7 @@ export class ContractsController {
     @Req() req: any,
     @Body(new ValidationPipe({ whitelist: true })) dto: SignContractDto,
   ) {
-    const userId = (req.user as any)?.id ?? (req.user as any)?.sub;
+    const userId = req.user?.id ?? req.user?.sub;
     return this.contractsService.signContractById(contractId, userId, dto);
   }
 

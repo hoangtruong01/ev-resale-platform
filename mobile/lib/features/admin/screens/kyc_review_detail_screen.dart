@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 
@@ -365,8 +366,8 @@ class _KycReviewDetailScreenState extends ConsumerState<KycReviewDetailScreen> {
     // If it's already a full URL, return it
     if (path.startsWith('http')) return path;
 
-    // In production this would be from env, let's look at dio_client or assume localhost
-    return 'http://localhost:3000${path.startsWith('/') ? '' : '/'}$path';
+    final origin = AppConstants.baseUrl.replaceAll('/api', '');
+    return '$origin${path.startsWith('/') ? '' : '/'}$path';
   }
 
   void _showFullScreenImage(String imageUrl) {

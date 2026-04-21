@@ -4,8 +4,9 @@ export class SendMessageDto {
   @IsString()
   roomId!: string;
 
+  @IsOptional()
   @IsString()
-  senderId!: string;
+  senderId?: string;
 
   @IsString()
   @IsNotEmpty()

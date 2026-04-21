@@ -89,4 +89,11 @@ class AuthService {
     });
     return AuthResponse.fromJson(response.data);
   }
+
+  Future<AuthResponse> refreshToken(String refreshToken) async {
+    final response = await _dio.post('/auth/refresh', data: {
+      'refresh_token': refreshToken,
+    });
+    return AuthResponse.fromJson(response.data);
+  }
 }

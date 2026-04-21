@@ -46,7 +46,7 @@ export class ChatService {
         error !== null &&
         typeof error === 'object' &&
         'code' in error &&
-        (error as any).code === 'P2002'
+        error.code === 'P2002'
       ) {
         const room = await this.prisma.chatRoom.findFirst({
           where: roomFilter,
@@ -135,6 +135,10 @@ export class ChatService {
 
     if (!content?.trim()) {
       throw new BadRequestException('Message content is required.');
+    }
+
+    if (!senderId?.trim()) {
+      throw new BadRequestException('Sender is required.');
     }
 
     await this.ensureRoomParticipant(roomId, senderId);
@@ -292,7 +296,8 @@ export class ChatService {
     });
 
     return {
-      message: 'Đã gửi yêu cầu ký hợp đồng vào chat. Cả hai bên vui lòng ký xác nhận.',
+      message:
+        'Đã gửi yêu cầu ký hợp đồng vào chat. Cả hai bên vui lòng ký xác nhận.',
       contractId: result.contract.id,
       transactionId: result.transaction.id,
       systemMessage: result.systemMessage,

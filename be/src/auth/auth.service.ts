@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
 import {
   Injectable,
   BadRequestException,
@@ -22,6 +24,14 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {}
+
+  private getRefreshSecret() {
+    return process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || '';
+  }
+
+  private getRefreshExpiresIn() {
+    return process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+  }
 
   // Local Registration
   async register(registerDto: RegisterDto) {
@@ -118,7 +128,7 @@ export class AuthService {
     updateUserData.profileCompletedAt = new Date();
 
     // Update user
-    const user = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: updateUserData,
     });
@@ -160,6 +170,10 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+      refresh_token: this.jwtService.sign(payload, {
+        secret: this.getRefreshSecret(),
+        expiresIn: this.getRefreshExpiresIn(),
+      }),
       user: {
         id: user.id,
         email: user.email,
@@ -175,6 +189,37 @@ export class AuthService {
       },
       requiresProfileCompletion: !user.isProfileComplete,
     };
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Missing refresh token');
+    }
+
+    let payload: { sub?: string };
+    try {
+      payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.getRefreshSecret(),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const userId = payload?.sub;
+    if (!userId) {
+      throw new UnauthorizedException('Invalid refresh token payload');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { profile: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('User is not active');
+    }
+
+    return this.generateAuthResponse(user);
   }
 
   async validateGoogleUser(googleUser: GoogleUser) {
@@ -259,7 +304,7 @@ export class AuthService {
     return user;
   }
 
-  async login(user: any) {
+  login(user: any) {
     return this.generateAuthResponse(user);
   }
 

@@ -23,6 +23,7 @@ class AppConstants {
 
   // Storage Keys
   static const String accessTokenKey = 'access_token';
+  static const String refreshTokenKey = 'refresh_token';
   static const String userKey = 'user_data';
 
   // Pagination
