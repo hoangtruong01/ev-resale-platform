@@ -178,7 +178,7 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
         ),
         child: Column(
           children: [
@@ -188,7 +188,7 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
               percent: percent,
               center: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
               progressColor: color,
-              backgroundColor: color.withOpacity(0.1),
+              backgroundColor: color.withValues(alpha: 0.1),
               circularStrokeCap: CircularStrokeCap.round,
             ),
             const SizedBox(height: 12),
@@ -206,7 +206,7 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
         ),
         child: Column(
           children: [
@@ -227,7 +227,7 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +270,7 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -409,7 +409,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: AppTheme.grey200)),
+              border: const Border(top: BorderSide(color: AppTheme.grey200)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),

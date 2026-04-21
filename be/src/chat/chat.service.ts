@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -41,13 +42,14 @@ export class ChatService {
         },
         include: this.roomInclude,
       });
-    } catch (error) {
-      if (
+    } catch (error: unknown) {
+      const isUniqueConstraintError =
         error !== null &&
         typeof error === 'object' &&
         'code' in error &&
-        error.code === 'P2002'
-      ) {
+        (error as { code?: unknown }).code === 'P2002';
+
+      if (isUniqueConstraintError) {
         const room = await this.prisma.chatRoom.findFirst({
           where: roomFilter,
           include: this.roomInclude,
@@ -148,7 +150,7 @@ export class ChatService {
         roomId,
         senderId,
         content: content.trim(),
-        metadata: (metadata as any) ?? undefined,
+        metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
       },
       include: this.messageInclude,
     });

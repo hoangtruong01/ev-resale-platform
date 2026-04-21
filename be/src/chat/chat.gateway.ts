@@ -77,7 +77,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     try {
       const authUserId = this.requireSocketUserId(client);
-      client.join(payload.roomId);
+      await client.join(payload.roomId);
       await this.chatService.markMessagesAsRead(payload.roomId, authUserId);
       const history = await this.chatService.getRoomMessages(
         payload.roomId,
@@ -89,7 +89,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       return { status: 'ok' };
     } catch (error: unknown) {
-      this.handleError(client, error as Error);
+      return this.handleError(client, error as Error);
     }
   }
 
@@ -111,7 +111,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(payload.roomId).emit('chat:message', message);
       return { status: 'ok', message };
     } catch (error: unknown) {
-      this.handleError(client, error as Error);
+      return this.handleError(client, error as Error);
     }
   }
 
@@ -133,7 +133,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit('chat:read', { roomId: payload.roomId, ...result });
       return { status: 'ok', ...result };
     } catch (error: unknown) {
-      this.handleError(client, error as Error);
+      return this.handleError(client, error as Error);
     }
   }
 
@@ -180,7 +180,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return data.userId;
   }
 
-  private handleError(client: Socket, error: Error) {
+  private handleError(client: Socket, error: Error): never {
     const message = error.message ?? 'Unexpected error';
     client.emit('chat:error', { message });
     throw new WsException(message);

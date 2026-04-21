@@ -41,19 +41,19 @@ export class IotGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('subscribeBattery')
-  handleSubscribeBattery(client: Socket, batteryId: string) {
+  async handleSubscribeBattery(client: Socket, batteryId: string) {
     this.requireSocketUserId(client);
     const room = `battery:${batteryId}`;
-    client.join(room);
+    await client.join(room);
     this.logger.log(`Client ${client.id} joined room ${room}`);
     return { event: 'subscribed', data: room };
   }
 
   @SubscribeMessage('unsubscribeBattery')
-  handleUnsubscribeBattery(client: Socket, batteryId: string) {
+  async handleUnsubscribeBattery(client: Socket, batteryId: string) {
     this.requireSocketUserId(client);
     const room = `battery:${batteryId}`;
-    client.leave(room);
+    await client.leave(room);
     this.logger.log(`Client ${client.id} left room ${room}`);
     return { event: 'unsubscribed', data: room };
   }

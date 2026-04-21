@@ -254,7 +254,7 @@ export class AuthController {
     description: 'Handle Google OAuth callback and redirect to frontend',
   })
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+  googleAuthRedirect(@Req() req, @Res() res: Response) {
     const { access_token, user } = this.authService.login(req.user);
 
     // Redirect to frontend with token
@@ -280,7 +280,7 @@ export class AuthController {
     description: 'Handle Facebook OAuth callback and redirect to frontend',
   })
   @UseGuards(AuthGuard('facebook'))
-  async facebookAuthRedirect(@Req() req, @Res() res: Response) {
+  facebookAuthRedirect(@Req() req, @Res() res: Response) {
     const { access_token, user } = this.authService.login(req.user);
 
     // Redirect to frontend with token
@@ -299,7 +299,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   async completeProfile(@Body() profileData: CompleteProfileDto, @Req() req) {
-    return await this.authService.completeProfile(req.user.id, profileData);
+    const authReq = req as { user?: { id?: string } };
+    const userId = authReq.user?.id;
+    if (!userId) {
+      throw new BadRequestException('Missing authenticated user id');
+    }
+
+    return this.authService.completeProfile(userId, profileData);
   }
 
   @Get('profile')
