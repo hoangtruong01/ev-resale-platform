@@ -30,6 +30,7 @@ import { StatsModule } from './stats/stats.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', 'be/.env'],
     }),
     ScheduleModule.forRoot(),
     PrismaModule,

@@ -26,7 +26,11 @@ export class AuthService {
   ) {}
 
   private getRefreshSecret() {
-    return process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || '';
+    return (
+      process.env.JWT_REFRESH_SECRET ||
+      process.env.JWT_SECRET ||
+      'evn-market-dev-jwt-refresh-secret'
+    );
   }
 
   private getRefreshExpiresIn() {
@@ -86,10 +90,11 @@ export class AuthService {
   // Local Login
   async localLogin(loginDto: LoginDto) {
     const { email, password } = loginDto;
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Find user by email
     const user = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
       include: { profile: true },
     });
 

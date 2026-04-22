@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../models/user_model.dart';
 import '../../../services/auth_service.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/auth/session_state_provider.dart';
 
@@ -41,6 +44,24 @@ class AuthState {
 class AuthNotifier extends AsyncNotifier<AuthState> {
   static const _storage = FlutterSecureStorage();
 
+  String _friendlyLoginError(Object error) {
+    final fallback = parseApiError(error);
+
+    if (error is DioException) {
+      final status = error.response?.statusCode;
+      final lower = fallback.toLowerCase();
+
+      if (status == 401 ||
+          lower.contains('unauthorized') ||
+          lower.contains('invalid credential') ||
+          lower.contains('email hoặc mật khẩu không đúng')) {
+        return 'Email hoặc mật khẩu không đúng';
+      }
+    }
+
+    return fallback;
+  }
+
   @override
   Future<AuthState> build() async {
     return _loadFromStorage();
@@ -73,7 +94,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));
     } catch (e) {
-      state = AsyncValue.data(AuthState(error: parseApiError(e)));
+      state = AsyncValue.data(AuthState(error: _friendlyLoginError(e)));
     }
   }
 
@@ -116,7 +137,17 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> loginWithGoogle() async {
     state = const AsyncValue.loading();
     try {
-      final googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
+      final webClientId = AppConstants.googleWebClientId;
+      if (kIsWeb && webClientId.isEmpty) {
+        throw StateError(
+          'Google đăng nhập trên Web chưa cấu hình GOOGLE_WEB_CLIENT_ID',
+        );
+      }
+
+      final googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+        clientId: kIsWeb ? webClientId : null,
+      );
       final account = await googleSignIn.signIn();
       if (account == null) {
         state = const AsyncValue.data(AuthState());

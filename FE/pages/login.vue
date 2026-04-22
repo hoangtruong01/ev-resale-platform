@@ -42,7 +42,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_email_phone')"
               required
-            >
+            />
           </div>
 
           <div>
@@ -56,7 +56,7 @@
               class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               :placeholder="$t('enter_password')"
               required
-            >
+            />
             <p v-if="loginError" class="mt-2 text-sm text-red-600">
               {{ loginError }}
             </p>
@@ -64,7 +64,7 @@
 
           <div class="flex items-center justify-between">
             <label class="flex items-center">
-              <input type="checkbox" class="mr-2" >
+              <input type="checkbox" class="mr-2" />
               <span class="text-sm text-gray-600">{{
                 $t("remember_login")
               }}</span>
@@ -98,7 +98,7 @@
         <div class="mt-6">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300"/>
+              <div class="w-full border-t border-gray-300" />
             </div>
             <div class="relative flex justify-center text-sm">
               <span class="px-2 bg-white text-gray-500">{{
@@ -128,7 +128,7 @@
 import { nextTick, ref, reactive, computed } from "vue";
 
 // Use i18n
-const { t } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: "global" });
 
 // Define reactive form data
 const form = reactive({
@@ -180,14 +180,27 @@ const handleLogin = async () => {
     await navigateTo(redirectTo);
   } catch (error) {
     console.error("Login error:", error);
+    const status = Number(error?.status || error?.data?.statusCode || 0);
     const possibleMessage = Array.isArray(error?.data?.message)
       ? error.data.message[0]
       : error?.data?.message || error?.message;
 
-    const friendlyMessage =
+    const normalizedMessage =
       possibleMessage && typeof possibleMessage === "string"
         ? possibleMessage
-        : "Email hoặc mật khẩu không đúng. Vui lòng nhập lại.";
+        : "";
+
+    const lower = normalizedMessage.toLowerCase();
+    const isCredentialError =
+      status === 401 ||
+      lower.includes("unauthorized") ||
+      lower.includes("invalid credential") ||
+      lower.includes("email hoặc mật khẩu không đúng");
+
+    const friendlyMessage = isCredentialError
+      ? "Email hoặc mật khẩu không đúng. Vui lòng nhập lại."
+      : normalizedMessage ||
+        "Không thể đăng nhập lúc này. Vui lòng thử lại sau.";
 
     loginError.value = friendlyMessage;
     form.password = "";

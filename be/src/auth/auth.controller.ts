@@ -89,13 +89,7 @@ export class AuthController {
   async login(
     @Body(new ValidationPipe({ transform: true })) loginDto: LoginDto,
   ) {
-    try {
-      return await this.authService.localLogin(loginDto);
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Đăng nhập thất bại';
-      throw new BadRequestException(message);
-    }
+    return await this.authService.localLogin(loginDto);
   }
 
   @Post('refresh')

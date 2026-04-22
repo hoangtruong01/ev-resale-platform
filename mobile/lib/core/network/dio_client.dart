@@ -169,7 +169,18 @@ class AuthInterceptor extends Interceptor {
 
 /// Generic API error handler
 String parseApiError(dynamic error) {
+  if (error is StateError) {
+    return error.message.toString();
+  }
+
   if (error is DioException) {
+    if (error.type == DioExceptionType.connectionError ||
+        error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return 'Không kết nối được máy chủ. Vui lòng kiểm tra backend hoặc API_BASE_URL.';
+    }
+
     final data = error.response?.data;
     if (data is Map) {
       final msg = data['message'];

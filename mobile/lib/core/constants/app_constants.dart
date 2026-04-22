@@ -3,15 +3,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AppConstants {
+  static const String _defaultGoogleWebClientId =
+      '164378065650-atjepgg14csvf084nb8eh1lhn7h8cjn2.apps.googleusercontent.com';
+  static const String _googleWebClientIdFromDefine =
+      String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
+
   // API
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:3000/api';
-    }
-
     final envBaseUrl = dotenv.env['API_BASE_URL'];
     if (envBaseUrl != null && envBaseUrl.isNotEmpty) {
       return envBaseUrl;
+    }
+
+    if (kIsWeb) {
+      return 'http://localhost:3000/api';
     }
 
     if (Platform.isAndroid) {
@@ -19,6 +24,19 @@ class AppConstants {
     }
 
     return 'http://localhost:3000/api';
+  }
+
+  static String get googleWebClientId {
+    if (_googleWebClientIdFromDefine.isNotEmpty) {
+      return _googleWebClientIdFromDefine;
+    }
+
+    final envValue = dotenv.env['GOOGLE_WEB_CLIENT_ID'];
+    if (envValue != null && envValue.isNotEmpty) {
+      return envValue;
+    }
+
+    return _defaultGoogleWebClientId;
   }
 
   // Storage Keys
