@@ -35,6 +35,12 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : AppTheme.grey900;
+    final secondaryColor = isDark
+        ? Colors.white.withValues(alpha: 0.65)
+        : AppTheme.grey400;
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -45,16 +51,21 @@ class AppTextField extends StatelessWidget {
       onChanged: onChanged,
       readOnly: readOnly,
       onTap: onTap,
-      style: const TextStyle(
+      style: TextStyle(
         fontFamily: 'BeVietnamPro',
         fontSize: 15,
-        color: AppTheme.grey900,
+        color: textColor,
       ),
       decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
+        // Prefer hint text to avoid floating label overlap in compact auth forms.
+        hintText: hint ?? label,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+        hintStyle: TextStyle(
+          color: secondaryColor,
+          fontFamily: 'BeVietnamPro',
+        ),
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: AppTheme.grey400, size: 20)
+            ? Icon(prefixIcon, color: secondaryColor, size: 20)
             : null,
         suffixIcon: suffixIcon,
         counterText: '',

@@ -193,7 +193,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 8),
                           AppTextField(
                             controller: _emailCtrl,
-                            label: 'Email',
                             hint: 'Nhập email của bạn',
                             prefixIcon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
@@ -214,7 +213,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 8),
                           AppTextField(
                             controller: _passwordCtrl,
-                            label: 'Mật khẩu',
                             hint: 'Nhập mật khẩu',
                             prefixIcon: Icons.lock_outline,
                             obscureText: _obscurePassword,
