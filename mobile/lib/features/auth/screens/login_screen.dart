@@ -83,15 +83,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             height: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF003D1F),
-                  AppTheme.primaryDark,
-                  AppTheme.primaryGreen,
-                  Color(0xFF4CAF50),
+                  Color(0xFFEFFCF3),
+                  Colors.white,
+                  Color(0xFFFFF7ED),
                 ],
-                stops: [0.0, 0.3, 0.7, 1.0],
+                stops: [0.0, 0.52, 1.0],
               ),
             ),
           ),
@@ -118,46 +117,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   SizedBox(height: size.height * 0.08),
 
                   // Logo & Header
-                  Hero(
-                    tag: 'app_logo',
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('⚡', style: TextStyle(fontSize: 28)),
+                      SizedBox(width: 8),
+                      Text(
+                        'EVN Market',
+                        style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.grey900,
+                          letterSpacing: -0.6,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.battery_charging_full_rounded,
-                        size: 44,
-                        color: AppTheme.primaryGreen,
-                      ),
-                    ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   const Text(
                     'Chào mừng quay lại',
                     style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -1,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.accentOrange,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Đăng nhập để tiếp tục giao dịch an toàn',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withValues(alpha: 0.8),
+                      color: AppTheme.grey600,
                     ),
                   ),
 
@@ -168,13 +159,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppTheme.grey200),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 30,
-                          offset: const Offset(0, 15),
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -195,6 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             controller: _emailCtrl,
                             hint: 'Nhập email của bạn',
                             prefixIcon: Icons.email_outlined,
+                            forceLightStyle: true,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.isEmpty) return 'Nhập email';
@@ -215,6 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             controller: _passwordCtrl,
                             hint: 'Nhập mật khẩu',
                             prefixIcon: Icons.lock_outline,
+                            forceLightStyle: true,
                             obscureText: _obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -269,24 +262,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Divider(
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
+                        child: Divider(color: AppTheme.grey300),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
+                        child: const Text(
                           'hoặc tiếp tục với',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: AppTheme.grey500,
                             fontSize: 14,
                           ),
                         ),
                       ),
                       Expanded(
-                        child: Divider(
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
+                        child: Divider(color: AppTheme.grey300),
                       ),
                     ],
                   ),
@@ -299,14 +288,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: OutlinedButton(
                       onPressed: _isGoogleLoading ? null : _loginWithGoogle,
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.1),
-                        foregroundColor: Colors.white,
-                        side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppTheme.grey900,
+                        side: const BorderSide(color: AppTheme.grey300),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: Row(
@@ -319,16 +306,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                                  AppTheme.primaryGreen,
                                 ),
                               ),
                             )
                           else ...[
-                            const Icon(Icons.g_mobiledata_rounded, size: 28),
-                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.g_mobiledata_rounded,
+                              size: 30,
+                              color: Color(0xFF4285F4),
+                            ),
+                            const SizedBox(width: 6),
                             const Text(
-                              'Google',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                              'Đăng nhập với Google',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.grey900,
+                              ),
                             ),
                           ],
                         ],
@@ -344,9 +338,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     children: [
                       Text(
                         'Bạn mới biết EVN? ',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                        style: const TextStyle(color: AppTheme.grey600),
                       ),
                       GestureDetector(
                         onTap: () => context.push('/auth/register'),

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -86,6 +85,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
               slideUp: _slideUp,
               pulse: _pulse,
             ),
+            // ── Live Auction Pulse (web-like) ───────────────────────
+            const _LiveAuctionPulseSection(),
             // ── Stats ─────────────────────────────────────────────────
             const _StatsSection(),
             // ── Features ──────────────────────────────────────────────
@@ -96,6 +97,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen>
             const _GlobalSafeSection(),
             // ── Featured Vehicles ─────────────────────────────────────
             const _FeaturedVehiclesSection(),
+            // ── Social Proof (web-like) ──────────────────────────────
+            const _SocialProofSection(),
             // ── Footer CTA ────────────────────────────────────────────
             const _FooterCTA(),
           ],
@@ -126,15 +129,14 @@ class _HeroSection extends StatelessWidget {
       height: MediaQuery.of(context).size.height * 0.75,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            Color(0xFF003D1F),
-            AppTheme.primaryDark,
-            AppTheme.primaryGreen,
-            Color(0xFF4CAF50),
+            Color(0xFFEFFCF3),
+            Colors.white,
+            Color(0xFFFFF7ED),
           ],
-          stops: [0.0, 0.3, 0.7, 1.0],
+          stops: [0.0, 0.55, 1.0],
         ),
       ),
       child: Stack(
@@ -143,12 +145,12 @@ class _HeroSection extends StatelessWidget {
           Positioned(
             top: -60,
             right: -60,
-            child: _GlowCircle(size: 280, opacity: 0.12),
+            child: _GlowCircle(size: 280, opacity: 0.6),
           ),
           Positioned(
             bottom: 40,
             left: -80,
-            child: _GlowCircle(size: 220, opacity: 0.08),
+            child: _GlowCircle(size: 220, opacity: 0.5),
           ),
           // Grid lines decoration
           Positioned.fill(
@@ -198,21 +200,23 @@ class _HeroSection extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3), width: 1),
+                            color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+                            width: 1,
+                          ),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.verified_rounded,
-                                color: Colors.white, size: 14),
+                                color: AppTheme.primaryGreen, size: 14),
                             SizedBox(width: 6),
                             Text(
                               'Nền tảng uy tín #1 Việt Nam',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppTheme.primaryGreen,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -224,12 +228,12 @@ class _HeroSection extends StatelessWidget {
 
                       // Title
                       const Text(
-                        'EVN Pin Điện',
+                        'EVN Market',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: AppTheme.grey900,
                           letterSpacing: -1,
                           height: 1.1,
                         ),
@@ -248,18 +252,18 @@ class _HeroSection extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: AppTheme.grey900,
                             letterSpacing: -0.5,
                           ),
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Sàn giao dịch pin xe điện đã qua sử dụng\nAn toàn · Minh bạch · Chính hãng',
+                        'Nền tảng giao dịch pin xe điện cũ\nAn toàn · Minh bạch · Đấu giá thời gian thực',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: AppTheme.grey600,
                           height: 1.6,
                           fontWeight: FontWeight.w400,
                         ),
@@ -273,16 +277,16 @@ class _HeroSection extends StatelessWidget {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () => context.go('/auth/register'),
+                                onPressed: () => context.go('/auth/login'),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.white,
-                                  foregroundColor: AppTheme.primaryDark,
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 16),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  elevation: 0,
+                                  elevation: 2,
                                   textStyle: const TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w700,
@@ -291,9 +295,9 @@ class _HeroSection extends StatelessWidget {
                                 child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.rocket_launch_rounded, size: 20),
+                                    Icon(Icons.explore_rounded, size: 20),
                                     SizedBox(width: 8),
-                                    Text('Bắt đầu ngay — Miễn phí'),
+                                    Text('Khám phá sản phẩm'),
                                   ],
                                 ),
                               ),
@@ -304,10 +308,12 @@ class _HeroSection extends StatelessWidget {
                               child: OutlinedButton(
                                 onPressed: () => context.go('/auth/login'),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.white,
-                                  side: BorderSide(
-                                      color: Colors.white.withValues(alpha: 0.5),
-                                      width: 1.5),
+                                  foregroundColor: AppTheme.grey900,
+                                  side: const BorderSide(
+                                    color: AppTheme.grey300,
+                                    width: 1.2,
+                                  ),
+                                  backgroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 16),
                                   shape: RoundedRectangleBorder(
@@ -318,7 +324,22 @@ class _HeroSection extends StatelessWidget {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                child: const Text('Đã có tài khoản? Đăng nhập'),
+                                child: const Text('Tham gia đấu giá ngay'),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: TextButton(
+                                onPressed: () => context.go('/auth/register'),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppTheme.primaryGreen,
+                                  textStyle: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                child: const Text('Bắt đầu bán pin của bạn'),
                               ),
                             ),
                           ],
@@ -603,6 +624,186 @@ class _FeatureCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live auction pulse (inspired from web homepage)
+// ─────────────────────────────────────────────────────────────────────────────
+class _LiveAuctionPulseSection extends StatelessWidget {
+  const _LiveAuctionPulseSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _LiveAuctionData(
+        title: 'Pin VinFast VF e34',
+        meta: 'Kết thúc sau 01:42:10',
+        price: '18.500.000đ',
+        bids: '22 lượt đấu',
+      ),
+      _LiveAuctionData(
+        title: 'Pin Pega NewTech',
+        meta: 'Kết thúc sau 00:37:52',
+        price: '9.200.000đ',
+        bids: '13 lượt đấu',
+      ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
+      color: AppTheme.lightBg,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Đấu giá trực tiếp',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.grey900,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Theo dõi phiên đấu giá hot và ra quyết định nhanh hơn',
+            style: TextStyle(fontSize: 14, color: AppTheme.grey500),
+          ),
+          const SizedBox(height: 16),
+          ...items.map((item) => _LiveAuctionCard(data: item)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: const [
+              _TrustChip(label: 'Escrow an toàn'),
+              _TrustChip(label: 'Kiểm định độc lập'),
+              _TrustChip(label: 'Người bán xác minh'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveAuctionData {
+  final String title;
+  final String meta;
+  final String price;
+  final String bids;
+
+  const _LiveAuctionData({
+    required this.title,
+    required this.meta,
+    required this.price,
+    required this.bids,
+  });
+}
+
+class _LiveAuctionCard extends StatelessWidget {
+  final _LiveAuctionData data;
+  const _LiveAuctionCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.grey200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryGreen.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.gavel_rounded, color: AppTheme.primaryGreen),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.grey900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  data.meta,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.grey500),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                data.price,
+                style: const TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              Text(
+                data.bids,
+                style: const TextStyle(fontSize: 11, color: AppTheme.grey500),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TrustChip extends StatelessWidget {
+  final String label;
+  const _TrustChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        border: Border.all(color: AppTheme.grey200),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.grey700,
+        ),
       ),
     );
   }
@@ -1007,7 +1208,7 @@ class _FeaturedVehicleCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -1080,6 +1281,111 @@ class _FeaturedVehicleCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Social proof section
+// ─────────────────────────────────────────────────────────────────────────────
+class _SocialProofSection extends StatelessWidget {
+  const _SocialProofSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final testimonials = [
+      const _TestimonialData(
+        name: 'Anh Minh - Hà Nội',
+        quote: 'Đấu giá pin ở EVN rất minh bạch, có lịch sử giá rõ ràng và thanh toán an toàn.',
+      ),
+      const _TestimonialData(
+        name: 'Chị Hương - TP.HCM',
+        quote: 'Mình bán pin khá nhanh, đội hỗ trợ phản hồi tốt và quy trình xác minh rất yên tâm.',
+      ),
+    ];
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(20, 36, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Khách hàng nói gì?',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.grey900,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Phản hồi thực tế từ cộng đồng EVN Market trên toàn quốc',
+            style: TextStyle(fontSize: 14, color: AppTheme.grey500),
+          ),
+          const SizedBox(height: 16),
+          ...testimonials.map((item) => _TestimonialCard(data: item)),
+        ],
+      ),
+    );
+  }
+}
+
+class _TestimonialData {
+  final String name;
+  final String quote;
+
+  const _TestimonialData({required this.name, required this.quote});
+}
+
+class _TestimonialCard extends StatelessWidget {
+  final _TestimonialData data;
+  const _TestimonialCard({required this.data});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.lightBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: List.generate(
+              5,
+              (i) => const Padding(
+                padding: EdgeInsets.only(right: 2),
+                child: Icon(Icons.star_rounded, size: 16, color: AppTheme.warning),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            data.quote,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.55,
+              color: AppTheme.grey700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            data.name,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.grey900,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1255,7 +1561,7 @@ class _GlowCircle extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: opacity),
+        color: AppTheme.primaryGreen.withValues(alpha: opacity),
       ),
     );
   }
@@ -1265,7 +1571,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.04)
+      ..color = AppTheme.primaryGreen.withValues(alpha: 0.06)
       ..strokeWidth = 1;
 
     const spacing = 40.0;

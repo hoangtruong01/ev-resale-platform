@@ -89,15 +89,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             height: double.infinity,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF003D1F),
-                  AppTheme.primaryDark,
-                  AppTheme.primaryGreen,
-                  Color(0xFF4CAF50),
+                  Color(0xFFEFFCF3),
+                  Colors.white,
+                  Color(0xFFFFF7ED),
                 ],
-                stops: [0.0, 0.3, 0.7, 1.0],
+                stops: [0.0, 0.52, 1.0],
               ),
             ),
           ),
@@ -116,7 +115,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       onPressed: () => context.pop(),
                       icon: const Icon(
                         Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white,
+                        color: AppTheme.grey900,
                       ),
                     ),
                   ),
@@ -130,8 +129,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       'Tạo tài khoản',
                       style: TextStyle(
                         fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.accentOrange,
                         letterSpacing: -1,
                       ),
                     ),
@@ -139,11 +138,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(
+                    child: const Text(
                       'Bắt đầu mua bán pin xe điện an toàn và thuận tiện',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: AppTheme.grey600,
                       ),
                     ),
                   ),
@@ -155,13 +154,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppTheme.grey200),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 30,
-                          offset: const Offset(0, 15),
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -170,11 +169,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          const Text(
+                            'Họ và tên',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           AppTextField(
                             controller: _fullNameCtrl,
-                            label: 'Họ và tên',
                             hint: 'Nhập họ và tên',
                             prefixIcon: Icons.person_outline,
+                            forceLightStyle: true,
                             validator: (v) {
                               if (v == null || v.isEmpty)
                                 return 'Nhập họ và tên';
@@ -184,11 +191,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          const Text(
+                            'Email',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           AppTextField(
                             controller: _emailCtrl,
-                            label: 'Email',
                             hint: 'email@example.com',
                             prefixIcon: Icons.email_outlined,
+                            forceLightStyle: true,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.isEmpty) return 'Nhập email';
@@ -198,11 +213,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          const Text(
+                            'Số điện thoại',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           AppTextField(
                             controller: _phoneCtrl,
-                            label: 'Số điện thoại',
                             hint: '09xxxxxxx',
                             prefixIcon: Icons.phone_outlined,
+                            forceLightStyle: true,
                             keyboardType: TextInputType.phone,
                             validator: (v) {
                               if (v == null || v.isEmpty)
@@ -217,11 +240,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          const Text(
+                            'Mật khẩu',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           AppTextField(
                             controller: _passwordCtrl,
-                            label: 'Mật khẩu',
                             hint: '••••••••',
                             prefixIcon: Icons.lock_outline,
+                            forceLightStyle: true,
                             obscureText: _obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -245,11 +276,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          const Text(
+                            'Xác nhận mật khẩu',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           AppTextField(
                             controller: _confirmCtrl,
-                            label: 'Xác nhận mật khẩu',
                             hint: '••••••••',
                             prefixIcon: Icons.lock_outline,
+                            forceLightStyle: true,
                             obscureText: _obscureConfirm,
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -347,9 +386,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     children: [
                       Text(
                         'Đã có tài khoản? ',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                        style: const TextStyle(color: AppTheme.grey600),
                       ),
                       GestureDetector(
                         onTap: () => context.pop(),
