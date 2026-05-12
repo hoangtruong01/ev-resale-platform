@@ -24,7 +24,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
           configService.get<string>('JWT_SECRET') ||
           'evn-market-dev-jwt-secret',
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '7d',
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '7d') as any,
         },
       }),
     }),

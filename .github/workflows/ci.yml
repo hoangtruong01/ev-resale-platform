@@ -92,6 +92,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
         
+      - name: Create .env file
+        run: cp .env.example .env
+
       - name: Analyze code
         run: flutter analyze
         continue-on-error: true # Suppress failures from warnings to keep CI green while onboarding

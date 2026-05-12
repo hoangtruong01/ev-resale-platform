@@ -232,7 +232,7 @@ export class TransactionsController {
   }
 
   private resolveUserId(req: Request) {
-    const user = req.user as { sub?: string; id?: string } | undefined;
+    const user = req.user as any;
     const userId = user?.sub ?? user?.id;
     if (!userId) {
       throw new UnauthorizedException('Không tìm thấy thông tin người dùng');

@@ -54,9 +54,7 @@ export class PaymentMethodsController {
   }
 
   private resolveUserId(req: Request): string {
-    const user = req.user as
-      | { id?: string; userId?: string; sub?: string }
-      | undefined;
+    const user = req.user as any;
     const userId = user?.userId || user?.sub || user?.id;
     if (!userId) {
       throw new UnauthorizedException('Không xác định được người dùng.');
