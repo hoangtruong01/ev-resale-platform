@@ -35,9 +35,22 @@ export class VehiclesService {
       price: createVehicleDto.price,
     });
 
-    const dataWithApproval = {
-      ...createVehicleDto,
-      sellerId,
+    const dataWithApproval: Prisma.VehicleCreateInput = {
+      name: createVehicleDto.name,
+      brand: createVehicleDto.brand,
+      model: createVehicleDto.model,
+      year: createVehicleDto.year,
+      price: createVehicleDto.price,
+      mileage: createVehicleDto.mileage,
+      condition: createVehicleDto.condition,
+      description: createVehicleDto.description,
+      images: createVehicleDto.images,
+      location: createVehicleDto.location,
+      color: createVehicleDto.color,
+      transmission: createVehicleDto.transmission,
+      seatCount: createVehicleDto.seatCount,
+      hasWarranty: createVehicleDto.hasWarranty,
+      seller: { connect: { id: sellerId } },
       spamScore: moderationResult.score,
       spamReasons: moderationResult.reasons.length
         ? moderationResult.reasons
@@ -45,7 +58,7 @@ export class VehiclesService {
       isSpamSuspicious: moderationResult.flagged,
       spamCheckedAt: new Date(),
       approvalStatus: APPROVAL_STATUS.PENDING,
-    } as any;
+    };
 
     return this.prisma.vehicle.create({
       data: dataWithApproval,
@@ -179,7 +192,7 @@ export class VehiclesService {
       };
     } catch (error) {
       console.error('Failed to fetch vehicles list', {
-        error,
+        error: error instanceof Error ? error.message : String(error),
         filters: {
           page,
           limit,
@@ -293,7 +306,11 @@ export class VehiclesService {
     return vehicle;
   }
 
-  async update(id: string, updateVehicleDto: UpdateVehicleDto) {
+  async update(
+    id: string,
+    updateVehicleDto: UpdateVehicleDto,
+    sellerId: string,
+  ) {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id },
       select: {
@@ -311,6 +328,12 @@ export class VehiclesService {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
     }
 
+    if (vehicle.sellerId !== sellerId) {
+      throw new UnauthorizedException(
+        'You do not have permission to update this vehicle',
+      );
+    }
+
     const moderationResult = await this.moderation.analyzeVehicle({
       name: updateVehicleDto.name ?? vehicle.name,
       brand: updateVehicleDto.brand ?? vehicle.brand,
@@ -319,20 +342,23 @@ export class VehiclesService {
       price: updateVehicleDto.price ?? Number(vehicle.price),
     });
 
-    const { sellerId: _ignoredSellerId, ...safeUpdates } =
-      updateVehicleDto as Record<string, unknown>;
+    const safeUpdates = updateVehicleDto as Record<string, unknown>;
+    // Ensure we don't accidentally update the sellerId
+    delete safeUpdates.sellerId;
+
+    const data: Prisma.VehicleUpdateInput = {
+      ...(safeUpdates as Omit<UpdateVehicleDto, 'sellerId'>),
+      spamScore: moderationResult.score,
+      spamReasons: moderationResult.reasons.length
+        ? moderationResult.reasons
+        : undefined,
+      isSpamSuspicious: moderationResult.flagged,
+      spamCheckedAt: new Date(),
+    };
 
     return this.prisma.vehicle.update({
       where: { id },
-      data: {
-        ...(safeUpdates as Omit<UpdateVehicleDto, 'sellerId'>),
-        spamScore: moderationResult.score,
-        spamReasons: moderationResult.reasons.length
-          ? moderationResult.reasons
-          : undefined,
-        isSpamSuspicious: moderationResult.flagged,
-        spamCheckedAt: new Date(),
-      },
+      data,
       include: {
         seller: {
           select: {
@@ -346,13 +372,19 @@ export class VehiclesService {
     });
   }
 
-  async remove(id: string) {
+  async remove(id: string, sellerId: string) {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id },
     });
 
     if (!vehicle) {
       throw new NotFoundException(`Vehicle with ID ${id} not found`);
+    }
+
+    if (vehicle.sellerId !== sellerId) {
+      throw new UnauthorizedException(
+        'You do not have permission to delete this vehicle',
+      );
     }
 
     return this.prisma.vehicle.update({
@@ -374,10 +406,10 @@ export class VehiclesService {
         approvalStatus: APPROVAL_STATUS.APPROVED,
         approvalNotes: notes,
         approvedAt: new Date(),
-        approvedById: adminId,
+        approvedBy: adminId ? { connect: { id: adminId } } : undefined,
         isActive: true,
         status: VehicleStatus.AVAILABLE,
-      } as any,
+      },
     });
   }
 
@@ -394,9 +426,9 @@ export class VehiclesService {
         approvalStatus: APPROVAL_STATUS.REJECTED,
         approvalNotes: reason,
         approvedAt: new Date(),
-        approvedById: adminId,
+        approvedBy: adminId ? { connect: { id: adminId } } : undefined,
         isActive: false,
-      } as any,
+      },
     });
   }
 
@@ -417,9 +449,9 @@ export class VehiclesService {
         approvalStatus: APPROVAL_STATUS.REJECTED,
         approvalNotes: reason,
         approvedAt: new Date(),
-        approvedById: adminId,
+        approvedBy: adminId ? { connect: { id: adminId } } : undefined,
         isActive: false,
-      } as any,
+      },
     });
   }
 
@@ -436,7 +468,7 @@ export class VehiclesService {
         isVerified: true,
         verifiedAt: new Date(),
         verifiedById: adminId,
-      } as any,
+      },
     });
   }
 
@@ -453,7 +485,7 @@ export class VehiclesService {
         isVerified: false,
         verifiedAt: null,
         verifiedById: adminId ?? null,
-      } as any,
+      },
     });
   }
 }

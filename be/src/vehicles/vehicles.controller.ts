@@ -124,16 +124,16 @@ export class VehiclesController {
       return Number.isFinite(numeric) ? numeric : undefined;
     };
 
-    const safePage = parseNumber(page) ?? 1;
-    const safeLimit = parseNumber(limit) ?? 10;
+    const safePage = parseNumber(page as string | number) ?? 1;
+    const safeLimit = parseNumber(limit as string | number) ?? 10;
 
     return this.vehiclesService.findAll({
       page: safePage,
       limit: safeLimit,
       brand,
-      minPrice: parseNumber(minPrice),
-      maxPrice: parseNumber(maxPrice),
-      year: parseNumber(year),
+      minPrice: parseNumber(minPrice as string | number),
+      maxPrice: parseNumber(maxPrice as string | number),
+      year: parseNumber(year as string | number),
       location,
       approvalStatus,
     });
@@ -189,18 +189,32 @@ export class VehiclesController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update vehicle' })
   @ApiResponse({ status: 200, description: 'Vehicle updated successfully' })
   @ApiResponse({ status: 404, description: 'Vehicle not found' })
-  update(@Param('id') id: string, @Body() updateVehicleDto: UpdateVehicleDto) {
-    return this.vehiclesService.update(id, updateVehicleDto);
+  @ApiResponse({ status: 403, description: 'Forbidden - Not the owner' })
+  update(
+    @Param('id') id: string,
+    @Body() updateVehicleDto: UpdateVehicleDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.vehiclesService.update(
+      id,
+      updateVehicleDto,
+      requireSellerId(req),
+    );
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete vehicle' })
   @ApiResponse({ status: 200, description: 'Vehicle deleted successfully' })
   @ApiResponse({ status: 404, description: 'Vehicle not found' })
-  remove(@Param('id') id: string) {
-    return this.vehiclesService.remove(id);
+  @ApiResponse({ status: 403, description: 'Forbidden - Not the owner' })
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.vehiclesService.remove(id, requireSellerId(req));
   }
 }

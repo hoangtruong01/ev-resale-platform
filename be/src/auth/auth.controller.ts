@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
-
 import {
   Controller,
   Post,
@@ -61,6 +59,15 @@ class AuthResponseDto {
   access_token: string;
   refresh_token: string;
   requiresProfileCompletion: boolean;
+}
+
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id?: string;
+    sub: string;
+    email: string;
+    role: string;
+  };
 }
 
 @ApiTags('Auth')
@@ -248,13 +255,17 @@ export class AuthController {
     description: 'Handle Google OAuth callback and redirect to frontend',
   })
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Req() req, @Res() res: Response) {
-    const { access_token, user } = this.authService.login(req.user);
+  googleAuthRedirect(@Req() req: AuthenticatedRequest, @Res() res: Response) {
+    const user = req.user;
+    if (!user) {
+      throw new BadRequestException('Google authentication failed');
+    }
+    const { access_token, user: loggedInUser } = this.authService.login(user);
 
     // Redirect to frontend with token
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:3001';
     res.redirect(
-      `${frontendUrl}/auth/callback?token=${access_token}&user=${encodeURIComponent(JSON.stringify(user))}`,
+      `${frontendUrl}/auth/callback?token=${access_token}&user=${encodeURIComponent(JSON.stringify(loggedInUser))}`,
     );
   }
 
@@ -274,13 +285,17 @@ export class AuthController {
     description: 'Handle Facebook OAuth callback and redirect to frontend',
   })
   @UseGuards(AuthGuard('facebook'))
-  facebookAuthRedirect(@Req() req, @Res() res: Response) {
-    const { access_token, user } = this.authService.login(req.user);
+  facebookAuthRedirect(@Req() req: AuthenticatedRequest, @Res() res: Response) {
+    const user = req.user;
+    if (!user) {
+      throw new BadRequestException('Facebook authentication failed');
+    }
+    const { access_token, user: loggedInUser } = this.authService.login(user);
 
     // Redirect to frontend with token
     const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:3001';
     res.redirect(
-      `${frontendUrl}/auth/callback?token=${access_token}&user=${encodeURIComponent(JSON.stringify(user))}`,
+      `${frontendUrl}/auth/callback?token=${access_token}&user=${encodeURIComponent(JSON.stringify(loggedInUser))}`,
     );
   }
 
@@ -292,9 +307,11 @@ export class AuthController {
   @ApiBody({ type: CompleteProfileDto })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  async completeProfile(@Body() profileData: CompleteProfileDto, @Req() req) {
-    const authReq = req as { user?: { id?: string } };
-    const userId = authReq.user?.id;
+  async completeProfile(
+    @Body() profileData: CompleteProfileDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.id;
     if (!userId) {
       throw new BadRequestException('Missing authenticated user id');
     }
@@ -308,7 +325,7 @@ export class AuthController {
     description: 'Get authenticated user profile information',
   })
   @UseGuards(JwtAuthGuard)
-  getProfile(@Req() req) {
+  getProfile(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
   @Delete('users/:id')

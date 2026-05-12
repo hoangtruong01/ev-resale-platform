@@ -31,7 +31,7 @@ export class IotGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
 
-    const data = client.data as { userId?: string };
+    const data = client.data as Record<string, unknown>;
     data.userId = userId;
     this.logger.log(`Client connected to IoT: ${client.id}`);
   }
@@ -58,7 +58,7 @@ export class IotGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { event: 'unsubscribed', data: room };
   }
 
-  broadcastTelemetry(batteryId: string, data: any) {
+  broadcastTelemetry(batteryId: string, data: unknown) {
     const room = `battery:${batteryId}`;
     this.server.to(room).emit('battery:telemetry', data);
   }
@@ -102,7 +102,7 @@ export class IotGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private readSocketUserId(client: Socket): string | undefined {
-    const data = client.data as { userId?: string };
-    return data.userId;
+    const data = client.data as Record<string, unknown>;
+    return data.userId as string | undefined;
   }
 }

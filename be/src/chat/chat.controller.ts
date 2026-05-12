@@ -10,6 +10,7 @@ import {
   ValidationPipe,
   BadRequestException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChatService } from './chat.service';
 import { CreateRoomDto } from './dto/create-room.dto';
@@ -23,12 +24,23 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id?: string;
+    sub: string;
+    email: string;
+    role: string;
+  };
+}
+
 @ApiTags('Chat')
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post('rooms')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get or create a chat room' })
   createRoom(@Body() dto: CreateRoomDto) {
     return this.chatService.getOrCreateRoom(dto);
@@ -38,7 +50,7 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'List chat rooms for a user' })
-  async listRooms(@Req() req: any) {
+  async listRooms(@Req() req: AuthenticatedRequest) {
     const userId = req.user?.id ?? req.user?.sub;
     if (!userId) {
       throw new BadRequestException('User identity is required.');
@@ -93,10 +105,13 @@ export class ChatController {
   @ApiBody({ type: ProposeContractDto })
   async proposeContract(
     @Param('roomId') roomId: string,
-    @Req() req: any,
+    @Req() req: AuthenticatedRequest,
     @Body(new ValidationPipe({ whitelist: true })) dto: ProposeContractDto,
   ) {
     const proposerId = req.user?.id ?? req.user?.sub;
+    if (!proposerId) {
+      throw new BadRequestException('User identity is required.');
+    }
     return this.chatService.proposeContract(roomId, proposerId, dto);
   }
 }

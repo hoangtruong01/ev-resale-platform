@@ -1,6 +1,6 @@
+@import './admin-theme.css';
 /* Admin Dashboard Common Styles */
 /* Import admin theme variables */
-@import './admin-theme.css';
 
 /* Reset and base styles */
 * {
