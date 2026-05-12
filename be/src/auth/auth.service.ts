@@ -178,7 +178,7 @@ export class AuthService {
       refresh_token: this.jwtService.sign(payload as any, {
         secret: this.getRefreshSecret(),
         expiresIn: this.getRefreshExpiresIn(),
-      }),
+      } as any),
       user: {
         id: user.id,
         email: user.email,
