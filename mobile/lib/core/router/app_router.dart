@@ -165,6 +165,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final name = state.uri.queryParameters['name'] ?? 'Giám sát Pin';
               return BatteryMonitorScreen(batteryId: id, batteryName: name);
             },
+          ),
           GoRoute(
             path: '/transactions',
             builder: (context, state) => const TransactionListScreen(),
