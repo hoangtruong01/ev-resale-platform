@@ -27,6 +27,9 @@ import '../../features/notifications/screens/notifications_screen.dart';
 import '../../widgets/main_shell.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/batteries/screens/battery_monitor_screen.dart';
+import '../../features/transactions/screens/transaction_list_screen.dart';
+import '../../features/support/screens/support_screen.dart';
+import '../../features/compare/screens/compare_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
@@ -162,6 +165,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               final name = state.uri.queryParameters['name'] ?? 'Giám sát Pin';
               return BatteryMonitorScreen(batteryId: id, batteryName: name);
             },
+          GoRoute(
+            path: '/transactions',
+            builder: (context, state) => const TransactionListScreen(),
+          ),
+          GoRoute(
+            path: '/support',
+            builder: (context, state) => const SupportScreen(),
+          ),
+          GoRoute(
+            path: '/compare',
+            builder: (context, state) => const CompareScreen(),
           ),
         ],
       ),

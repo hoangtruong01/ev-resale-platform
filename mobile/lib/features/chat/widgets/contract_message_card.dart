@@ -398,8 +398,27 @@ class _PaymentButton extends StatefulWidget {
   State<_PaymentButton> createState() => _PaymentButtonState();
 }
 
-class _PaymentButtonState extends State<_PaymentButton> {
+class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObserver {
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      widget.onPaid(); // This invalidates the provider to fetch the latest status
+    }
+  }
 
   Future<void> _startPayment(BuildContext context, WidgetRef ref) async {
     setState(() => _isLoading = true);

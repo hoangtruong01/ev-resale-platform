@@ -1,10 +1,10 @@
 # Frontend Dockerfile
-FROM node:18-alpine
+FROM node:20.19-alpine
 
 WORKDIR /app
 
 # Install yarn
-RUN npm install -g yarn
+RUN npm install -g yarn --force
 
 # Copy package files
 COPY package.json yarn.lock* ./

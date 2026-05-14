@@ -31,6 +31,8 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
 
   bool _hasWarranty = false;
   bool _isSubmitting = false;
+  bool _isSuggestingPrice = false;
+  double? _lastSuggestedPrice;
   final List<File> _images = [];
   final _picker = ImagePicker();
 
@@ -114,6 +116,60 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
     }
   }
 
+  Future<void> _suggestPrice() async {
+    final brand = _brandCtrl.text.trim();
+    final model = _modelCtrl.text.trim();
+    final year = int.tryParse(_yearCtrl.text.trim());
+    final condition = _conditionCtrl.text.trim();
+
+    if (brand.isEmpty || model.isEmpty || year == null || condition.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng nhập hãng, dòng xe, năm và tình trạng để gợi ý giá.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSuggestingPrice = true);
+
+    try {
+      final service = ref.read(vehicleServiceProvider);
+      final response = await service.suggestPrice(
+        brand: brand,
+        model: model,
+        year: year,
+        condition: condition,
+      );
+      final suggested = response['suggestedPrice'];
+
+      if (suggested is num) {
+        final priceValue = suggested.round();
+        _priceCtrl.text = priceValue.toString();
+        _lastSuggestedPrice = priceValue.toDouble();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gợi ý giá: ${priceValue.toString()} VNĐ')),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Không lấy được giá gợi ý.')),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi gợi ý giá: $error')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSuggestingPrice = false);
+      }
+    }
+  }
+
   String _buildDescription() {
     final phone = _phoneCtrl.text.trim();
     final email = _emailCtrl.text.trim();
@@ -171,6 +227,29 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _isSuggestingPrice ? null : _suggestPrice,
+                      icon: const Icon(Icons.auto_fix_high_outlined, size: 18),
+                      label: Text(
+                        _isSuggestingPrice
+                            ? 'Đang gợi ý...'
+                            : 'Gợi ý giá từ AI',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (_lastSuggestedPrice != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Giá gợi ý gần nhất: ${_lastSuggestedPrice!.toStringAsFixed(0)} VNĐ',
+                  style: const TextStyle(color: AppTheme.grey600, fontSize: 12),
+                ),
+              ],
               const SizedBox(height: 12),
               TextFormField(
                 controller: _brandCtrl,

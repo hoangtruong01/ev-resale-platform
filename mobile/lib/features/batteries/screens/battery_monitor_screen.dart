@@ -58,6 +58,9 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
           .setTransports(['websocket'])
           .setAuth({'token': accessToken})
           .disableAutoConnect()
+          .enableReconnection()
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(5000)
           .build(),
     );
 

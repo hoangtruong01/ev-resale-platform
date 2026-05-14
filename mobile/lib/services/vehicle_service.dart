@@ -73,6 +73,21 @@ class VehicleService {
     await _dio.delete('/vehicles/$id');
   }
 
+  Future<Map<String, dynamic>> suggestPrice({
+    required String brand,
+    required String model,
+    required int year,
+    required String condition,
+  }) async {
+    final response = await _dio.get('/vehicles/suggest-price', queryParameters: {
+      'brand': brand,
+      'model': model,
+      'year': year,
+      'condition': condition,
+    });
+    return response.data;
+  }
+
   Future<List<String>> uploadListingImages(List<File> files) async {
     if (files.isEmpty) {
       return [];

@@ -105,6 +105,9 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
           .setTransports(['websocket'])
           .setAuth({'token': accessToken})
           .disableAutoConnect()
+          .enableReconnection()
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(5000)
           .build(),
     );
 

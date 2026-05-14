@@ -33,9 +33,12 @@ final dioProvider = Provider<Dio>((ref) {
 class AuthInterceptor extends Interceptor {
   static const _storage = FlutterSecureStorage();
   static Future<String?>? _refreshingTokenFuture;
+  static bool _isSessionExpired = false;
   final Ref _ref;
 
   AuthInterceptor(this._ref);
+
+  static void resetSessionExpiration() => _isSessionExpired = false;
 
   @override
   void onRequest(
@@ -89,8 +92,11 @@ class AuthInterceptor extends Interceptor {
         }
       }
 
-      await _storage.deleteAll();
-      _ref.read(sessionExpiredTickProvider.notifier).state++;
+      if (!_isSessionExpired) {
+        _isSessionExpired = true;
+        await _storage.deleteAll();
+        _ref.read(sessionExpiredTickProvider.notifier).state++;
+      }
     }
 
     handler.next(err);
