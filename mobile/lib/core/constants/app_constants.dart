@@ -19,8 +19,13 @@ class AppConstants {
       return 'http://localhost:3000/api';
     }
 
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000/api';
+    try {
+      if (Platform.isAndroid) {
+        return 'http://10.0.2.2:3000/api';
+      }
+    } catch (_) {
+      // Platform might throw on web even if guarded by kIsWeb in some versions, 
+      // but usually kIsWeb is enough. Added try-catch for extra safety.
     }
 
     return 'http://localhost:3000/api';

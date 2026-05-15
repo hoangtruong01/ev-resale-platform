@@ -1,6 +1,7 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/network/dio_client.dart';
 import '../models/vehicle_model.dart';
 
@@ -73,17 +74,40 @@ class VehicleService {
     await _dio.delete('/vehicles/$id');
   }
 
-  Future<List<String>> uploadListingImages(List<File> files) async {
+  Future<Map<String, dynamic>> suggestPrice({
+    required String brand,
+    required String model,
+    required int year,
+    required String condition,
+  }) async {
+    final response = await _dio.get('/vehicles/suggest-price', queryParameters: {
+      'brand': brand,
+      'model': model,
+      'year': year,
+      'condition': condition,
+    });
+    return response.data;
+  }
+
+  Future<List<String>> uploadListingImages(List<XFile> files) async {
     if (files.isEmpty) {
       return [];
     }
 
     final formData = FormData();
     for (final file in files) {
-      formData.files.add(MapEntry(
-        'files',
-        await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
-      ));
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        formData.files.add(MapEntry(
+          'files',
+          MultipartFile.fromBytes(bytes, filename: file.name),
+        ));
+      } else {
+        formData.files.add(MapEntry(
+          'files',
+          await MultipartFile.fromFile(file.path, filename: file.name),
+        ));
+      }
     }
 
     final response = await _dio.post('/uploads/listing-images', data: formData);

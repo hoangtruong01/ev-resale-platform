@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
@@ -398,18 +399,45 @@ class _PaymentButton extends StatefulWidget {
   State<_PaymentButton> createState() => _PaymentButtonState();
 }
 
-class _PaymentButtonState extends State<_PaymentButton> {
+class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObserver {
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      widget.onPaid(); // This invalidates the provider to fetch the latest status
+    }
+  }
 
   Future<void> _startPayment(BuildContext context, WidgetRef ref) async {
     setState(() => _isLoading = true);
     try {
       final dio = ref.read(dioProvider);
+      
+      // Determine return URL based on platform
+      String? returnUrl;
+      if (kIsWeb) {
+        returnUrl = Uri.base.toString();
+      }
+
       final res = await dio.post(
         '/payments/vnpay/create-url',
         data: {
           'transactionId': widget.transactionId,
           'paymentType': widget.paymentType,
+          if (returnUrl != null) 'returnUrl': returnUrl,
         },
       );
       
@@ -417,11 +445,15 @@ class _PaymentButtonState extends State<_PaymentButton> {
       if (paymentUrl != null) {
         final uri = Uri.parse(paymentUrl);
         if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          // On Web, stay in the same tab if possible, or open new
+          await launchUrl(
+            uri, 
+            mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication
+          );
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Vui lòng hoàn tất thanh toán trên trình duyệt và quay lại ứng dụng.'),
+                content: Text('Vui lòng hoàn tất thanh toán và quay lại ứng dụng.'),
                 duration: Duration(seconds: 10),
               ),
             );

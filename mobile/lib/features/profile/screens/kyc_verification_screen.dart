@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -34,9 +35,9 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
 
   String _idType = 'CCCD';
   DateTime? _issueDate;
-  File? _frontImage;
-  File? _backImage;
-  File? _faceImage;
+  XFile? _frontImage;
+  XFile? _backImage;
+  XFile? _faceImage;
   bool _isSubmitting = false;
   String? _errorMsg;
   String? _successMsg;
@@ -58,11 +59,10 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
       maxWidth: 1024,
     );
     if (picked == null) return;
-    final file = File(picked.path);
     setState(() {
-      if (slot == 'front') _frontImage = file;
-      if (slot == 'back') _backImage = file;
-      if (slot == 'face') _faceImage = file;
+      if (slot == 'front') _frontImage = picked;
+      if (slot == 'back') _backImage = picked;
+      if (slot == 'face') _faceImage = picked;
     });
   }
 
@@ -81,6 +81,26 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
 
     try {
       final dio = ref.read(dioProvider);
+      
+      final List<MultipartFile> imageFiles = [];
+      
+      Future<MultipartFile> toMultipart(XFile file, String name) async {
+        if (kIsWeb) {
+          final bytes = await file.readAsBytes();
+          return MultipartFile.fromBytes(bytes, filename: name);
+        } else {
+          return await MultipartFile.fromFile(file.path, filename: name);
+        }
+      }
+
+      imageFiles.add(await toMultipart(_frontImage!, 'front.jpg'));
+      if (_backImage != null) {
+        imageFiles.add(await toMultipart(_backImage!, 'back.jpg'));
+      }
+      if (_faceImage != null) {
+        imageFiles.add(await toMultipart(_faceImage!, 'face.jpg'));
+      }
+
       final formData = FormData.fromMap({
         'idNumber': _idNumberCtrl.text.trim(),
         'idType': _idType,
@@ -91,22 +111,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
             ? _issuePlaceCtrl.text.trim()
             : null,
         if (_issueDate != null) 'idIssueDate': _issueDate!.toIso8601String(),
-        'images': [
-          await MultipartFile.fromFile(
-            _frontImage!.path,
-            filename: 'front.jpg',
-          ),
-          if (_backImage != null)
-            await MultipartFile.fromFile(
-              _backImage!.path,
-              filename: 'back.jpg',
-            ),
-          if (_faceImage != null)
-            await MultipartFile.fromFile(
-              _faceImage!.path,
-              filename: 'face.jpg',
-            ),
-        ],
+        'images': imageFiles,
       });
 
       await dio.post('/users/kyc/submit', data: formData);
@@ -121,6 +126,11 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
     } on DioException catch (e) {
       setState(() {
         _errorMsg = parseApiError(e);
+        _isSubmitting = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMsg = 'Có lỗi xảy ra: $e';
         _isSubmitting = false;
       });
     }
@@ -163,7 +173,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                color: AppTheme.primaryGreen.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -204,7 +214,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppTheme.warning.withValues(alpha: 0.1),
+                color: AppTheme.warning.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -375,10 +385,10 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.error.withValues(alpha: 0.08),
+                  color: AppTheme.error.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.error.withValues(alpha: 0.25),
+                    color: AppTheme.error.withOpacity(0.25),
                   ),
                 ),
                 child: Row(
@@ -405,10 +415,10 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withValues(alpha: 0.08),
+                  color: AppTheme.success.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.success.withValues(alpha: 0.25),
+                    color: AppTheme.success.withOpacity(0.25),
                   ),
                 ),
                 child: Row(
@@ -496,12 +506,12 @@ class _InfoBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.info.withValues(alpha: 0.08),
-            AppTheme.primaryGreen.withValues(alpha: 0.06),
+            AppTheme.info.withOpacity(0.08),
+            AppTheme.primaryGreen.withOpacity(0.06),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.info.withValues(alpha: 0.2)),
+        border: Border.all(color: AppTheme.info.withOpacity(0.2)),
       ),
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,7 +574,7 @@ class _SectionLabel extends StatelessWidget {
 
 class _ImagePickerCard extends StatelessWidget {
   final String label;
-  final File? image;
+  final XFile? image;
   final IconData icon;
   final VoidCallback onTap;
   final bool fullWidth;
@@ -592,7 +602,7 @@ class _ImagePickerCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
@@ -603,12 +613,19 @@ class _ImagePickerCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: Image.file(
-                      image!,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    child: kIsWeb
+                        ? Image.network(
+                            image!.path,
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(image!.path),
+                            width: double.infinity,
+                            height: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   Positioned(
                     bottom: 6,

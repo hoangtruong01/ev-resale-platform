@@ -58,12 +58,42 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
           .setTransports(['websocket'])
           .setAuth({'token': accessToken})
           .disableAutoConnect()
+          .enableReconnection()
+          .setReconnectionDelay(2000)
+          .setReconnectionDelayMax(5000)
           .build(),
     );
 
     _socket!.on('connect', (_) {
-      setState(() => _connected = true);
+      if (mounted) {
+        setState(() => _connected = true);
+      }
       _socket!.emit('subscribeBattery', widget.batteryId);
+    });
+
+    _socket!.on('connect_error', (data) async {
+      debugPrint('Socket connect_error: $data');
+      if (mounted) {
+        setState(() => _connected = false);
+      }
+      
+      // If error is related to authentication (common in some IO versions)
+      // or if we suspect token expired, we could try to re-init with new token
+      if (data.toString().contains('Unauthorized') || data.toString().contains('401')) {
+         debugPrint('Socket unauthorized, attempting token refresh...');
+         // The DioClient handles token refreshing in its interceptor, 
+         // but for Socket we need to manually trigger or wait for a refresh.
+         // A simple approach is to wait a bit and re-init.
+         await Future.delayed(const Duration(seconds: 2));
+         if (mounted) _initSocket();
+      }
+    });
+
+    _socket!.on('error', (data) {
+      debugPrint('Socket error: $data');
+      if (mounted) {
+        setState(() => _connected = false);
+      }
     });
 
     _socket!.on('battery:telemetry', (data) {
@@ -87,7 +117,9 @@ class _BatteryMonitorScreenState extends ConsumerState<BatteryMonitorScreen> {
     });
 
     _socket!.on('disconnect', (_) {
-      setState(() => _connected = false);
+      if (mounted) {
+        setState(() => _connected = false);
+      }
     });
 
     _socket!.connect();

@@ -1,10 +1,14 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/dio_client.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../services/auction_service.dart';
 
 class CreateAuctionScreen extends ConsumerStatefulWidget {
   const CreateAuctionScreen({super.key});
@@ -31,7 +35,9 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
   final _locationController = TextEditingController();
   final _contactPhoneController = TextEditingController();
   final _contactEmailController = TextEditingController();
-  final _imageUrlsController = TextEditingController();
+
+  final List<XFile> _images = [];
+  final _picker = ImagePicker();
 
   String _itemType = 'BATTERY';
   DateTime? _startTime;
@@ -54,8 +60,15 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
     _locationController.dispose();
     _contactPhoneController.dispose();
     _contactEmailController.dispose();
-    _imageUrlsController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    final picked = await _picker.pickMultiImage(imageQuality: 80);
+    if (picked.isEmpty) return;
+    setState(() {
+      _images.addAll(picked);
+    });
   }
 
   Future<void> _pickDateTime({required bool isStart}) async {
@@ -107,16 +120,6 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
     return double.tryParse(normalized);
   }
 
-  List<String>? _parseImageUrls(String raw) {
-    final items = raw
-        .split(RegExp(r'\r?\n|,'))
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (items.isEmpty) return null;
-    return items;
-  }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -144,41 +147,50 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
       return;
     }
 
-    final payload = <String, dynamic>{
-      'title': _titleController.text.trim(),
-      'description': _descriptionController.text.trim().isEmpty
-          ? null
-          : _descriptionController.text.trim(),
-      'startingPrice': startingPrice,
-      'bidStep': bidStep,
-      'buyNowPrice': _parseDouble(_buyNowPriceController.text),
-      'startTime': _startTime!.toIso8601String(),
-      'endTime': _endTime!.toIso8601String(),
-      'itemType': _itemType,
-      'lotQuantity': lotQuantity,
-      'itemBrand': _itemBrandController.text.trim().isEmpty
-          ? null
-          : _itemBrandController.text.trim(),
-      'itemModel': _itemModelController.text.trim().isEmpty
-          ? null
-          : _itemModelController.text.trim(),
-      'itemYear': _parseInt(_itemYearController.text),
-      'itemCapacity': _parseInt(_itemCapacityController.text),
-      'itemCondition': _parseInt(_itemConditionController.text),
-      'location': _locationController.text.trim(),
-      'contactPhone': _contactPhoneController.text.trim(),
-      'contactEmail': _contactEmailController.text.trim().isEmpty
-          ? null
-          : _contactEmailController.text.trim(),
-      'imageUrls': _parseImageUrls(_imageUrlsController.text),
-    };
-
-    payload.removeWhere((key, value) => value == null);
-
     setState(() => _isSubmitting = true);
+
     try {
-      final dio = ref.read(dioProvider);
-      await dio.post('/auctions', data: payload);
+      final auctionService = ref.read(auctionServiceProvider);
+      
+      // Upload images first
+      List<String> imageUrls = [];
+      if (_images.isNotEmpty) {
+        imageUrls = await auctionService.uploadListingImages(_images);
+      }
+
+      final payload = <String, dynamic>{
+        'title': _titleController.text.trim(),
+        'description': _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+        'startingPrice': startingPrice,
+        'bidStep': bidStep,
+        'buyNowPrice': _parseDouble(_buyNowPriceController.text),
+        'startTime': _startTime!.toIso8601String(),
+        'endTime': _endTime!.toIso8601String(),
+        'itemType': _itemType,
+        'lotQuantity': lotQuantity,
+        'itemBrand': _itemBrandController.text.trim().isEmpty
+            ? null
+            : _itemBrandController.text.trim(),
+        'itemModel': _itemModelController.text.trim().isEmpty
+            ? null
+            : _itemModelController.text.trim(),
+        'itemYear': _parseInt(_itemYearController.text),
+        'itemCapacity': _parseInt(_itemCapacityController.text),
+        'itemCondition': _parseInt(_itemConditionController.text),
+        'location': _locationController.text.trim(),
+        'contactPhone': _contactPhoneController.text.trim(),
+        'contactEmail': _contactEmailController.text.trim().isEmpty
+            ? null
+            : _contactEmailController.text.trim(),
+        'imageUrls': imageUrls,
+      };
+
+      payload.removeWhere((key, value) => value == null);
+
+      await auctionService.createAuction(payload);
+      
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Tạo đấu giá thành công, đang chờ duyệt.')),
@@ -188,6 +200,11 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(parseApiError(e))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Có lỗi xảy ra: $e')),
       );
     } finally {
       if (mounted) {
@@ -378,12 +395,65 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
               _contactEmailController,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              'Danh sách URL ảnh',
-              _imageUrlsController,
-              maxLines: 3,
-              hint: 'Mỗi URL một dòng hoặc phân tách bằng dấu phẩy',
+            const SizedBox(height: 16),
+            const Text(
+              'Hình ảnh sản phẩm',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ..._images.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final file = entry.value;
+                  return Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: kIsWeb
+                            ? Image.network(
+                                file.path,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.file(
+                                File(file.path),
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                      Positioned(
+                        top: -8,
+                        right: -8,
+                        child: IconButton(
+                          icon: const Icon(Icons.cancel, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _images.removeAt(index);
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+                InkWell(
+                  onTap: _isSubmitting ? null : _pickImages,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppTheme.grey300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.add_a_photo_outlined, color: AppTheme.grey500),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -392,12 +462,13 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.gavel_rounded),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               label: Text(_isSubmitting ? 'Đang gửi...' : 'Tạo đấu giá'),
             ),

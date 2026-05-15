@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,7 +28,7 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
   String? _category;
   String? _condition;
   bool _isSubmitting = false;
-  final List<File> _images = [];
+  final List<XFile> _images = [];
 
   final _picker = ImagePicker();
 
@@ -49,7 +50,7 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
     if (picked.isEmpty) return;
 
     setState(() {
-      _images.addAll(picked.map((file) => File(file.path)));
+      _images.addAll(picked);
     });
   }
 
@@ -250,12 +251,19 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                   ..._images.map(
                     (file) => ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        file,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
+                      child: kIsWeb 
+                        ? Image.network(
+                            file.path,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(file.path),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
                     ),
                   ),
                   InkWell(

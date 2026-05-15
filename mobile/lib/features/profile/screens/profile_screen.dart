@@ -318,14 +318,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.receipt_long_outlined,
                         label: 'Lịch sử giao dịch',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => DashboardOrdersScreen(
-                              ordersAsync: ordersAsync,
-                            ),
-                          ),
-                        ),
+                        onTap: () => context.push('/transactions'),
                       ),
                       _MenuItem(
                         icon: Icons.favorite_outline,
@@ -355,7 +348,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.help_outline,
                         label: 'Trung tâm hỗ trợ',
-                        onTap: () => context.push('/chat'),
+                        onTap: () => context.push('/support'),
                       ),
                       _MenuItem(
                         icon: Icons.policy_outlined,

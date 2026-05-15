@@ -193,6 +193,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       key: 'refresh_token', value: response.refreshToken);
     await _storage.write(
         key: 'user_data', value: jsonEncode(response.user.toJson()));
+    AuthInterceptor.resetSessionExpiration();
   }
 }
 

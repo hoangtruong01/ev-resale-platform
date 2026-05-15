@@ -1,5 +1,5 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM node:20.19-alpine
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
