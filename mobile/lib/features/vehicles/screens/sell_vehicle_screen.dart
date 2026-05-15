@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -33,7 +34,7 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
   bool _isSubmitting = false;
   bool _isSuggestingPrice = false;
   double? _lastSuggestedPrice;
-  final List<File> _images = [];
+  final List<XFile> _images = [];
   final _picker = ImagePicker();
 
   @override
@@ -60,7 +61,7 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
     if (picked.isEmpty) return;
 
     setState(() {
-      _images.addAll(picked.map((file) => File(file.path)));
+      _images.addAll(picked);
     });
   }
 
@@ -372,12 +373,19 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                   ..._images.map(
                     (file) => ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(
-                        file,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
+                      child: kIsWeb 
+                        ? Image.network(
+                            file.path,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(file.path),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
                     ),
                   ),
                   InkWell(
