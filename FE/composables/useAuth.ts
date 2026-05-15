@@ -24,6 +24,12 @@ interface LoginResponse {
   requiresProfileCompletion?: boolean;
 }
 
+type LoginMode = "any" | "user" | "admin";
+
+interface LoginOptions {
+  mode?: LoginMode;
+}
+
 export const useAuth = () => {
   const token = useCookie<string | null>("auth-token", {
     default: () => null,
@@ -80,10 +86,30 @@ export const useAuth = () => {
 
   const currentUser = computed(() => user.value || null);
 
-  const login = async (credentials: LoginCredentials) => {
+  const login = async (
+    credentials: LoginCredentials,
+    options: LoginOptions = {},
+  ) => {
     try {
       const { post } = useApi();
       const response = await post<LoginResponse>("/auth/login", credentials);
+      const mode = options.mode ?? "any";
+      const role = response.user?.role || "";
+
+      if (mode === "admin" && role !== "ADMIN") {
+        return {
+          success: false,
+          error:
+            "Tài khoản này không phải admin. Vui lòng dùng tài khoản quản trị.",
+        };
+      }
+
+      if (mode === "user" && role === "ADMIN") {
+        return {
+          success: false,
+          error: "Vui lòng đăng nhập tại cổng quản trị.",
+        };
+      }
 
       user.value = {
         ...response.user,
