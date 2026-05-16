@@ -133,13 +133,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AuctionListScreen(),
           ),
           GoRoute(
+            path: '/auctions/create',
+            builder: (context, state) => const CreateAuctionScreen(),
+          ),
+          GoRoute(
             path: '/auctions/:id',
             builder: (context, state) =>
                 AuctionDetailScreen(id: state.pathParameters['id']!),
-          ),
-          GoRoute(
-            path: '/auctions/create',
-            builder: (context, state) => const CreateAuctionScreen(),
           ),
           GoRoute(
             path: '/chat',

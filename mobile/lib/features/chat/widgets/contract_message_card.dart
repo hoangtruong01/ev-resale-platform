@@ -36,10 +36,10 @@ class ContractMessageCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryGreen.withOpacity(0.08),
+            color: AppTheme.primaryGreen.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -53,8 +53,8 @@ class ContractMessageCard extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primaryGreen.withOpacity(0.1),
-                  AppTheme.primaryDark.withOpacity(0.06),
+                  AppTheme.primaryGreen.withValues(alpha: 0.1),
+                  AppTheme.primaryDark.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius:
@@ -216,9 +216,9 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
@@ -275,7 +275,7 @@ class _CompletedBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.success.withOpacity(0.08),
+        color: AppTheme.success.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Row(
@@ -451,7 +451,7 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
             mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication
           );
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(this.context).showSnackBar(
               const SnackBar(
                 content: Text('Vui lòng hoàn tất thanh toán và quay lại ứng dụng.'),
                 duration: Duration(seconds: 10),
@@ -462,7 +462,7 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
       }
     } on DioException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(this.context).showSnackBar(
           SnackBar(
             content: Text(parseApiError(e)),
             backgroundColor: AppTheme.error,

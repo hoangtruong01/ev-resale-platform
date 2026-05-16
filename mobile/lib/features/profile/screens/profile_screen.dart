@@ -32,7 +32,6 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final overviewAsync = ref.watch(dashboardOverviewProvider);
-    final ordersAsync = ref.watch(dashboardOrdersProvider);
     final favoritesAsync = ref.watch(dashboardFavoritesProvider);
 
     final overview = overviewAsync.maybeWhen(
@@ -170,7 +169,7 @@ class ProfileScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: AppTheme.grey200),
                       boxShadow: [
@@ -762,7 +761,7 @@ class _MenuSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppTheme.grey200),
         boxShadow: [

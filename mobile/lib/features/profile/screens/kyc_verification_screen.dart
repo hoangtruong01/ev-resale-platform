@@ -173,7 +173,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppTheme.primaryGreen.withOpacity(0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -214,7 +214,7 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                color: AppTheme.warning.withOpacity(0.1),
+                color: AppTheme.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -385,10 +385,10 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.error.withOpacity(0.08),
+                  color: AppTheme.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.error.withOpacity(0.25),
+                    color: AppTheme.error.withValues(alpha: 0.25),
                   ),
                 ),
                 child: Row(
@@ -415,10 +415,10 @@ class _KycVerificationScreenState extends ConsumerState<KycVerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withOpacity(0.08),
+                  color: AppTheme.success.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: AppTheme.success.withOpacity(0.25),
+                    color: AppTheme.success.withValues(alpha: 0.25),
                   ),
                 ),
                 child: Row(
@@ -506,12 +506,12 @@ class _InfoBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppTheme.info.withOpacity(0.08),
-            AppTheme.primaryGreen.withOpacity(0.06),
+            AppTheme.info.withValues(alpha: 0.08),
+            AppTheme.primaryGreen.withValues(alpha: 0.06),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.info.withOpacity(0.2)),
+        border: Border.all(color: AppTheme.info.withValues(alpha: 0.2)),
       ),
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -602,7 +602,7 @@ class _ImagePickerCard extends StatelessWidget {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 3),
             ),
