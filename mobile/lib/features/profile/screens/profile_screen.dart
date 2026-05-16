@@ -11,6 +11,9 @@ import '../../../models/user_model.dart';
 import '../../../widgets/app_network_image.dart';
 import 'kyc_verification_screen.dart';
 import '../../admin/screens/kyc_management_screen.dart';
+import '../../admin/screens/admin_analytics_screen.dart';
+import 'payment_methods_screen.dart';
+import 'terms_policy_screen.dart';
 
 final dashboardOverviewProvider = FutureProvider<DashboardOverviewData>((ref) {
   return ref.read(dashboardServiceProvider).getOverview();
@@ -336,6 +339,16 @@ class ProfileScreen extends ConsumerWidget {
                         label: 'Lịch sử đấu giá',
                         onTap: () => context.go('/auctions'),
                       ),
+                      _MenuItem(
+                        icon: Icons.payment_outlined,
+                        label: 'Phương thức thanh toán',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PaymentMethodsScreen(),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
 
@@ -352,9 +365,10 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.policy_outlined,
                         label: 'Điều khoản & Chính sách',
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Vui lòng xem điều khoản trên website.'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TermsPolicyScreen(),
                           ),
                         ),
                       ),
@@ -391,7 +405,12 @@ class ProfileScreen extends ConsumerWidget {
                         _MenuItem(
                           icon: Icons.analytics_outlined,
                           label: 'Thống kê hệ thống',
-                          onTap: () => context.go('/'),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AdminAnalyticsScreen(),
+                            ),
+                          ),
                         ),
                       ],
                     ),
