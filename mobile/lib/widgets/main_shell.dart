@@ -8,11 +8,11 @@ class MainShell extends StatelessWidget {
 
   int _getSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/batteries')) return 1;
-    if (location.startsWith('/accessories')) return 1;
-    if (location.startsWith('/vehicles')) return 1;
-    if (location.startsWith('/auctions')) return 2;
-    if (location.startsWith('/sell')) return 3;
+    if (location.startsWith('/auctions')) return 1;
+    if (location.startsWith('/sell')) return 2;
+    if (location.startsWith('/chat') || location.startsWith('/support')) {
+      return 3;
+    }
     if (location.startsWith('/profile')) return 4;
     return 0; // home
   }
@@ -22,66 +22,32 @@ class MainShell extends StatelessWidget {
     final selectedIndex = _getSelectedIndex(context);
     return Scaffold(
       body: child,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppTheme.darkSurface
-              : Colors.white,
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 20,
-              offset: Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Trang chủ',
-                  isSelected: selectedIndex == 0,
-                  onTap: () => context.go('/'),
-                ),
-                _NavItem(
-                  icon: Icons.grid_view_outlined,
-                  activeIcon: Icons.grid_view_rounded,
-                  label: 'Danh mục',
-                  isSelected: selectedIndex == 1,
-                  onTap: () => context.go('/batteries'),
-                ),
-                _NavItem(
-                  icon: Icons.gavel_outlined,
-                  activeIcon: Icons.gavel_rounded,
-                  label: 'Đấu giá',
-                  isSelected: selectedIndex == 2,
-                  onTap: () => context.go('/auctions'),
-                ),
-                _NavItem(
-                  icon: Icons.add_circle_outline,
-                  activeIcon: Icons.add_circle,
-                  label: 'Đăng bán',
-                  isSelected: selectedIndex == 3,
-                  onTap: () => _showPostMenu(context),
-                ),
-                _NavItem(
-                  icon: Icons.person_outline,
-                  activeIcon: Icons.person_rounded,
-                  label: 'Tài khoản',
-                  isSelected: selectedIndex == 4,
-                  onTap: () => context.go('/profile'),
-                ),
-              ],
-            ),
-          ),
-        ),
+      extendBody: true,
+      bottomNavigationBar: _BottomNavBar(
+        selectedIndex: selectedIndex,
+        onTap: (index) => _onNavTap(context, index),
       ),
     );
+  }
+
+  void _onNavTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/');
+        break;
+      case 1:
+        context.go('/auctions');
+        break;
+      case 2:
+        _showPostMenu(context);
+        break;
+      case 3:
+        context.go('/support');
+        break;
+      case 4:
+        context.go('/profile');
+        break;
+    }
   }
 
   void _showPostMenu(BuildContext context) {
@@ -105,7 +71,7 @@ class MainShell extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Đăng bán',
+              'Đăng tin',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
@@ -149,6 +115,123 @@ class MainShell extends StatelessWidget {
   }
 }
 
+class _BottomNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
+
+  const _BottomNavBar({required this.selectedIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+        border: Border(
+          top: BorderSide(color: AppTheme.grey200.withValues(alpha: 0.5)),
+        ),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Trang chủ',
+                isSelected: selectedIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              _NavItem(
+                icon: Icons.gavel_outlined,
+                activeIcon: Icons.gavel_rounded,
+                label: 'Đấu giá',
+                isSelected: selectedIndex == 1,
+                onTap: () => onTap(1),
+              ),
+              // Center FAB - Đăng tin
+              _CenterPostButton(
+                isSelected: selectedIndex == 2,
+                onTap: () => onTap(2),
+              ),
+              _NavItem(
+                icon: Icons.headset_mic_outlined,
+                activeIcon: Icons.headset_mic_rounded,
+                label: 'Liên hệ',
+                isSelected: selectedIndex == 3,
+                onTap: () => onTap(3),
+              ),
+              _NavItem(
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Tài khoản',
+                isSelected: selectedIndex == 4,
+                onTap: () => onTap(4),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CenterPostButton extends StatelessWidget {
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CenterPostButton({required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.primaryGreen, AppTheme.primaryDark],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Đăng tin',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.primaryGreen,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
@@ -169,29 +252,31 @@ class _NavItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: Icon(
-              isSelected ? activeIcon : icon,
-              key: ValueKey(isSelected),
-              color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
-              size: 24,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey(isSelected),
+                color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
+                size: 24,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight:
-                  isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
