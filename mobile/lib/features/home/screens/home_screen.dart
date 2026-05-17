@@ -1271,19 +1271,17 @@ class _PressableScaleState extends State<PressableScale> {
 class _FeatureCard extends StatelessWidget {
   final _HomeFeature feature;
   final AppLocalizations l10n;
-  final double? width;
   final bool compact;
   const _FeatureCard({
     required this.feature,
     required this.l10n,
-    this.width,
     this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width ?? (MediaQuery.of(context).size.width - 52) / 2,
+      width: (MediaQuery.of(context).size.width - 52) / 2,
       padding: EdgeInsets.all(compact ? 10 : 14),
       decoration: BoxDecoration(
         color: Colors.white,

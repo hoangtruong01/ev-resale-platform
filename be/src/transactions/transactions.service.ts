@@ -992,12 +992,26 @@ export class TransactionsService {
       );
     }
 
-    if (transaction.chatRoom.buyerId !== userId) {
+    if (transaction.sellerId !== userId && transaction.chatRoom.buyerId !== userId) {
       throw new ForbiddenException('Bạn không có quyền xử lý giao dịch này');
     }
 
-    if (transaction.buyerRespondedAt) {
-      throw new BadRequestException('Bạn đã phản hồi giao dịch này');
+    // Determine who proposed the contract from the system message
+    const lastContractMessage = await this.prisma.chatMessage.findFirst({
+      where: {
+        roomId: transaction.chatRoom.id,
+        metadata: { path: ['transactionId'], equals: id },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const proposerId = (lastContractMessage?.metadata as any)?.proposedBy;
+    if (proposerId === userId) {
+      throw new BadRequestException('Bạn không thể tự phản hồi đề nghị của chính mình.');
+    }
+
+    if (transaction.buyerRespondedAt || transaction.status !== TransactionStatus.PENDING) {
+      throw new BadRequestException('Đề nghị này đã được xử lý hoặc không còn hiệu lực.');
     }
 
     const buyerAccepted = action === 'accept';

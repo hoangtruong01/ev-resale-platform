@@ -43,11 +43,10 @@ class AppTheme {
         secondary: accentOrange,
         surface: Colors.white,
         onSurface: grey900,
-        background: lightBg,
       ),
       scaffoldBackgroundColor: lightBg,
       fontFamily: 'BeVietnamPro',
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         elevation: 0,
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -169,7 +168,6 @@ class AppTheme {
         secondary: accentOrange,
         surface: darkSurface,
         onSurface: Colors.white,
-        background: darkBg,
       ),
       scaffoldBackgroundColor: darkBg,
       fontFamily: 'BeVietnamPro',

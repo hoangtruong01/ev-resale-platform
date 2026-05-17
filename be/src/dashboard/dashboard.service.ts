@@ -64,12 +64,7 @@ interface RawFavoriteRow {
   batteryLocation?: string | null;
   auctionTitle?: string | null;
   auctionPrice?: string | number | null;
-  auctionVehicleId?: string | null;
-  auctionVehicleImages?: string[] | null;
-  auctionVehicleLocation?: string | null;
-  auctionBatteryId?: string | null;
-  auctionBatteryImages?: string[] | null;
-  auctionBatteryLocation?: string | null;
+  auctionLocation?: string | null;
 }
 
 export interface DashboardOverview {
@@ -144,17 +139,14 @@ export class DashboardService {
       itemType: FAVORITE_TYPES.AUCTION,
       title: auction?.title || 'Phiên đấu giá',
       price: auction?.currentPrice ? Number(auction.currentPrice) : 0,
-      thumbnail:
-        auction?.vehicle?.images?.[0] || auction?.battery?.images?.[0] || null,
-      location:
-        auction?.vehicle?.location || auction?.battery?.location || null,
+      thumbnail: auction?.media?.[0]?.url || null,
+      location: auction?.location || null,
       sourceId: auction?.id || favorite.auctionId || null,
     } satisfies DashboardFavorite;
   }
 
   private async ensureFavoriteSupport(): Promise<FavoriteSupportMode> {
     if (this.favoriteModel) {
-      await this.ensureFavoriteSchema();
       this.favoriteSupportMode = 'model';
       return 'model';
     }
@@ -267,18 +259,11 @@ export class DashboardService {
         b."location" AS "batteryLocation",
         a."title" AS "auctionTitle",
         a."currentPrice" AS "auctionPrice",
-        a."vehicleId" AS "auctionVehicleId",
-        av."images" AS "auctionVehicleImages",
-        av."location" AS "auctionVehicleLocation",
-        a."batteryId" AS "auctionBatteryId",
-        ab."images" AS "auctionBatteryImages",
-        ab."location" AS "auctionBatteryLocation"
+        a."location" AS "auctionLocation"
       FROM "public"."favorites" f
       LEFT JOIN "public"."vehicles" v ON v."id" = f."vehicleId"
       LEFT JOIN "public"."batteries" b ON b."id" = f."batteryId"
       LEFT JOIN "public"."auctions" a ON a."id" = f."auctionId"
-      LEFT JOIN "public"."vehicles" av ON av."id" = a."vehicleId"
-      LEFT JOIN "public"."batteries" ab ON ab."id" = a."batteryId"
       WHERE ${whereClause}
       ORDER BY f."createdAt" DESC
       ${limitClause}
@@ -316,20 +301,7 @@ export class DashboardService {
             id: row.auctionId,
             title: row.auctionTitle,
             currentPrice: row.auctionPrice ?? 0,
-            vehicle: row.auctionVehicleId
-              ? {
-                  id: row.auctionVehicleId,
-                  images: row.auctionVehicleImages ?? [],
-                  location: row.auctionVehicleLocation ?? null,
-                }
-              : null,
-            battery: row.auctionBatteryId
-              ? {
-                  id: row.auctionBatteryId,
-                  images: row.auctionBatteryImages ?? [],
-                  location: row.auctionBatteryLocation ?? null,
-                }
-              : null,
+            location: row.auctionLocation ?? null,
           }
         : null,
     };
@@ -639,26 +611,37 @@ export class DashboardService {
     const favoriteModel = this.favoriteModel;
 
     if (supportMode === 'model' && favoriteModel) {
-      const favorites = await favoriteModel.findMany({
-        where: { userId },
-        include: {
-          vehicle: true,
-          battery: true,
-          auction: {
-            include: {
-              vehicle: true,
-              battery: true,
+      try {
+        const favorites = await favoriteModel.findMany({
+          where: { userId },
+          include: {
+            vehicle: true,
+            battery: true,
+            auction: {
+              include: {
+                media: true,
+              },
             },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+          orderBy: { createdAt: 'desc' },
+        });
 
-      const favoriteItems = favorites.map((favorite) =>
-        this.mapFavoriteRecord(favorite),
-      );
+        const favoriteItems = favorites.map((favorite) =>
+          this.mapFavoriteRecord(favorite),
+        );
 
-      return { favorites: favoriteItems };
+        return { favorites: favoriteItems };
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          (error.code === 'P2021' || error.code === 'P2022')
+        ) {
+          const favorites = await this.listFavoritesRaw(userId);
+          return { favorites };
+        }
+
+        throw error;
+      }
     }
 
     const favorites = await this.listFavoritesRaw(userId);
@@ -707,8 +690,7 @@ export class DashboardService {
         battery: true,
         auction: {
           include: {
-            vehicle: true,
-            battery: true,
+            media: true,
           },
         },
       },
@@ -738,8 +720,7 @@ export class DashboardService {
           battery: true,
           auction: {
             include: {
-              vehicle: true,
-              battery: true,
+              media: true,
             },
           },
         },

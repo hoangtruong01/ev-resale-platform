@@ -183,9 +183,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             prefixIcon: Icons.person_outline,
                             forceLightStyle: true,
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Nhập họ và tên';
-                              if (v.length < 2) return 'Tên quá ngắn';
+                              }
+                              if (v.length < 2) {
+                                return 'Tên quá ngắn';
+                              }
                               return null;
                             },
                           ),
@@ -206,8 +209,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             forceLightStyle: true,
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Nhập email';
-                              if (!v.contains('@')) return 'Email không hợp lệ';
+                              if (v == null || v.isEmpty) {
+                                return 'Nhập email';
+                              }
+                              if (!v.contains('@')) {
+                                return 'Email không hợp lệ';
+                              }
                               return null;
                             },
                           ),
@@ -228,8 +235,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             forceLightStyle: true,
                             keyboardType: TextInputType.phone,
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Nhập số điện thoại';
+                              }
                               if (!RegExp(
                                 r'^(0|\+84)[3-9]\d{8}$',
                               ).hasMatch(v)) {
@@ -267,10 +275,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Nhập mật khẩu';
-                              if (v.length < 6)
+                              }
+                              if (v.length < 6) {
                                 return 'Mật khẩu ít nhất 6 ký tự';
+                              }
                               return null;
                             },
                           ),
@@ -303,10 +313,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Xác nhận mật khẩu';
-                              if (v != _passwordCtrl.text)
+                              }
+                              if (v != _passwordCtrl.text) {
                                 return 'Mật khẩu không khớp';
+                              }
                               return null;
                             },
                           ),

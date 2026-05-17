@@ -16,17 +16,22 @@
       <div class="text-center mb-8">
         <div class="flex items-center justify-center gap-2 mb-4">
           <span class="text-3xl">⚡</span>
-          <NuxtLink
-            to="/"
+          <button
+            type="button"
             class="text-3xl font-bold text-gray-300 hover:text-green-600 transition-colors cursor-pointer"
+            @click="handleLogoTap"
           >
             EVN Market
-          </NuxtLink>
+          </button>
         </div>
         <h2 class="text-orange-500 text-2xl font-semibold mb-2">
-          {{ $t("login") }}
+          {{ isAdminLogin ? "Đăng nhập quản trị" : $t("login") }}
         </h2>
-        <p class="text-gray-600">{{ $t("welcome_back") }}</p>
+        <p class="text-gray-600">
+          {{
+            isAdminLogin ? "Khu vực dành cho quản trị viên" : $t("welcome_back")
+          }}
+        </p>
       </div>
 
       <!-- Login Form -->
@@ -94,6 +99,12 @@
           </p>
         </div>
 
+        <div v-if="isAdminLogin" class="mt-4 text-center">
+          <NuxtLink to="/login" class="text-sm text-gray-600 hover:underline">
+            Quay lại đăng nhập người dùng
+          </NuxtLink>
+        </div>
+
         <!-- Social Login -->
         <div class="mt-6">
           <div class="relative">
@@ -149,12 +160,39 @@ useHead({
 
 // Get route for redirect handling
 const route = useRoute();
+const isAdminLogin = computed(
+  () => route.query.admin === "1" || route.query.admin === "true",
+);
+
+const tapCount = ref(0);
+const lastTapAt = ref(0);
+
+const handleLogoTap = async () => {
+  if (isAdminLogin.value) {
+    return;
+  }
+
+  const now = Date.now();
+  if (now - lastTapAt.value > 1200) {
+    tapCount.value = 0;
+  }
+  lastTapAt.value = now;
+  tapCount.value += 1;
+
+  if (tapCount.value >= 5) {
+    tapCount.value = 0;
+    await navigateTo({ path: "/login", query: { admin: "1" } });
+  }
+};
 
 // Handle login
 const handleLogin = async () => {
   try {
     loginError.value = "";
-    const result = await login({ email: form.email, password: form.password });
+    const result = await login(
+      { email: form.email, password: form.password },
+      { mode: isAdminLogin.value ? "admin" : "user" },
+    );
 
     if (!result.success) {
       throw new Error(result.error || "Đăng nhập thất bại");

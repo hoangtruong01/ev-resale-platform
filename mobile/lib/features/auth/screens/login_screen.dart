@@ -222,10 +222,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty)
+                              if (v == null || v.isEmpty) {
                                 return 'Nhập mật khẩu';
-                              if (v.length < 6)
+                              }
+                              if (v.length < 6) {
                                 return 'Mật khẩu ít nhất 6 ký tự';
+                              }
                               return null;
                             },
                           ),

@@ -39,6 +39,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (!mounted) return;
     final authState = await ref.read(authStateProvider.future);
     final isAuthenticated = authState.isAuthenticated;
+    if (!mounted) return;
     if (isAuthenticated) {
       context.go('/');
     } else {
@@ -85,7 +86,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
+                            color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 30,
                             offset: const Offset(0, 10),
                           ),
@@ -112,7 +113,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       'Sàn giao dịch pin xe điện cũ',
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white.withOpacity(0.85),
+                        color: Colors.white.withValues(alpha: 0.85),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -123,7 +124,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.white.withOpacity(0.7),
+                          Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ),

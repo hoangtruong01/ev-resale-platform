@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -44,7 +45,7 @@ export class DashboardController {
     const userId = request.user?.id ?? request.user?.sub;
 
     if (!userId) {
-      throw new Error('Không xác định được người dùng');
+      throw new UnauthorizedException('Không xác định được người dùng');
     }
 
     return userId;

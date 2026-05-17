@@ -59,7 +59,7 @@ class TransactionListScreen extends ConsumerWidget {
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
                     child: const Icon(Icons.receipt_long, color: AppTheme.primaryGreen),
                   ),
                   title: Text(

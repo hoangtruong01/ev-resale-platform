@@ -36,10 +36,10 @@ class ContractMessageCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryGreen.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryGreen.withOpacity(0.08),
+            color: AppTheme.primaryGreen.withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -53,8 +53,8 @@ class ContractMessageCard extends ConsumerWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primaryGreen.withOpacity(0.1),
-                  AppTheme.primaryDark.withOpacity(0.06),
+                  AppTheme.primaryGreen.withValues(alpha: 0.1),
+                  AppTheme.primaryDark.withValues(alpha: 0.06),
                 ],
               ),
               borderRadius:
@@ -130,10 +130,19 @@ class ContractMessageCard extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                   data: (data) {
-                    final status = data['status'] as String?;
-                    final txStatus = data['transactionStatus'] as String?;
-                    final resolvedTransactionId =
-                        (data['transactionId'] as String?) ?? transactionId;
+                    final proposerId = (data['proposedBy'] as String?) ?? proposedByUserId;
+                    final isProposer = proposerId == currentUserId;
+
+                    if (txStatus == 'PENDING') {
+                      if (isProposer) {
+                        return const _WaitingForResponseBanner();
+                      }
+                      return _RespondButtons(
+                        transactionId: resolvedTransactionId,
+                        contractId: contractId,
+                        onResponded: () => ref.invalidate(_contractStatusProvider(contractId)),
+                      );
+                    }
 
                     if (txStatus == 'AWAITING_DEPOSIT') {
                       return _PaymentButton(
@@ -216,9 +225,9 @@ class _StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         label,
@@ -275,7 +284,7 @@ class _CompletedBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: AppTheme.success.withOpacity(0.08),
+        color: AppTheme.success.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
       ),
       child: const Row(
@@ -451,7 +460,7 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
             mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication
           );
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            ScaffoldMessenger.of(this.context).showSnackBar(
               const SnackBar(
                 content: Text('Vui lòng hoàn tất thanh toán và quay lại ứng dụng.'),
                 duration: Duration(seconds: 10),
@@ -462,7 +471,7 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
       }
     } on DioException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(this.context).showSnackBar(
           SnackBar(
             content: Text(parseApiError(e)),
             backgroundColor: AppTheme.error,
@@ -495,6 +504,99 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
           ),
         ),
       ),
+    );
+  }
+}
+class _WaitingForResponseBanner extends StatelessWidget {
+  const _WaitingForResponseBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.info.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.hourglass_empty_rounded, color: AppTheme.info, size: 18),
+          SizedBox(width: 8),
+          Text(
+            'Đang chờ đối phương phản hồi...',
+            style: TextStyle(color: AppTheme.info, fontWeight: FontWeight.w600, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RespondButtons extends ConsumerStatefulWidget {
+  final String transactionId;
+  final String contractId;
+  final VoidCallback onResponded;
+
+  const _RespondButtons({
+    required this.transactionId,
+    required this.contractId,
+    required this.onResponded,
+  });
+
+  @override
+  ConsumerState<_RespondButtons> createState() => _RespondButtonsState();
+}
+
+class _RespondButtonsState extends ConsumerState<_RespondButtons> {
+  bool _isLoading = false;
+
+  Future<void> _respond(String action) async {
+    setState(() => _isLoading = true);
+    try {
+      final dio = ref.read(dioProvider);
+      await dio.post('/transactions/${widget.transactionId}/respond', data: {'action': action});
+      widget.onResponded();
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(parseApiError(e)), backgroundColor: AppTheme.error),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _isLoading ? null : () => _respond('reject'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.error,
+              side: const BorderSide(color: AppTheme.error),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Từ chối', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : () => _respond('accept'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Chấp nhận', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+          ),
+        ),
+      ],
     );
   }
 }
