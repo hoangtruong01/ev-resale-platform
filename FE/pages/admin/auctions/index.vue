@@ -385,6 +385,63 @@
                 </div>
               </div>
             </template>
+        </UModal>
+
+        <!-- Modal xác nhận dời lịch hoặc chỉnh sửa thời gian khi phát hiện phê duyệt trễ -->
+        <UModal v-model="isRescheduleModalOpen" :ui="{ width: 'sm:max-w-md' }">
+          <UCard>
+            <template #header>
+              <div class="flex items-center gap-2 text-amber-500">
+                <UIcon name="i-heroicons-exclamation-triangle" class="w-6 h-6 text-amber-500" />
+                <h3 class="font-bold text-lg text-amber-600 dark:text-amber-500">Cảnh báo: Phê duyệt trễ!</h3>
+              </div>
+            </template>
+
+            <div class="space-y-4">
+              <p class="text-sm text-gray-600 dark:text-gray-300">
+                Thời gian bắt đầu ban đầu của phiên đấu giá này (<strong>{{ formatDateTime(selectedAuction?.startTime) }}</strong>) đã trôi qua. Vui lòng xác nhận thời gian hoạt động mới để đảm bảo quyền lợi hiển thị của người bán.
+              </p>
+
+              <!-- Đề xuất tịnh tiến tự động -->
+              <div class="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50 space-y-2">
+                <div class="text-xs font-semibold text-amber-800 dark:text-amber-300 uppercase tracking-wider">Hệ thống đề xuất (Tịnh tiến đủ thời lượng):</div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span class="text-gray-500">Bắt đầu mới (Đệm 5p):</span>
+                    <div class="font-medium text-gray-900 dark:text-white">{{ formatDateTime(suggestedTimes.startTime) }}</div>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Kết thúc mới:</span>
+                    <div class="font-medium text-gray-900 dark:text-white">{{ formatDateTime(suggestedTimes.endTime) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lựa chọn cấu hình thủ công hoặc tự động -->
+              <URadioGroup
+                v-model="rescheduleType"
+                :options="[
+                  { label: 'Áp dụng đề xuất tự động của hệ thống', value: 'auto' },
+                  { label: 'Tùy chỉnh thủ công thời gian bắt đầu/kết thúc', value: 'custom' }
+                ]"
+              />
+
+              <div v-if="rescheduleType === 'custom'" class="grid grid-cols-2 gap-4 pt-2">
+                <UFormGroup label="Thời gian bắt đầu mới">
+                  <UInput type="datetime-local" v-model="customReschedule.startTime" />
+                </UFormGroup>
+                <UFormGroup label="Thời gian kết thúc mới">
+                  <UInput type="datetime-local" v-model="customReschedule.endTime" />
+                </UFormGroup>
+              </div>
+            </div>
+
+            <template #footer>
+              <div class="flex justify-end gap-2">
+                <UButton variant="ghost" color="gray" @click="isRescheduleModalOpen = false">Hủy</UButton>
+                <UButton color="amber" :loading="submittingReschedule" @click="confirmApprovalWithReschedule">Xác nhận & Duyệt</UButton>
+              </div>
+            </template>
           </UCard>
         </UModal>
       </div>
@@ -748,6 +805,20 @@ const reviewStates = reactive<Record<string, ReviewDecision>>({});
 const selectedAuction = ref<AuctionListItem | null>(null);
 const isDetailModalOpen = ref(false);
 
+const isRescheduleModalOpen = ref(false);
+const rescheduleType = ref<'auto' | 'custom'>('auto');
+const submittingReschedule = ref(false);
+
+const suggestedTimes = reactive({
+  startTime: new Date(),
+  endTime: new Date()
+});
+
+const customReschedule = reactive({
+  startTime: '',
+  endTime: ''
+});
+
 const getReviewState = (id: string): ReviewDecision => {
   return reviewStates[id] || "pending";
 };
@@ -1006,11 +1077,11 @@ const exportAuctionReport = (auction: AuctionListItem) => {
   );
 };
 
-const approveAuction = async (auction: AuctionListItem) => {
+const proceedApprove = async (auction: AuctionListItem, body: any) => {
   try {
     const updated = await apiRequest<AuctionListItem>(
       `/admin/auctions/${auction.id}/approve`,
-      { method: "PUT", body: {} },
+      { method: "PUT", body },
     );
     reviewStates[auction.id] = "approved";
     if (updated) {
@@ -1019,6 +1090,7 @@ const approveAuction = async (auction: AuctionListItem) => {
       updateLocalAuction(auction.id, {
         status: "ACTIVE",
         approvalStatus: "APPROVED",
+        ...body,
       });
     }
     handleSuccess(
@@ -1029,6 +1101,69 @@ const approveAuction = async (auction: AuctionListItem) => {
   } catch (error: unknown) {
     handleError(error, "Không thể duyệt đấu giá");
   }
+};
+
+const confirmApprovalWithReschedule = async () => {
+  if (!selectedAuction.value) return;
+
+  submittingReschedule.value = true;
+  try {
+    let body: any = {};
+    if (rescheduleType.value === "auto") {
+      body = {
+        startTime: suggestedTimes.startTime.toISOString(),
+        endTime: suggestedTimes.endTime.toISOString(),
+      };
+    } else {
+      body = {
+        startTime: new Date(customReschedule.startTime).toISOString(),
+        endTime: new Date(customReschedule.endTime).toISOString(),
+      };
+    }
+
+    await proceedApprove(selectedAuction.value, body);
+    isRescheduleModalOpen.value = false;
+  } catch (error) {
+    handleError(error, "Không thể duyệt đấu giá đã điều chỉnh");
+  } finally {
+    submittingReschedule.value = false;
+  }
+};
+
+const approveAuction = async (auction: AuctionListItem) => {
+  const startTimeMs = new Date(auction.startTime).getTime();
+  const nowMs = Date.now();
+
+  // Check if admin is approving late (start time has passed or starts in less than 5 minutes)
+  if (startTimeMs <= nowMs + 5 * 60 * 1000) {
+    const originalDurationMs =
+      new Date(auction.endTime).getTime() - startTimeMs;
+
+    suggestedTimes.startTime = new Date(nowMs + 5 * 60 * 1000); // 5 mins buffer
+    suggestedTimes.endTime = new Date(
+      suggestedTimes.startTime.getTime() + originalDurationMs,
+    );
+
+    const toDatetimeLocalString = (date: Date) => {
+      const pad = (num: number) => String(num).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+        date.getDate(),
+      )}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    };
+
+    customReschedule.startTime = toDatetimeLocalString(
+      suggestedTimes.startTime,
+    );
+    customReschedule.endTime = toDatetimeLocalString(suggestedTimes.endTime);
+
+    rescheduleType.value = "auto";
+    selectedAuction.value = auction;
+    isDetailModalOpen.value = false;
+    isRescheduleModalOpen.value = true;
+    return;
+  }
+
+  await proceedApprove(auction, {});
 };
 
 const promptReason = (defaultMessage: string) => {

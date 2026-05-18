@@ -52,6 +52,8 @@ describe('AuctionsService', () => {
       prisma as unknown as PrismaService,
       moderation as unknown as ContentModerationService,
       notifications as unknown as NotificationsService,
+      {} as any,
+      {} as any,
     );
   });
 

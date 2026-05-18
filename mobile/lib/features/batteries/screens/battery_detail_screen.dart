@@ -390,14 +390,16 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
   }
 }
 
-class _BottomBar extends StatelessWidget {
+import '../../../core/network/dio_client.dart';
+
+class _BottomBar extends ConsumerWidget {
   final BatteryModel battery;
   final String? currentUserId;
 
   const _BottomBar({required this.battery, this.currentUserId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isMine = battery.sellerId == currentUserId;
 
     return Container(
@@ -428,9 +430,42 @@ class _BottomBar extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => context.push(
-                      '/chat?sellerId=${battery.sellerId}&batteryId=${battery.id}',
-                    ),
+                    onPressed: () async {
+                      if (currentUserId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Vui lòng đăng nhập để nhắn tin')),
+                        );
+                        return;
+                      }
+                      
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (_) => const Center(
+                          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                        ),
+                      );
+
+                      try {
+                        final dio = ref.read(dioProvider);
+                        final response = await dio.post('/chat/rooms', data: {
+                          'buyerId': currentUserId,
+                          'sellerId': battery.sellerId,
+                          'batteryId': battery.id,
+                        });
+                        Navigator.pop(context); // close loading indicator
+                        
+                        final roomId = response.data['id'];
+                        if (roomId != null) {
+                          context.push('/chat/$roomId');
+                        }
+                      } catch (e) {
+                        Navigator.pop(context); // close loading indicator
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Không thể bắt đầu trò chuyện: $e')),
+                        );
+                      }
+                    },
                     icon: const Icon(Icons.message_outlined),
                     label: const Text('Nhắn tin'),
                   ),

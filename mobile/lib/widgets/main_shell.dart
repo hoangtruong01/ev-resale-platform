@@ -42,7 +42,7 @@ class MainShell extends StatelessWidget {
         _showPostMenu(context);
         break;
       case 3:
-        context.go('/support');
+        context.go('/chat');
         break;
       case 4:
         context.go('/profile');
@@ -71,7 +71,7 @@ class MainShell extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Đăng tin',
+              'Đăng bán',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
@@ -163,9 +163,9 @@ class _BottomNavBar extends StatelessWidget {
                 onTap: () => onTap(2),
               ),
               _NavItem(
-                icon: Icons.headset_mic_outlined,
-                activeIcon: Icons.headset_mic_rounded,
-                label: 'Liên hệ',
+                icon: Icons.chat_bubble_outline_rounded,
+                activeIcon: Icons.chat_bubble_rounded,
+                label: 'Chat',
                 isSelected: selectedIndex == 3,
                 onTap: () => onTap(3),
               ),
@@ -219,7 +219,7 @@ class _CenterPostButton extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           const Text(
-            'Đăng tin',
+            'Đăng bán',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,

@@ -6,7 +6,8 @@ import '../../../services/vehicle_service.dart';
 import '../../../models/vehicle_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
-// import '../../../features/auth/providers/auth_provider.dart';
+import '../../../features/auth/providers/auth_provider.dart';
+import '../../../core/network/dio_client.dart';
 
 final vehicleDetailProvider = FutureProvider.family<VehicleModel, String>((
   ref,
@@ -24,6 +25,115 @@ class VehicleDetailScreen extends ConsumerStatefulWidget {
       _VehicleDetailScreenState();
 }
 
+class _SpecGrid extends StatelessWidget {
+  final VehicleModel vehicle;
+  const _SpecGrid({required this.vehicle});
+
+  @override
+  Widget build(BuildContext context) {
+    final specs = [
+      {
+        'icon': Icons.calendar_today_outlined,
+        'label': 'Năm SX',
+        'value': '${vehicle.year}',
+      },
+      {
+        'icon': Icons.speed_outlined,
+        'label': 'Số km',
+        'value': vehicle.mileage != null
+            ? '${AppUtils.formatNumber(vehicle.mileage)} km'
+            : 'N/A',
+      },
+      {
+        'icon': Icons.settings_outlined,
+        'label': 'Hộp số',
+        'value': vehicle.transmission ?? 'N/A',
+      },
+      {
+        'icon': Icons.palette_outlined,
+        'label': 'Màu sắc',
+        'value': vehicle.color ?? 'N/A',
+      },
+      {
+        'icon': Icons.airline_seat_recline_normal_outlined,
+        'label': 'Số ghế',
+        'value': vehicle.seatCount?.toString() ?? 'N/A',
+      },
+      {
+        'icon': Icons.location_on_outlined,
+        'label': 'Khu vực',
+        'value': vehicle.location,
+      },
+      {
+        'icon': Icons.verified_outlined,
+        'label': 'Bảo hành',
+        'value': vehicle.hasWarranty == true ? 'Có' : 'Không',
+      },
+      {
+        'icon': Icons.info_outline,
+        'label': 'Tình trạng',
+        'value': vehicle.condition,
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 2.5,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: specs.length,
+      itemBuilder: (_, i) {
+        final spec = specs[i];
+        return Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppTheme.grey50,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.grey200),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                spec['icon'] as IconData,
+                size: 18,
+                color: AppTheme.primaryGreen,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      spec['label'] as String,
+                      style: const TextStyle(
+                        color: AppTheme.grey400,
+                        fontSize: 11,
+                      ),
+                    ),
+                    Text(
+                      spec['value'] as String,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
   final _pageController = PageController();
   int _currentImageIndex = 0;
@@ -31,7 +141,7 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final vehicleAsync = ref.watch(vehicleDetailProvider(widget.id));
-    // final currentUser = ref.watch(currentUserProvider);
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       body: vehicleAsync.when(
@@ -233,153 +343,92 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
       ),
       bottomNavigationBar: vehicleAsync.value == null
           ? null
-          : Container(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                MediaQuery.of(context).padding.bottom + 12,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: AppTheme.grey200)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
+          : Builder(
+              builder: (context) {
+                final vehicle = vehicleAsync.value!;
+                final isMine = vehicle.sellerId == currentUser?.id;
+
+                return Container(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    MediaQuery.of(context).padding.bottom + 12,
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.message_outlined),
-                      label: const Text('Nhắn tin'),
-                    ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: AppTheme.grey200)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: vehicleAsync.value!.isAvailable ? () {} : null,
-                      icon: const Icon(Icons.shopping_bag_outlined),
-                      label: const Text('Mua ngay'),
-                    ),
-                  ),
-                ],
-              ),
+                  child: isMine
+                      ? ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Chỉnh sửa tin đăng'),
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  if (currentUser == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Vui lòng đăng nhập để nhắn tin')),
+                                    );
+                                    return;
+                                  }
+
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                      child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                                    ),
+                                  );
+
+                                  try {
+                                    final dio = ref.read(dioProvider);
+                                    final response = await dio.post('/chat/rooms', data: {
+                                      'buyerId': currentUser.id,
+                                      'sellerId': vehicle.sellerId,
+                                      'vehicleId': vehicle.id,
+                                    });
+                                    Navigator.pop(context); // close loading indicator
+
+                                    final roomId = response.data['id'];
+                                    if (roomId != null) {
+                                      context.push('/chat/$roomId');
+                                    }
+                                  } catch (e) {
+                                    Navigator.pop(context); // close loading indicator
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Không thể bắt đầu trò chuyện: $e')),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.message_outlined),
+                                label: const Text('Nhắn tin'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: vehicle.isAvailable ? () {} : null,
+                                icon: const Icon(Icons.shopping_bag_outlined),
+                                label: const Text('Mua ngay'),
+                              ),
+                            ),
+                          ],
+                        ),
+                );
+              },
             ),
-    );
-  }
-}
-
-class _SpecGrid extends StatelessWidget {
-  final VehicleModel vehicle;
-  const _SpecGrid({required this.vehicle});
-
-  @override
-  Widget build(BuildContext context) {
-    final specs = [
-      {
-        'icon': Icons.calendar_today_outlined,
-        'label': 'Năm SX',
-        'value': '${vehicle.year}',
-      },
-      {
-        'icon': Icons.speed_outlined,
-        'label': 'Số km',
-        'value': vehicle.mileage != null
-            ? '${AppUtils.formatNumber(vehicle.mileage)} km'
-            : 'N/A',
-      },
-      {
-        'icon': Icons.settings_outlined,
-        'label': 'Hộp số',
-        'value': vehicle.transmission ?? 'N/A',
-      },
-      {
-        'icon': Icons.palette_outlined,
-        'label': 'Màu sắc',
-        'value': vehicle.color ?? 'N/A',
-      },
-      {
-        'icon': Icons.airline_seat_recline_normal_outlined,
-        'label': 'Số ghế',
-        'value': vehicle.seatCount?.toString() ?? 'N/A',
-      },
-      {
-        'icon': Icons.location_on_outlined,
-        'label': 'Khu vực',
-        'value': vehicle.location,
-      },
-      {
-        'icon': Icons.verified_outlined,
-        'label': 'Bảo hành',
-        'value': vehicle.hasWarranty == true ? 'Có' : 'Không',
-      },
-      {
-        'icon': Icons.info_outline,
-        'label': 'Tình trạng',
-        'value': vehicle.condition,
-      },
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 2.5,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-      ),
-      itemCount: specs.length,
-      itemBuilder: (_, i) {
-        final spec = specs[i];
-        return Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppTheme.grey50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.grey200),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                spec['icon'] as IconData,
-                size: 18,
-                color: AppTheme.primaryGreen,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      spec['label'] as String,
-                      style: const TextStyle(
-                        color: AppTheme.grey400,
-                        fontSize: 11,
-                      ),
-                    ),
-                    Text(
-                      spec['value'] as String,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

@@ -101,6 +101,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // 2. Categories
               SliverToBoxAdapter(child: _buildCategories(context)),
 
+              // 2.5. Sell Banner
+              SliverToBoxAdapter(child: _buildSellBanner(context)),
+
               // 3. Filter tabs
               SliverToBoxAdapter(child: _buildFilterTabs()),
 
@@ -370,6 +373,204 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         delegate: SliverChildBuilderDelegate(
           (context, index) => const ProductCardSkeleton(),
           childCount: 6,
+        ),
+      ),
+    );
+  }
+
+  // ─── SELL BANNER ───
+  Widget _buildSellBanner(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryGreen.withValues(alpha: 0.25),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bạn muốn bán sản phẩm?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Đăng bán pin, xe điện hoặc phụ kiện của bạn dễ dàng với sự hỗ trợ của AI!',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          ElevatedButton(
+            onPressed: () => _showSellSheet(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppTheme.primaryGreen,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add_circle_outline, size: 16),
+                SizedBox(width: 4),
+                Text(
+                  'Đăng bán',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSellSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppTheme.grey200,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Đăng bán sản phẩm',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 20),
+            _SellOption(
+              icon: Icons.battery_charging_full_rounded,
+              title: 'Đăng bán Pin điện',
+              subtitle: 'Pin Lithium, NiMH, ...',
+              color: AppTheme.primaryGreen,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/sell/battery');
+              },
+            ),
+            const SizedBox(height: 12),
+            _SellOption(
+              icon: Icons.electric_car_rounded,
+              title: 'Đăng bán Xe điện',
+              subtitle: 'Xe đạp điện, xe máy điện, ô tô điện',
+              color: AppTheme.accentOrange,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/sell/vehicle');
+              },
+            ),
+            const SizedBox(height: 12),
+            _SellOption(
+              icon: Icons.extension_outlined,
+              title: 'Đăng bán Phụ kiện',
+              subtitle: 'Sạc, lốp, nội thất, điện tử',
+              color: AppTheme.info,
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/sell/accessory');
+              },
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SellOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _SellOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(subtitle,
+                      style: const TextStyle(
+                          color: AppTheme.grey600, fontSize: 13)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios,
+                size: 16, color: AppTheme.grey400),
+          ],
         ),
       ),
     );

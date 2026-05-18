@@ -879,14 +879,27 @@ export class AdminController {
   @Permissions('MODERATE_POSTS')
   @ApiOperation({
     summary: 'Approve auction',
-    description: 'Approve an auction for activation',
+    description: 'Approve an auction for activation, optionally with rescheduled times',
   })
   async approveAuction(
     @Param('id') id: string,
     @Req() req: AdminRequest,
-    @Body() body: { notes?: string } = {},
+    @Body() body: { notes?: string; startTime?: string; endTime?: string } = {},
   ) {
-    return this.auctionsService.approve(id, req.user?.sub, body.notes);
+    const customTimes =
+      body.startTime && body.endTime
+        ? {
+            startTime: new Date(body.startTime),
+            endTime: new Date(body.endTime),
+          }
+        : undefined;
+
+    return this.auctionsService.approve(
+      id,
+      req.user?.sub,
+      body.notes,
+      customTimes,
+    );
   }
 
   @Put('auctions/:id/reject')
