@@ -8,6 +8,7 @@ import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import '../../../core/network/dio_client.dart';
 
 final batteryDetailProvider = FutureProvider.family<BatteryModel, String>((
   ref,
@@ -389,8 +390,6 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
     return AppTheme.error;
   }
 }
-
-import '../../../core/network/dio_client.dart';
 
 class _BottomBar extends ConsumerWidget {
   final BatteryModel battery;

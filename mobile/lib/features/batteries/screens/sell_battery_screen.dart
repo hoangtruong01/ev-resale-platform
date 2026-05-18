@@ -380,8 +380,6 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
-
               // 4. Submit button
               SizedBox(
                 width: double.infinity,
@@ -390,6 +388,7 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                   child: Text(_isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay'),
                 ),
               ),
+              const SizedBox(height: 80), // Spacing for bottom navigation bar
             ],
           ),
         ),
