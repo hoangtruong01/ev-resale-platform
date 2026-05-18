@@ -385,6 +385,7 @@
                 </div>
               </div>
             </template>
+          </UCard>
         </UModal>
 
         <!-- Modal xác nhận dời lịch hoặc chỉnh sửa thời gian khi phát hiện phê duyệt trễ -->
