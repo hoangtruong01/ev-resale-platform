@@ -94,6 +94,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.invalidate(homeVehiclesProvider);
           },
           child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               // 1. Header (status bar safe area included)
               SliverToBoxAdapter(child: _buildHeader(context)),

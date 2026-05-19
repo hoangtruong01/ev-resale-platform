@@ -303,7 +303,7 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                   child: Text(_isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay'),
                 ),
               ),
-              const SizedBox(height: 80), // Spacing for bottom navigation bar
+              const SizedBox(height: 120), // Spacing for bottom navigation bar
             ],
           ),
         ),

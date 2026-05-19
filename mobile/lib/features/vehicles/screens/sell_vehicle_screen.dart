@@ -429,7 +429,7 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                   child: Text(_isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay'),
                 ),
               ),
-              const SizedBox(height: 80), // Spacing for bottom navigation bar
+              const SizedBox(height: 120), // Spacing for bottom navigation bar
             ],
           ),
         ),
