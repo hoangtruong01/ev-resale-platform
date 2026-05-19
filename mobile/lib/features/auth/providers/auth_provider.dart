@@ -55,7 +55,7 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
           lower.contains('unauthorized') ||
           lower.contains('invalid credential') ||
           lower.contains('email hoặc mật khẩu không đúng')) {
-        return 'Email hoặc mật khẩu không đúng';
+        return 'Nhập sai tài khoản hoặc mật khẩu, vui lòng đăng nhập lại';
       }
     }
 

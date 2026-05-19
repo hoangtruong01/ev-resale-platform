@@ -31,30 +31,44 @@ import '../../features/transactions/screens/transaction_list_screen.dart';
 import '../../features/support/screens/support_screen.dart';
 import '../../features/compare/screens/compare_screen.dart';
 
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    _ref.listen(sessionExpiredTickProvider, (_, __) => notifyListeners());
+  }
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    final authState = _ref.read(authStateProvider);
+    final sessionExpiredTick = _ref.read(sessionExpiredTickProvider);
+
+    final isLoggedIn = authState.value?.isAuthenticated ?? false;
+    final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
+        state.matchedLocation == '/splash' ||
+        state.matchedLocation == '/welcome';
+
+    if (sessionExpiredTick > 0 && !isPublicRoute) {
+      return '/auth/login';
+    }
+
+    if (!isLoggedIn && !isPublicRoute) {
+      return '/welcome';
+    }
+    if (isLoggedIn && isPublicRoute && state.matchedLocation != '/splash') {
+      return '/';
+    }
+    return null;
+  }
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final sessionExpiredTick = ref.watch(sessionExpiredTickProvider);
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: '/splash',
-    redirect: (context, state) {
-      final isLoggedIn = authState.value?.isAuthenticated ?? false;
-      final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
-          state.matchedLocation == '/splash' ||
-          state.matchedLocation == '/welcome';
-
-      if (sessionExpiredTick > 0 && !isPublicRoute) {
-        return '/auth/login';
-      }
-
-      if (!isLoggedIn && !isPublicRoute) {
-        return '/welcome';
-      }
-      if (isLoggedIn && isPublicRoute && state.matchedLocation != '/splash') {
-        return '/';
-      }
-      return null;
-    },
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     routes: [
       GoRoute(
         path: '/splash',
