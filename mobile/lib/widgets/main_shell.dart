@@ -11,7 +11,8 @@ class MainShell extends StatelessWidget {
     if (location.startsWith('/batteries')) return 1;
     if (location.startsWith('/accessories')) return 1;
     if (location.startsWith('/vehicles')) return 1;
-    if (location.startsWith('/auctions')) return 2;
+    if (location.startsWith('/ai-chat')) return 2;
+    if (location.startsWith('/auctions')) return 3;
     if (location.startsWith('/sell')) return 3;
     if (location.startsWith('/profile')) return 4;
     return 0; // home
@@ -56,18 +57,18 @@ class MainShell extends StatelessWidget {
                   onTap: () => context.go('/batteries'),
                 ),
                 _NavItem(
+                  icon: Icons.auto_awesome_outlined,
+                  activeIcon: Icons.auto_awesome,
+                  label: 'AI',
+                  isSelected: selectedIndex == 2,
+                  onTap: () => context.go('/ai-chat'),
+                ),
+                _NavItem(
                   icon: Icons.gavel_outlined,
                   activeIcon: Icons.gavel_rounded,
                   label: 'Đấu giá',
-                  isSelected: selectedIndex == 2,
-                  onTap: () => context.go('/auctions'),
-                ),
-                _NavItem(
-                  icon: Icons.add_circle_outline,
-                  activeIcon: Icons.add_circle,
-                  label: 'Đăng bán',
                   isSelected: selectedIndex == 3,
-                  onTap: () => _showPostMenu(context),
+                  onTap: () => context.go('/auctions'),
                 ),
                 _NavItem(
                   icon: Icons.person_outline,
@@ -84,69 +85,6 @@ class MainShell extends StatelessWidget {
     );
   }
 
-  void _showPostMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.grey200,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Đăng bán',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 20),
-            _PostOption(
-              icon: Icons.battery_charging_full_rounded,
-              title: 'Đăng bán Pin điện',
-              subtitle: 'Pin Lithium, NiMH, ...',
-              color: AppTheme.primaryGreen,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/sell/battery');
-              },
-            ),
-            const SizedBox(height: 12),
-            _PostOption(
-              icon: Icons.electric_car_rounded,
-              title: 'Đăng bán Xe điện',
-              subtitle: 'Xe đạp điện, xe máy điện, ô tô điện',
-              color: AppTheme.accentOrange,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/sell/vehicle');
-              },
-            ),
-            const SizedBox(height: 12),
-            _PostOption(
-              icon: Icons.extension_outlined,
-              title: 'Đăng bán Phụ kiện',
-              subtitle: 'Sạc, lốp, nội thất, điện tử',
-              color: AppTheme.info,
-              onTap: () {
-                Navigator.pop(context);
-                context.push('/sell/accessory');
-              },
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _NavItem extends StatelessWidget {
@@ -197,62 +135,3 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _PostOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _PostOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: AppTheme.grey600, fontSize: 13)),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 16, color: AppTheme.grey400),
-          ],
-        ),
-      ),
-    );
-  }
-}

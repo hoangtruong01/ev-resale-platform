@@ -25,6 +25,7 @@ import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { IotModule } from './iot/iot.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { StatsModule } from './stats/stats.module';
     IotModule,
     UploadsModule,
     StatsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
