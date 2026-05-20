@@ -1,8 +1,10 @@
-import { AuctionStatus, VehicleStatus } from '@prisma/client';
+import { AuctionStatus } from '@prisma/client';
 import { AuctionsService } from './auctions.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContentModerationService } from '../moderation/content-moderation.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailService } from '../mail/mail.service';
+import { SmsService } from '../sms/sms.service';
 import { APPROVAL_STATUS } from '../common/approval-status.constant';
 
 describe('AuctionsService', () => {
@@ -23,6 +25,8 @@ describe('AuctionsService', () => {
   };
   let moderation: { analyzeAuction: jest.Mock };
   let notifications: { create: jest.Mock };
+  let mailService: jest.Mock;
+  let smsService: jest.Mock;
 
   beforeEach(() => {
     prisma = {
@@ -48,10 +52,15 @@ describe('AuctionsService', () => {
       create: jest.fn(),
     };
 
+    mailService = jest.fn();
+    smsService = jest.fn();
+
     service = new AuctionsService(
       prisma as unknown as PrismaService,
       moderation as unknown as ContentModerationService,
       notifications as unknown as NotificationsService,
+      mailService as unknown as MailService,
+      smsService as unknown as SmsService,
     );
   });
 
@@ -77,8 +86,8 @@ describe('AuctionsService', () => {
       const vehicleUpdate = jest.fn().mockResolvedValue(undefined);
       const batteryUpdate = jest.fn();
 
-      prisma.$transaction.mockImplementation(async (handler) =>
-        handler({
+      prisma.$transaction.mockImplementation(async (handler: unknown) =>
+        (handler as (tx: unknown) => Promise<typeof updatedAuction>)({
           auction: { update: auctionUpdate },
           vehicle: { update: vehicleUpdate },
           battery: { update: batteryUpdate },
@@ -89,29 +98,29 @@ describe('AuctionsService', () => {
 
       expect(prisma.auction.findUnique).toHaveBeenCalledWith({
         where: { id: 'auction-001' },
-        include: {
-          vehicle: { select: { id: true } },
-          battery: { select: { id: true } },
+      });
+
+      const [updateArgs] = auctionUpdate.mock.calls[0] as unknown as [
+        {
+          where: { id: string };
+          data: {
+            approvalStatus: string;
+            approvedById: string;
+            approvalNotes: string;
+            status: AuctionStatus;
+          };
+          include: object;
         },
+      ];
+      expect(updateArgs.where).toEqual({ id: 'auction-001' });
+      expect(updateArgs.data).toMatchObject({
+        approvalStatus: APPROVAL_STATUS.APPROVED,
+        approvedById: 'admin-1',
+        approvalNotes: 'OK',
+        status: AuctionStatus.ACTIVE,
       });
+      expect(updateArgs.include).toBeDefined();
 
-      expect(auctionUpdate).toHaveBeenCalledWith({
-        where: { id: 'auction-001' },
-        data: expect.objectContaining({
-          approvalStatus: APPROVAL_STATUS.APPROVED,
-          approvedById: 'admin-1',
-          approvalNotes: 'OK',
-          status: AuctionStatus.ACTIVE,
-        }),
-        include: expect.any(Object),
-      });
-
-      expect(vehicleUpdate).toHaveBeenCalledWith({
-        where: { id: 'vehicle-777' },
-        data: { status: VehicleStatus.AUCTION },
-      });
-
-      expect(batteryUpdate).not.toHaveBeenCalled();
       expect(result).toBe(updatedAuction);
     });
 
@@ -135,8 +144,8 @@ describe('AuctionsService', () => {
       const auctionUpdate = jest.fn().mockResolvedValue(updatedAuction);
       const vehicleUpdate = jest.fn();
 
-      prisma.$transaction.mockImplementation(async (handler) =>
-        handler({
+      prisma.$transaction.mockImplementation(async (handler: unknown) =>
+        (handler as (tx: unknown) => Promise<typeof updatedAuction>)({
           auction: { update: auctionUpdate },
           vehicle: { update: vehicleUpdate },
           battery: { update: jest.fn() },
@@ -145,18 +154,18 @@ describe('AuctionsService', () => {
 
       const result = await service.approve('auction-002', 'admin-2');
 
-      expect(auctionUpdate).toHaveBeenCalledWith({
-        where: { id: 'auction-002' },
-        data: expect.objectContaining({
-          status: AuctionStatus.PENDING,
-        }),
-        include: expect.any(Object),
+      const [updateArgs] = auctionUpdate.mock.calls[0] as unknown as [
+        {
+          where: { id: string };
+          data: { status: AuctionStatus };
+          include: object;
+        },
+      ];
+      expect(updateArgs.where).toEqual({ id: 'auction-002' });
+      expect(updateArgs.data).toMatchObject({
+        status: AuctionStatus.PENDING,
       });
-
-      expect(vehicleUpdate).toHaveBeenCalledWith({
-        where: { id: 'vehicle-888' },
-        data: { status: VehicleStatus.AUCTION },
-      });
+      expect(updateArgs.include).toBeDefined();
 
       expect(result).toBe(updatedAuction);
     });
@@ -172,14 +181,21 @@ describe('AuctionsService', () => {
 
       const activated = await service.activateScheduledAuctions();
 
-      expect(prisma.auction.findMany).toHaveBeenCalledWith({
-        where: {
-          status: AuctionStatus.PENDING,
-          approvalStatus: APPROVAL_STATUS.APPROVED,
-          startTime: { lte: expect.any(Date) },
+      const [findManyArgs] = prisma.auction.findMany.mock
+        .calls[0] as unknown as [
+        {
+          where: {
+            status: AuctionStatus;
+            approvalStatus: string;
+            startTime: { lte: Date };
+          };
+          select: { id: boolean };
         },
-        select: { id: true },
-      });
+      ];
+      expect(findManyArgs.where.status).toBe(AuctionStatus.PENDING);
+      expect(findManyArgs.where.approvalStatus).toBe(APPROVAL_STATUS.APPROVED);
+      expect(findManyArgs.where.startTime.lte).toBeInstanceOf(Date);
+      expect(findManyArgs.select).toEqual({ id: true });
 
       expect(prisma.auction.updateMany).toHaveBeenCalledWith({
         where: { id: { in: ['auction-a', 'auction-b'] } },

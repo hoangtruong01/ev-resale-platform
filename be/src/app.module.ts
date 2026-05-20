@@ -26,6 +26,7 @@ import { IotModule } from './iot/iot.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
 import { AiModule } from './ai/ai.module';
+import { AdminBootstrapService } from './common/bootstrap/admin-bootstrap.service';
 
 @Module({
   imports: [
@@ -59,6 +60,6 @@ import { AiModule } from './ai/ai.module';
     AiModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AdminBootstrapService],
 })
 export class AppModule {}

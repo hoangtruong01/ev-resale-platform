@@ -68,18 +68,19 @@ services:
     container_name: evn_frontend
     restart: unless-stopped
     ports:
-      - "3001:3000"
+      - "3001:3001"
     environment:
       NUXT_PUBLIC_API_BASE_URL: http://localhost:3000/api
       NODE_ENV: development
     volumes:
       - ./FE:/app
       - /app/node_modules
+      - /app/.nuxt
     depends_on:
       - backend
     networks:
       - evn_network
-    command: yarn dev
+    command: yarn dev --host 0.0.0.0
 
 volumes:
   postgres_data:

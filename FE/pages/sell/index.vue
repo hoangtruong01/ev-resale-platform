@@ -112,6 +112,34 @@
                   placeholder="850000000"
                   required
                 >
+                <div class="mt-2 space-y-2">
+                  <button
+                    type="button"
+                    class="inline-flex items-center rounded-lg border border-green-500 px-3 py-2 text-sm font-semibold text-green-700 transition-colors hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="aiPricingLoading || !canSuggestAIPrice"
+                    @click="handleSuggestAIPrice"
+                  >
+                    {{ aiPricingLoading ? "Đang gợi ý..." : "Gợi ý giá bằng AI" }}
+                  </button>
+                  <p
+                    v-if="aiPricingMessage"
+                    class="text-xs"
+                    :class="aiPricingStatus === 'error' ? 'text-red-600' : 'text-green-700'"
+                  >
+                    {{ aiPricingMessage }}
+                  </p>
+                  <div v-if="aiPricingMeta" class="text-xs leading-5 text-gray-500">
+                    <p v-if="aiPricingMeta.priceRange">
+                      Khoảng giá: {{ aiPricingMeta.priceRange }}
+                    </p>
+                    <p v-if="aiPricingMeta.confidence">
+                      Độ tin cậy: {{ aiPricingMeta.confidence }}
+                    </p>
+                    <p v-if="aiPricingMeta.comparableCount !== null">
+                      Mẫu so sánh: {{ aiPricingMeta.comparableCount }}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -565,6 +593,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref } from "vue";
+import { useAIPricing } from "~/composables/useAIPricing";
 
 definePageMeta({
   middleware: "auth",
@@ -578,6 +607,14 @@ useHead({
 
 const productType = ref<"vehicle" | "battery" | "accessory" | null>(null);
 const submitting = ref(false);
+const aiPricingLoading = ref(false);
+const aiPricingMessage = ref("");
+const aiPricingStatus = ref<"idle" | "success" | "error">("idle");
+const aiPricingMeta = ref<{
+  priceRange: string | null;
+  confidence: string | null;
+  comparableCount: number | null;
+} | null>(null);
 
 type ListingImageStatus = "queued" | "uploading" | "uploaded" | "error";
 
@@ -635,6 +672,8 @@ const form = reactive({
 
 const { resolve: resolveAsset } = useAssetUrl();
 const { post } = useApi();
+const { suggestVehiclePrice, suggestBatteryPrice, suggestAccessoryPrice } =
+  useAIPricing();
 const toast = useCustomToast();
 
 const formatFileSize = (size: number) =>
@@ -860,6 +899,28 @@ const imageList = computed(() =>
     .map((image) => image.url as string),
 );
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const normalizeCondition = (value: string) => {
+  const lower = value.toLowerCase();
+  if (lower.includes("mới") || lower.includes("new")) return "EXCELLENT";
+  if (lower.includes("tốt") || lower.includes("good")) return "GOOD";
+  if (lower.includes("khá") || lower.includes("like")) return "FAIR";
+  if (lower.includes("cần") || lower.includes("used")) return "POOR";
+  return value || "GOOD";
+};
+
+const resetAIPriceState = () => {
+  aiPricingMessage.value = "";
+  aiPricingStatus.value = "idle";
+  aiPricingMeta.value = null;
+};
+
 onBeforeUnmount(() => {
   clearUploadedImages();
 });
@@ -867,6 +928,116 @@ onBeforeUnmount(() => {
 const isVehicle = computed(() => productType.value === "vehicle");
 const isBattery = computed(() => productType.value === "battery");
 const isAccessory = computed(() => productType.value === "accessory");
+
+const canSuggestAIPrice = computed(() => {
+  if (isVehicle.value) {
+    return !!form.brand && !!form.model && form.year >= 2000;
+  }
+
+  if (isBattery.value) {
+    return !!form.batteryType && form.capacity > 0;
+  }
+
+  if (isAccessory.value) {
+    return !!form.accessoryCategory && !!form.accessoryCondition;
+  }
+
+  return false;
+});
+
+const applyAIPriceResponse = (response: {
+  data: import("~/composables/useAIPricing").AIPricingResponse | null;
+  error: string | null;
+}) => {
+  aiPricingMeta.value = null;
+
+  if (response.error) {
+    aiPricingStatus.value = "error";
+    aiPricingMessage.value = response.error;
+    return;
+  }
+
+  const data = response.data;
+  if (!data) {
+    aiPricingStatus.value = "error";
+    aiPricingMessage.value = "Không nhận được gợi ý giá AI.";
+    return;
+  }
+
+  if (typeof data.suggestedPrice === "number" && Number.isFinite(data.suggestedPrice)) {
+    form.price = Math.round(data.suggestedPrice);
+    aiPricingStatus.value = "success";
+    aiPricingMessage.value = data.message || "Đã điền giá gợi ý từ AI.";
+  } else {
+    aiPricingStatus.value = "error";
+    aiPricingMessage.value = data.message || "AI chưa có đủ dữ liệu để gợi ý giá.";
+  }
+
+  const min = data.priceRange?.min;
+  const max = data.priceRange?.max;
+  aiPricingMeta.value = {
+    priceRange:
+      typeof min === "number" && typeof max === "number"
+        ? `${formatCurrency(min)} - ${formatCurrency(max)}`
+        : null,
+    confidence:
+      data.confidence !== undefined && data.confidence !== null
+        ? String(data.confidence)
+        : null,
+    comparableCount:
+      typeof data.comparableCount === "number" ? data.comparableCount : null,
+  };
+};
+
+const handleSuggestAIPrice = async () => {
+  resetAIPriceState();
+
+  if (!canSuggestAIPrice.value) {
+    aiPricingStatus.value = "error";
+    aiPricingMessage.value = "Vui lòng nhập thông tin sản phẩm trước khi gợi ý giá.";
+    return;
+  }
+
+  aiPricingLoading.value = true;
+  try {
+    if (isVehicle.value) {
+      applyAIPriceResponse(
+        await suggestVehiclePrice({
+          brand: form.brand.trim(),
+          model: form.model.trim(),
+          year: Number(form.year),
+          mileage: Number(form.mileage || 0),
+          condition: normalizeCondition(form.vehicleCondition),
+        }),
+      );
+      return;
+    }
+
+    if (isBattery.value) {
+      applyAIPriceResponse(
+        await suggestBatteryPrice({
+          type: form.batteryType,
+          capacity: Number(form.capacity),
+          condition: Number(form.batteryCondition || 0),
+        }),
+      );
+      return;
+    }
+
+    if (isAccessory.value) {
+      applyAIPriceResponse(
+        await suggestAccessoryPrice({
+          category: form.accessoryCategory,
+          brand: form.accessoryBrand.trim() || undefined,
+          compatibleModel: form.accessoryCompatibleModel.trim() || undefined,
+          condition: normalizeCondition(form.accessoryCondition),
+        }),
+      );
+    }
+  } finally {
+    aiPricingLoading.value = false;
+  }
+};
 
 const isFormValid = computed(() => {
   if (isVehicle.value) {
@@ -918,6 +1089,7 @@ const isFormValid = computed(() => {
 });
 
 const resetForm = () => {
+  resetAIPriceState();
   form.name = "";
   form.price = 0;
   form.brand = "";

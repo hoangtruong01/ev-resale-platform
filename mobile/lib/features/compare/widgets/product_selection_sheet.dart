@@ -6,6 +6,19 @@ import '../../../services/vehicle_service.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 
+final _productSelectionProvider =
+    FutureProvider.autoDispose.family<List<dynamic>, String>((ref, type) async {
+  if (type == 'battery') {
+    final response =
+        await ref.read(batteryServiceProvider).getBatteries(page: 1, limit: 50);
+    return response.data;
+  }
+
+  final response =
+      await ref.read(vehicleServiceProvider).getVehicles(page: 1, limit: 50);
+  return response.data;
+});
+
 class ProductSelectionSheet extends ConsumerStatefulWidget {
   final String type;
   const ProductSelectionSheet({super.key, required this.type});
@@ -20,9 +33,7 @@ class _ProductSelectionSheetState extends ConsumerState<ProductSelectionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final productsAsync = widget.type == 'battery' 
-      ? ref.watch(batteryListProvider(page: 1, limit: 50, approvalStatus: 'APPROVED'))
-      : ref.watch(vehicleListProvider(page: 1, limit: 50, approvalStatus: 'APPROVED'));
+    final productsAsync = ref.watch(_productSelectionProvider(widget.type));
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -91,8 +102,10 @@ class _ProductSelectionSheetState extends ConsumerState<ProductSelectionSheet> {
             child: productsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(child: Text('Lỗi: $e')),
-              data: (response) {
-                final items = response.data.where((p) => p.name.toLowerCase().contains(_searchQuery)).toList();
+              data: (products) {
+                final items = products
+                    .where((p) => p.name.toLowerCase().contains(_searchQuery))
+                    .toList();
                 
                 if (items.isEmpty) {
                   return const Center(

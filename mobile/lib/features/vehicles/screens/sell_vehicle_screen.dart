@@ -122,6 +122,7 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
     final model = _modelCtrl.text.trim();
     final year = int.tryParse(_yearCtrl.text.trim());
     final condition = _conditionCtrl.text.trim();
+    final mileage = int.tryParse(_mileageCtrl.text.trim());
 
     if (brand.isEmpty || model.isEmpty || year == null || condition.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -141,6 +142,7 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
         model: model,
         year: year,
         condition: condition,
+        mileage: mileage,
       );
       final suggested = response['suggestedPrice'];
 

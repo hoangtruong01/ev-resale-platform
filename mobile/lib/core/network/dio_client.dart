@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
@@ -21,11 +22,16 @@ final dioProvider = Provider<Dio>((ref) {
 
   // Add interceptors
   dio.interceptors.add(AuthInterceptor(ref));
-  dio.interceptors.add(LogInterceptor(
-    requestBody: true,
-    responseBody: true,
-    error: true,
-  ));
+  if (kDebugMode) {
+    dio.interceptors.add(LogInterceptor(
+      request: true,
+      requestHeader: false,
+      requestBody: false,
+      responseHeader: false,
+      responseBody: false,
+      error: true,
+    ));
+  }
 
   return dio;
 });
