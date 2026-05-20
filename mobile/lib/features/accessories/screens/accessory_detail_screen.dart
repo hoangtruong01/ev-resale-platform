@@ -6,6 +6,10 @@ import '../../../models/accessory_model.dart';
 import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 
+import 'package:go_router/go_router.dart';
+import '../../../features/auth/providers/auth_provider.dart';
+import '../../../core/network/dio_client.dart';
+
 final accessoryDetailProvider = FutureProvider.family<AccessoryModel, String>((
   ref,
   id,
@@ -20,9 +24,97 @@ class AccessoryDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final accessoryAsync = ref.watch(accessoryDetailProvider(id));
+    final currentUser = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết phụ kiện')),
+      bottomNavigationBar: accessoryAsync.value == null
+          ? null
+          : Builder(
+              builder: (context) {
+                final accessory = accessoryAsync.value!;
+                final isMine = accessory.sellerId == currentUser?.id;
+
+                return Container(
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    MediaQuery.of(context).padding.bottom + 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: AppTheme.grey200)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: isMine
+                      ? ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Chỉnh sửa tin đăng'),
+                        )
+                      : Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  if (currentUser == null) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Vui lòng đăng nhập để nhắn tin')),
+                                    );
+                                    return;
+                                  }
+
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                      child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                                    ),
+                                  );
+
+                                  try {
+                                    final dio = ref.read(dioProvider);
+                                    final response = await dio.post('/chat/rooms', data: {
+                                      'buyerId': currentUser.id,
+                                      'sellerId': accessory.sellerId,
+                                    });
+                                    Navigator.pop(context); // close loading indicator
+
+                                    final roomId = response.data['id'];
+                                    if (roomId != null) {
+                                      context.push('/chat/$roomId');
+                                    }
+                                  } catch (e) {
+                                    Navigator.pop(context); // close loading indicator
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Không thể bắt đầu trò chuyện: $e')),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(Icons.message_outlined),
+                                label: const Text('Nhắn tin'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: accessory.status == 'AVAILABLE' ? () {} : null,
+                                icon: const Icon(Icons.shopping_bag_outlined),
+                                label: const Text('Mua ngay'),
+                              ),
+                            ),
+                          ],
+                        ),
+                );
+              },
+            ),
       body: accessoryAsync.when(
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppTheme.primaryGreen),

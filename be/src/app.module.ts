@@ -61,5 +61,6 @@ import { AdminBootstrapService } from './common/bootstrap/admin-bootstrap.servic
   ],
   controllers: [AppController],
   providers: [AppService, AdminBootstrapService],
+  providers: [AppService, AdminBootstrapService],
 })
 export class AppModule {}

@@ -676,7 +676,12 @@ export class AuctionsService {
     };
   }
 
-  async approve(id: string, adminId?: string, notes?: string) {
+  async approve(
+    id: string,
+    adminId?: string,
+    notes?: string,
+    customTimes?: { startTime?: Date; endTime?: Date },
+  ) {
     const auction = await this.prisma.auction.findUnique({ where: { id } });
 
     if (!auction) {
@@ -684,16 +689,36 @@ export class AuctionsService {
     }
 
     const now = new Date();
-    const shouldActivate = auction.startTime <= now;
+    let startTime = auction.startTime;
+    let endTime = auction.endTime;
+
+    // 1. If Admin passed new custom times from the admin panel
+    if (customTimes?.startTime && customTimes?.endTime) {
+      startTime = new Date(customTimes.startTime);
+      endTime = new Date(customTimes.endTime);
+    } 
+    // 2. Otherwise, if not passed, auto-shift the schedule to prevent duration loss
+    else if (auction.startTime <= now) {
+      const originalDurationMs =
+        auction.endTime.getTime() - auction.startTime.getTime();
+
+      // Auto-shift: startTime = now + 5 minutes buffer, endTime = startTime + original duration
+      startTime = new Date(now.getTime() + 5 * 60 * 1000);
+      endTime = new Date(startTime.getTime() + originalDurationMs);
+    }
+
+    const shouldActivate = startTime <= now;
 
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.auction.update({
         where: { id },
         data: {
           approvalStatus: APPROVAL_STATUS.APPROVED,
-          approvalNotes: notes,
+          approvalNotes: notes || 'Đã kiểm duyệt bởi quản trị viên',
           approvedAt: now,
           approvedById: adminId,
+          startTime,
+          endTime,
           status: shouldActivate ? AuctionStatus.ACTIVE : AuctionStatus.PENDING,
         } as any,
         include: {
@@ -703,6 +728,30 @@ export class AuctionsService {
           },
         },
       });
+
+      // Send appropriate notification to the seller
+      const timeShifted = startTime.getTime() !== auction.startTime.getTime();
+      if (timeShifted) {
+        await this.createNotificationSafely({
+          userId: auction.sellerId,
+          title: 'Đấu giá đã được duyệt & điều chỉnh lịch',
+          message: `Phiên đấu giá "${auction.title}" đã được duyệt thành công. Do thời điểm duyệt trễ hơn thời gian dự kiến bắt đầu, hệ thống đã điều chỉnh thời gian diễn ra: từ ${startTime.toLocaleString('vi-VN')} đến ${endTime.toLocaleString('vi-VN')} để đảm bảo đủ thời lượng đấu giá cho bạn.`,
+          type: NotificationType.SYSTEM_ALERT,
+          metadata: {
+            auctionId: auction.id,
+            newStartTime: startTime.toISOString(),
+            newEndTime: endTime.toISOString(),
+          },
+        });
+      } else {
+        await this.createNotificationSafely({
+          userId: auction.sellerId,
+          title: 'Đấu giá đã được duyệt thành công',
+          message: `Phiên đấu giá "${auction.title}" của bạn đã được kiểm duyệt và sẽ tự động bắt đầu vào lúc ${startTime.toLocaleString('vi-VN')}.`,
+          type: NotificationType.SYSTEM_ALERT,
+          metadata: { auctionId: auction.id },
+        });
+      }
 
       return updated;
     });

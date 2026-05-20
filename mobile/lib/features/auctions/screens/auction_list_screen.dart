@@ -61,11 +61,14 @@ class AuctionListScreen extends ConsumerWidget {
             );
           },
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => context.push('/auctions/create'),
-          backgroundColor: AppTheme.primaryGreen,
-          icon: const Icon(Icons.add),
-          label: const Text('Tạo đấu giá'),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 72.0),
+          child: FloatingActionButton.extended(
+            onPressed: () => context.push('/auctions/create'),
+            backgroundColor: AppTheme.primaryGreen,
+            icon: const Icon(Icons.add),
+            label: const Text('Tạo đấu giá'),
+          ),
         ),
       ),
     );
@@ -93,7 +96,7 @@ class _AuctionTabContent extends StatelessWidget {
       );
     }
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       itemCount: auctions.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, i) => AuctionCard(auction: auctions[i]),

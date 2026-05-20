@@ -32,30 +32,73 @@ import '../../features/support/screens/support_screen.dart';
 import '../../features/compare/screens/compare_screen.dart';
 import '../../features/ai_chat/screens/ai_chat_screen.dart';
 
+// Admin imports
+import '../../features/admin/screens/admin_analytics_screen.dart';
+import '../../features/admin/screens/admin_listings_screen.dart';
+import '../../features/admin/screens/admin_transactions_screen.dart';
+import '../../features/admin/screens/admin_support_tickets_screen.dart';
+import '../../features/admin/screens/admin_settings_screen.dart';
+import '../../widgets/admin_shell.dart';
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    _ref.listen(sessionExpiredTickProvider, (_, __) => notifyListeners());
+    _ref.listen(adminModeProvider, (_, __) => notifyListeners());
+  }
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    final authState = _ref.read(authStateProvider);
+    final sessionExpiredTick = _ref.read(sessionExpiredTickProvider);
+    final isAdminMode = _ref.read(adminModeProvider);
+
+    final isLoggedIn = authState.value?.isAuthenticated ?? false;
+    final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
+        state.matchedLocation == '/splash' ||
+        state.matchedLocation == '/welcome';
+
+    if (sessionExpiredTick > 0 && !isPublicRoute) {
+      return '/auth/login';
+    }
+
+    if (!isLoggedIn && !isPublicRoute) {
+      return '/welcome';
+    }
+
+    final user = authState.value?.user;
+    final userHasAdminRights = user?.isAdmin == true || user?.isModerator == true;
+
+    if (isLoggedIn) {
+      if (isPublicRoute && state.matchedLocation != '/splash') {
+        if (isAdminMode && userHasAdminRights) {
+          return '/admin';
+        }
+        return '/';
+      }
+
+      final isGoingToAdmin = state.matchedLocation.startsWith('/admin');
+      if (isGoingToAdmin && (!userHasAdminRights || !isAdminMode)) {
+        return '/';
+      }
+      if (!isGoingToAdmin && userHasAdminRights && isAdminMode) {
+        if (state.matchedLocation == '/') {
+          return '/admin';
+        }
+      }
+    }
+    return null;
+  }
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
-  final sessionExpiredTick = ref.watch(sessionExpiredTickProvider);
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: '/splash',
-    redirect: (context, state) {
-      final isLoggedIn = authState.value?.isAuthenticated ?? false;
-      final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
-          state.matchedLocation == '/splash' ||
-          state.matchedLocation == '/welcome';
-
-      if (sessionExpiredTick > 0 && !isPublicRoute) {
-        return '/auth/login';
-      }
-
-      if (!isLoggedIn && !isPublicRoute) {
-        return '/welcome';
-      }
-      if (isLoggedIn && isPublicRoute && state.matchedLocation != '/splash') {
-        return '/';
-      }
-      return null;
-    },
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
     routes: [
       GoRoute(
         path: '/splash',
@@ -80,6 +123,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+
+      // Admin shell with bottom nav
+      ShellRoute(
+        builder: (context, state, child) => AdminShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/admin',
+            builder: (context, state) => const AdminAnalyticsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/listings',
+            builder: (context, state) => const AdminListingsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/transactions',
+            builder: (context, state) => const AdminTransactionsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/support',
+            builder: (context, state) => const AdminSupportTicketsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/settings',
+            builder: (context, state) => const AdminSettingsScreen(),
+          ),
+        ],
       ),
 
       // Main shell with bottom nav

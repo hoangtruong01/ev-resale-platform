@@ -18,6 +18,8 @@ final _productSelectionProvider =
       await ref.read(vehicleServiceProvider).getVehicles(page: 1, limit: 50);
   return response.data;
 });
+import '../../batteries/screens/battery_list_screen.dart';
+import '../../vehicles/screens/vehicle_list_screen.dart';
 
 class ProductSelectionSheet extends ConsumerStatefulWidget {
   final String type;
@@ -34,6 +36,29 @@ class _ProductSelectionSheetState extends ConsumerState<ProductSelectionSheet> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(_productSelectionProvider(widget.type));
+    final List<dynamic> items = [];
+    bool isLoading = false;
+    String? errorMessage;
+
+    if (widget.type == 'battery') {
+      final batteriesAsync = ref.watch(batteryListProvider(const BatteryFilter()));
+      batteriesAsync.when(
+        loading: () => isLoading = true,
+        error: (e, _) => errorMessage = e.toString(),
+        data: (response) {
+          items.addAll(response.data.where((p) => p.name.toLowerCase().contains(_searchQuery)));
+        },
+      );
+    } else {
+      final vehiclesAsync = ref.watch(vehicleListProvider(const VehicleFilter()));
+      vehiclesAsync.when(
+        loading: () => isLoading = true,
+        error: (e, _) => errorMessage = e.toString(),
+        data: (response) {
+          items.addAll(response.data.where((p) => p.name.toLowerCase().contains(_searchQuery)));
+        },
+      );
+    }
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,
@@ -137,42 +162,75 @@ class _ProductSelectionSheetState extends ConsumerState<ProductSelectionSheet> {
                                 width: 60,
                                 height: 60,
                               ),
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : errorMessage != null
+                    ? Center(child: Text('Lỗi: $errorMessage'))
+                    : items.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'Không tìm thấy sản phẩm nào',
+                              style: TextStyle(color: AppTheme.grey600),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(20),
+                            itemCount: items.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemBuilder: (ctx, i) {
+                              final item = items[i];
+                              return InkWell(
+                                onTap: () => Navigator.pop(context, item),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppTheme.grey200),
+                                    borderRadius: BorderRadius.circular(16),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    AppUtils.formatCurrency(item.price),
-                                    style: const TextStyle(
-                                      color: AppTheme.primaryGreen,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13,
-                                    ),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: AppNetworkImage(
+                                          url: item.images.isNotEmpty ? item.images.first : '',
+                                          width: 60,
+                                          height: 60,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              item.name,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              AppUtils.formatCurrency(item.price),
+                                              style: const TextStyle(
+                                                color: AppTheme.primaryGreen,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.add_circle_outline, color: AppTheme.primaryGreen),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                                ),
+                              );
+                            },
+                          ),
           ),
         ],
       ),
