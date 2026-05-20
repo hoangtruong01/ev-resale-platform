@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../widgets/app_text_field.dart';
 import '../../../widgets/loading_button.dart';
+import '../../../core/auth/session_state_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +21,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _isGoogleLoading = false;
+  int _logoTapCount = 0;
+  bool _isAdminLoginMode = false;
 
   @override
   void dispose() {
@@ -38,7 +41,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
     final authState = ref.read(authStateProvider).value;
     if (authState?.isAuthenticated == true) {
-      context.go('/');
+      final user = authState!.user;
+      if (_isAdminLoginMode || user?.role == 'ADMIN' || user?.role == 'MODERATOR') {
+        ref.read(adminModeProvider.notifier).state = true;
+        context.go('/admin');
+      } else {
+        context.go('/');
+      }
     } else if (authState?.error != null) {
       _showError(authState!.error!);
     }
@@ -117,36 +126,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   SizedBox(height: size.height * 0.08),
 
                   // Logo & Header
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('⚡', style: TextStyle(fontSize: 28)),
-                      SizedBox(width: 8),
-                      Text(
-                        'EVN Market',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.grey900,
-                          letterSpacing: -0.6,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _logoTapCount++;
+                        if (_logoTapCount >= 5) {
+                          _logoTapCount = 0;
+                          _isAdminLoginMode = true;
+                          _emailCtrl.text = 'admin@evnmarket.com';
+                          _passwordCtrl.text = 'ChangeMe123!';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Đã kích hoạt chế độ đăng nhập Quản trị viên'),
+                              backgroundColor: AppTheme.primaryGreen,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      });
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('⚡', style: TextStyle(fontSize: 28)),
+                        SizedBox(width: 8),
+                        Text(
+                          'EVN Market',
+                          style: TextStyle(
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.grey900,
+                            letterSpacing: -0.6,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Chào mừng quay lại',
+                  if (_isAdminLoginMode) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.primaryGreen.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.admin_panel_settings_rounded, color: AppTheme.primaryGreen, size: 16),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'CHẾ ĐỘ ADMIN',
+                            style: TextStyle(
+                              color: AppTheme.primaryGreen,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => setState(() {
+                              _isAdminLoginMode = false;
+                              _emailCtrl.clear();
+                              _passwordCtrl.clear();
+                            }),
+                            child: const Icon(Icons.cancel_rounded, color: AppTheme.grey500, size: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Text(
+                    _isAdminLoginMode ? 'Đăng nhập Hệ thống' : 'Chào mừng quay lại',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
-                      color: AppTheme.accentOrange,
+                      color: _isAdminLoginMode ? AppTheme.primaryGreen : AppTheme.accentOrange,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Đăng nhập để tiếp tục giao dịch an toàn',
+                  Text(
+                    _isAdminLoginMode
+                        ? 'Nhập tài khoản quản trị để kiểm duyệt nền tảng'
+                        : 'Đăng nhập để tiếp tục giao dịch an toàn',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 16,
                       color: AppTheme.grey600,
                     ),

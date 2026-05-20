@@ -14,6 +14,7 @@ import '../../admin/screens/kyc_management_screen.dart';
 import '../../admin/screens/admin_analytics_screen.dart';
 import 'payment_methods_screen.dart';
 import 'terms_policy_screen.dart';
+import '../../../core/auth/session_state_provider.dart';
 
 final dashboardOverviewProvider = FutureProvider<DashboardOverviewData>((ref) {
   return ref.read(dashboardServiceProvider).getOverview();
@@ -391,6 +392,15 @@ class ProfileScreen extends ConsumerWidget {
                     _MenuSection(
                       title: 'Quản trị hệ thống',
                       items: [
+                        _MenuItem(
+                          icon: Icons.dashboard_customize_outlined,
+                          label: 'Chuyển sang Chế độ Admin',
+                          color: AppTheme.primaryGreen,
+                          onTap: () {
+                            ref.read(adminModeProvider.notifier).state = true;
+                            context.go('/admin');
+                          },
+                        ),
                         _MenuItem(
                           icon: Icons.admin_panel_settings_outlined,
                           label: 'Duyệt eKYC người dùng',
