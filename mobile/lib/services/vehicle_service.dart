@@ -79,12 +79,14 @@ class VehicleService {
     required String model,
     required int year,
     required String condition,
+    int? mileage,
   }) async {
-    final response = await _dio.get('/vehicles/suggest-price', queryParameters: {
+    final response = await _dio.post('/ai/vehicles/suggest-price', data: {
       'brand': brand,
       'model': model,
       'year': year,
       'condition': condition,
+      if (mileage != null) 'mileage': mileage,
     });
     return response.data;
   }

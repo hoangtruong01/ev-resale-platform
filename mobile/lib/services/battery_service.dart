@@ -82,7 +82,7 @@ class BatteryService {
     required double capacity,
     required int condition,
   }) async {
-    final response = await _dio.get('/batteries/suggest-price', queryParameters: {
+    final response = await _dio.post('/ai/batteries/suggest-price', data: {
       'type': type,
       'capacity': capacity,
       'condition': condition,

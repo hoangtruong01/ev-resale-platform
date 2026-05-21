@@ -30,6 +30,7 @@ import '../../features/batteries/screens/battery_monitor_screen.dart';
 import '../../features/transactions/screens/transaction_list_screen.dart';
 import '../../features/support/screens/support_screen.dart';
 import '../../features/compare/screens/compare_screen.dart';
+import '../../features/ai_chat/screens/ai_chat_screen.dart';
 
 // Admin imports
 import '../../features/admin/screens/admin_analytics_screen.dart';
@@ -247,6 +248,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/compare',
             builder: (context, state) => const CompareScreen(),
+          ),
+          GoRoute(
+            path: '/ai-chat',
+            builder: (context, state) => const AiChatScreen(),
           ),
         ],
       ),

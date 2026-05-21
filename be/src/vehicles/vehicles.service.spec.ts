@@ -1,4 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { VehiclesService } from './vehicles.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContentModerationService } from '../moderation/content-moderation.service';
@@ -92,25 +93,31 @@ describe('VehiclesService', () => {
         price: dto.price,
       });
 
-      expect(prisma.vehicle.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            sellerId: 'seller-42',
-            color: dto.color,
-            transmission: dto.transmission,
-            seatCount: dto.seatCount,
-            hasWarranty: dto.hasWarranty,
-            approvalStatus: APPROVAL_STATUS.PENDING,
-            spamScore: moderationResult.score,
-            spamReasons: moderationResult.reasons,
-            isSpamSuspicious: moderationResult.flagged,
-            spamCheckedAt: expect.any(Date),
-          }),
-          include: expect.objectContaining({
-            seller: expect.any(Object),
-          }),
-        }),
-      );
+      const [createArgs] = prisma.vehicle.create.mock.calls[0] as unknown as [
+        Prisma.VehicleCreateArgs,
+      ];
+      expect(createArgs.data).toMatchObject({
+        seller: { connect: { id: 'seller-42' } },
+        color: dto.color,
+        transmission: dto.transmission,
+        seatCount: dto.seatCount,
+        hasWarranty: dto.hasWarranty,
+        approvalStatus: APPROVAL_STATUS.PENDING,
+        spamScore: moderationResult.score,
+        spamReasons: moderationResult.reasons,
+        isSpamSuspicious: moderationResult.flagged,
+      });
+      expect(createArgs.data.spamCheckedAt).toBeInstanceOf(Date);
+      expect(createArgs.include).toEqual({
+        seller: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+          },
+        },
+      });
 
       expect(result).toBe(createdVehicle);
     });
@@ -132,7 +139,9 @@ describe('VehiclesService', () => {
 
       await service.create(dto, 'seller-99');
 
-      const createArgs = prisma.vehicle.create.mock.calls[0][0];
+      const [createArgs] = prisma.vehicle.create.mock.calls[0] as unknown as [
+        Prisma.VehicleCreateArgs,
+      ];
       expect(createArgs.data.spamReasons).toBeUndefined();
     });
   });

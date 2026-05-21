@@ -132,9 +132,11 @@ class ContractMessageCard extends ConsumerWidget {
                   data: (data) {
                     final proposerId = (data['proposedBy'] as String?) ?? proposedByUserId;
                     final isProposer = proposerId == currentUserId;
-                    final txStatus = (data['transactionStatus'] as String?) ?? (data['transaction']?['status'] as String?) ?? 'PENDING';
-                    final resolvedTransactionId = (data['transactionId'] as String?) ?? (data['transaction']?['id'] as String?) ?? transactionId;
                     final status = (data['status'] as String?) ?? 'PENDING';
+                    final txStatus =
+                        (data['transactionStatus'] as String?) ?? status;
+                    final resolvedTransactionId =
+                        (data['transactionId'] as String?) ?? transactionId;
 
                     if (txStatus == 'PENDING') {
                       if (isProposer) {

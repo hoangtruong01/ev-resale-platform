@@ -25,6 +25,7 @@ import { SupportTicketsModule } from './support-tickets/support-tickets.module';
 import { IotModule } from './iot/iot.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { StatsModule } from './stats/stats.module';
+import { AiModule } from './ai/ai.module';
 import { AdminBootstrapService } from './common/bootstrap/admin-bootstrap.service';
 
 @Module({
@@ -56,8 +57,10 @@ import { AdminBootstrapService } from './common/bootstrap/admin-bootstrap.servic
     IotModule,
     UploadsModule,
     StatsModule,
+    AiModule,
   ],
   controllers: [AppController],
+  providers: [AppService, AdminBootstrapService],
   providers: [AppService, AdminBootstrapService],
 })
 export class AppModule {}
