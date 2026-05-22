@@ -86,8 +86,11 @@ Diễn giải:
 
 - Web và mobile đều gọi backend AI APIs.
 - Chatbot dùng Gemini/OpenAI qua backend.
-- Pricing không do Gemini/OpenAI tự tính.
-- Pricing được tính bằng rule/statistical logic ở backend.
+- Pricing ưu tiên DB comparable deterministic; chỉ gọi AI khi dữ liệu so sánh nội bộ < 3.
+- Provider priority cho AI Price Suggestion: DB -> Gemini -> Groq -> Heuristic -> null.
+- Gemini/Groq chỉ được dùng khi JSON hợp lệ qua validator chung; JSON bị cắt chỉ recover nếu đủ `estimatedPrice`, `minPrice`, `maxPrice`.
+- Không bao giờ suy đoán hoặc nối số từ JSON hỏng, ví dụ không biến `{"estimatedPrice":98` thành giá hợp lệ.
+- Pricing được tính bằng rule/statistical logic ở backend, heuristic fallback deterministic và confidence thấp.
 - Backend quản lý prompt, app context, validation, moderation, rate limit nếu cần.
 - Không dùng RAG.
 - Không dùng vector database.

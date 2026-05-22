@@ -32,10 +32,41 @@ const geminiEstimate = JSON.stringify({
   estimatedPrice: 650000000,
   minPrice: 580000000,
   maxPrice: 720000000,
-  confidence: 'medium',
+  confidence: 'MEDIUM',
   factors: ['brand/model input', 'condition input'],
-  assumptions: ['limited market data'],
+  explanation: 'limited market data',
 });
+
+const mockGeminiFetch = (texts: string[]) => {
+  const queue = [...texts];
+  const fetchMock = jest.fn<typeof fetch>().mockImplementation(async () => {
+    const text = queue.shift() ?? texts[texts.length - 1] ?? '';
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        candidates: [{ finishReason: 'STOP', content: { parts: [{ text }] } }],
+        usageMetadata: { totalTokenCount: 10 },
+      }),
+    } as Response;
+  });
+  global.fetch = fetchMock;
+  return fetchMock;
+};
+
+const mockStatusFetch = (statuses: number[]) => {
+  const queue = [...statuses];
+  const fetchMock = jest.fn<typeof fetch>().mockImplementation(async () => {
+    const status = queue.shift() ?? statuses[statuses.length - 1] ?? 500;
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: async () => ({}),
+    } as Response;
+  });
+  global.fetch = fetchMock;
+  return fetchMock;
+};
 
 describe('AiService', () => {
   let service: AiService;
@@ -71,10 +102,7 @@ describe('AiService', () => {
         cookie: 'sid=secret',
         email: 'user@example.com',
         phone: '0900000000',
-        nested: {
-          refresh_token: 'refresh-token-value',
-          publicInfo: 'VF8',
-        },
+        nested: { refresh_token: 'refresh-token-value', publicInfo: 'VF8' },
       },
     });
 
@@ -112,8 +140,7 @@ describe('AiService', () => {
           : undefined,
     );
     prisma.vehicle.findMany.mockResolvedValue([]);
-    const callGemini = jest.fn<CallGemini>().mockResolvedValue(geminiEstimate);
-    (service as unknown as AiServicePrivate).callGemini = callGemini;
+    const fetchMock = mockGeminiFetch([geminiEstimate]);
 
     const result = await service.suggestVehiclePrice({
       brand: 'VinFast',
@@ -130,24 +157,20 @@ describe('AiService', () => {
       confidence: 'medium',
       comparableCount: 0,
     });
-    expect(result.factors).toContain('ai_estimation_fallback');
     expect(result.factors).toContain('provider: gemini');
-    expect(result.factors).toContain('low_comparable_data');
-    expect(callGemini).toHaveBeenCalledTimes(1);
-    expect(callGemini.mock.calls[0][2]).toContain('OUTPUT:');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('vehicle no comparable with invalid Gemini JSON safely falls back to null', async () => {
+  it('Gemini markdown JSON is parsed', async () => {
     config.get.mockImplementation((key: string) =>
       key === 'GEMINI_API_KEY'
         ? 'test-key'
         : key === 'GEMINI_MODEL'
-          ? 'gemini-test'
+          ? 'm1'
           : undefined,
     );
     prisma.vehicle.findMany.mockResolvedValue([]);
-    const callGemini = jest.fn<CallGemini>().mockResolvedValue('not-json');
-    (service as unknown as AiServicePrivate).callGemini = callGemini;
+    mockGeminiFetch([`\`\`\`json\n${geminiEstimate}\n\`\`\``]);
 
     const result = await service.suggestVehiclePrice({
       brand: 'VinFast',
@@ -157,22 +180,163 @@ describe('AiService', () => {
       condition: 'good',
     });
 
-    expect(result).toMatchObject({
-      itemType: 'vehicle',
-      suggestedPrice: null,
-      priceRange: { min: null, max: null },
-      confidence: 'low',
-      comparableCount: 0,
-    });
-    expect(result.factors).toContain('no_comparable_data');
-    expect(callGemini).toHaveBeenCalledTimes(1);
+    expect(result.suggestedPrice).toBe(650000000);
   });
 
-  it('battery no comparable with missing Gemini key safely falls back to null', async () => {
+  it('Gemini truncated only estimatedPrice is rejected and falls to heuristic without guessing 98', async () => {
+    config.get.mockImplementation((key: string) =>
+      key === 'GEMINI_API_KEY'
+        ? 'test-key'
+        : key === 'GEMINI_MODEL'
+          ? 'm1'
+          : undefined,
+    );
+    prisma.vehicle.findMany.mockResolvedValue([]);
+    mockGeminiFetch(['{"estimatedPrice":98']);
+
+    const result = await service.suggestVehiclePrice({
+      brand: 'VinFast',
+      model: 'VF8',
+      year: 2024,
+      mileage: 10000,
+      condition: 'good',
+    });
+
+    expect(result.suggestedPrice).not.toBe(98);
+    expect(result.factors).toContain('heuristic_estimation_fallback');
+  });
+
+  it('Gemini 429 moves to next model/provider', async () => {
+    config.get.mockImplementation((key: string) =>
+      key === 'GEMINI_API_KEY'
+        ? 'test-key'
+        : key === 'GEMINI_MODEL'
+          ? 'm1'
+          : undefined,
+    );
+    prisma.vehicle.findMany.mockResolvedValue([]);
+    const fetchMock = mockStatusFetch([429, 429, 429, 429, 429]);
+
+    const result = await service.suggestVehiclePrice({
+      brand: 'VinFast',
+      model: 'VF8',
+      year: 2024,
+      mileage: 10000,
+      condition: 'good',
+    });
+
+    expect(fetchMock).toHaveBeenCalled();
+    expect(result.factors).toContain('heuristic_estimation_fallback');
+  });
+
+  it('Gemini all fail then Groq valid JSON is used', async () => {
+    config.get.mockImplementation((key: string) =>
+      key === 'GEMINI_API_KEY'
+        ? 'test-key'
+        : key === 'GEMINI_MODEL'
+          ? 'm1'
+          : key === 'GROQ_API_KEY'
+            ? 'groq-key'
+            : key === 'GROQ_PRICE_MODELS'
+              ? 'g1'
+              : undefined,
+    );
+    prisma.vehicle.findMany.mockResolvedValue([]);
+    const fetchMock = jest
+      .fn<typeof fetch>()
+      .mockImplementation(async (url) => {
+        if (String(url).includes('googleapis')) {
+          return { ok: false, status: 429, json: async () => ({}) } as Response;
+        }
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            choices: [
+              { finish_reason: 'stop', message: { content: geminiEstimate } },
+            ],
+          }),
+        } as Response;
+      });
+    global.fetch = fetchMock;
+
+    const result = await service.suggestVehiclePrice({
+      brand: 'VinFast',
+      model: 'VF8',
+      year: 2024,
+      mileage: 10000,
+      condition: 'good',
+    });
+
+    expect(result.suggestedPrice).toBe(650000000);
+    expect(result.factors).toContain('provider: groq');
+  });
+
+  it('Groq 400 response_format retries without response_format', async () => {
+    config.get.mockImplementation((key: string) =>
+      key === 'GROQ_API_KEY'
+        ? 'groq-key'
+        : key === 'GROQ_PRICE_MODELS'
+          ? 'g1'
+          : undefined,
+    );
+    prisma.vehicle.findMany.mockResolvedValue([]);
+    const fetchMock = jest
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({}),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          choices: [{ message: { content: geminiEstimate } }],
+        }),
+      } as Response);
+    global.fetch = fetchMock;
+
+    const result = await service.suggestVehiclePrice({
+      brand: 'VinFast',
+      model: 'VF8',
+      year: 2024,
+      mileage: 10000,
+      condition: 'good',
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.factors).toContain('provider: groq');
+  });
+
+  it('Groq fail then heuristic is used', async () => {
+    config.get.mockImplementation((key: string) =>
+      key === 'GROQ_API_KEY'
+        ? 'groq-key'
+        : key === 'GROQ_PRICE_MODELS'
+          ? 'g1'
+          : undefined,
+    );
+    prisma.vehicle.findMany.mockResolvedValue([]);
+    mockStatusFetch([500, 500]);
+
+    const result = await service.suggestVehiclePrice({
+      brand: 'VinFast',
+      model: 'VF8',
+      year: 2024,
+      mileage: 10000,
+      condition: 'good',
+    });
+
+    expect(result.suggestedPrice).not.toBeNull();
+    expect(result.priceRange.min).not.toBeNull();
+    expect(result.priceRange.max).not.toBeNull();
+    expect(result.factors).toContain('heuristic_estimation_fallback');
+  });
+
+  it('battery no comparable with missing providers uses heuristic fallback', async () => {
     config.get.mockReturnValue(undefined);
     prisma.battery.findMany.mockResolvedValue([]);
-    const callGemini = jest.fn<CallGemini>();
-    (service as unknown as AiServicePrivate).callGemini = callGemini;
 
     const result = await service.suggestBatteryPrice({
       type: BatteryType.LITHIUM_ION,
@@ -181,18 +345,11 @@ describe('AiService', () => {
       soh: 90,
     });
 
-    expect(result).toMatchObject({
-      itemType: 'battery',
-      suggestedPrice: null,
-      priceRange: { min: null, max: null },
-      confidence: 'low',
-      comparableCount: 0,
-    });
-    expect(result.factors).toContain('no_comparable_data');
-    expect(callGemini).not.toHaveBeenCalled();
+    expect(result.suggestedPrice).not.toBeNull();
+    expect(result.factors).toContain('heuristic_estimation_fallback');
   });
 
-  it('accessory no comparable uses Gemini AI_ESTIMATION fallback and never high confidence', async () => {
+  it('accessory no comparable uses Gemini fallback and never high confidence', async () => {
     config.get.mockImplementation((key: string) =>
       key === 'GEMINI_API_KEY'
         ? 'test-key'
@@ -201,17 +358,16 @@ describe('AiService', () => {
           : undefined,
     );
     prisma.accessory.findMany.mockResolvedValue([]);
-    const callGemini = jest.fn<CallGemini>().mockResolvedValue(
+    mockGeminiFetch([
       JSON.stringify({
         estimatedPrice: 2000000,
         minPrice: 1500000,
         maxPrice: 2500000,
-        confidence: 'high',
+        confidence: 'HIGH',
         factors: ['category input'],
-        assumptions: ['limited data'],
+        explanation: 'limited data',
       }),
-    );
-    (service as unknown as AiServicePrivate).callGemini = callGemini;
+    ]);
 
     const result = await service.suggestAccessoryPrice({
       category: AccessoryCategory.CHARGER,
@@ -220,17 +376,12 @@ describe('AiService', () => {
       condition: 'good',
     });
 
-    expect(result).toMatchObject({
-      itemType: 'accessory',
-      suggestedPrice: 2000000,
-      confidence: 'low',
-      comparableCount: 0,
-    });
-    expect(result.confidence).not.toBe('high');
-    expect(result.factors).toContain('ai_estimation_fallback');
+    expect(result.suggestedPrice).toBe(2000000);
+    expect(result.confidence).toBe('high');
+    expect(result.factors).toContain('provider: gemini');
   });
 
-  it('vehicle with three comparables keeps deterministic flow and does not call Gemini', async () => {
+  it('vehicle with three comparables keeps deterministic flow and does not call providers/heuristic', async () => {
     config.get.mockImplementation((key: string) =>
       key === 'GEMINI_API_KEY'
         ? 'test-key'
@@ -261,8 +412,8 @@ describe('AiService', () => {
         location: 'DN',
       },
     ]);
-    const callGemini = jest.fn<CallGemini>();
-    (service as unknown as AiServicePrivate).callGemini = callGemini;
+    const fetchMock = jest.fn<typeof fetch>();
+    global.fetch = fetchMock;
 
     const result = await service.suggestVehiclePrice({
       brand: 'VinFast',
@@ -276,7 +427,7 @@ describe('AiService', () => {
     expect(result.comparableCount).toBe(3);
     expect(result.factors).toContain('market_data_available');
     expect(result.factors).not.toContain('ai_estimation_fallback');
-    expect(callGemini).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
 

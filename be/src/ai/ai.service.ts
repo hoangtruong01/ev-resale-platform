@@ -11,6 +11,13 @@ import {
   AiVehiclePriceSuggestionDto,
 } from './dto/ai-price-suggestion.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { estimatePriceWithHeuristic } from './heuristic-price-estimator';
+import { GeminiPriceProvider } from './providers/gemini-price.provider';
+import { GroqPriceProvider } from './providers/groq-price.provider';
+import {
+  PriceEstimateInput,
+  PriceEstimateResult,
+} from './providers/price-ai-provider';
 
 const MAX_HISTORY_ITEMS = 5;
 const MAX_CONTEXT_CHARS = 1500;
@@ -45,14 +52,7 @@ type Comparable = {
 
 type PriceItemType = 'vehicle' | 'battery' | 'accessory';
 
-type PriceFallback = {
-  estimatedPrice: number;
-  minPrice: number;
-  maxPrice: number;
-  confidence: 'low' | 'medium';
-  factors: string[];
-  assumptions: string[];
-};
+type PriceFallback = PriceEstimateResult;
 
 @Injectable()
 export class AiService {
@@ -144,7 +144,7 @@ export class AiService {
 
     const fallback =
       comparables.length < MIN_COMPARABLES
-        ? await this.getGeminiPriceFallback({
+        ? await this.estimatePriceFallback({
             itemType: 'vehicle',
             payload,
             comparables,
@@ -220,7 +220,7 @@ export class AiService {
 
     const fallback =
       comparables.length < MIN_COMPARABLES
-        ? await this.getGeminiPriceFallback({
+        ? await this.estimatePriceFallback({
             itemType: 'battery',
             payload,
             comparables,
@@ -295,7 +295,7 @@ export class AiService {
 
     const fallback =
       comparables.length < MIN_COMPARABLES
-        ? await this.getGeminiPriceFallback({
+        ? await this.estimatePriceFallback({
             itemType: 'accessory',
             payload,
             comparables,
@@ -362,7 +362,7 @@ export class AiService {
       input.targetCompleteness,
     );
     const confidence = usesAiFallback
-      ? fallback.confidence
+      ? fallback.confidence.toLowerCase()
       : confidenceScore >= 0.75
         ? 'high'
         : confidenceScore >= 0.45
@@ -392,11 +392,12 @@ export class AiService {
         ...(usesAiFallback
           ? [
               'ai_estimation_fallback',
-              'provider: gemini',
+              `provider: ${fallback.provider}`,
+              ...(fallback.model ? [`model: ${fallback.model}`] : []),
               ...fallback.factors,
-              ...fallback.assumptions.map(
-                (assumption) => `assumption: ${assumption}`,
-              ),
+              ...(fallback.explanation
+                ? [`explanation: ${fallback.explanation}`]
+                : []),
             ]
           : []),
         `marketComparables: ${comparableCount}`,
@@ -412,154 +413,26 @@ export class AiService {
     };
   }
 
-  private async getGeminiPriceFallback(input: {
+  private async estimatePriceFallback(input: {
     itemType: PriceItemType;
     payload: object;
     comparables: Comparable[];
   }): Promise<PriceFallback | null> {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    if (!apiKey) {
-      console.warn('[AI_ESTIMATION] missing GEMINI_API_KEY');
-      return null;
-    }
-
-    const prompt = this.buildPriceEstimationPrompt(input);
-    for (const model of this.getCandidateModels()) {
-      try {
-        const response = await this.callGemini(model, apiKey, prompt);
-        const parsed = this.parseGeminiPriceEstimation(response);
-        console.log('[AI_ESTIMATION]', {
-          itemType: input.itemType,
-          comparableCount: input.comparables.length,
-          model,
-          raw: response.slice(0, 500),
-          parsed,
-        });
-        return parsed;
-      } catch (error) {
-        console.warn('[AI_ESTIMATION]', {
-          itemType: input.itemType,
-          model,
-          error: error instanceof Error ? error.message : String(error),
-        });
-        if (this.shouldRetryWithFallback(error)) continue;
-        return null;
-      }
-    }
-
-    return null;
-  }
-
-  private buildPriceEstimationPrompt(input: {
-    itemType: PriceItemType;
-    payload: object;
-    comparables: Comparable[];
-  }): string {
-    const comparableSummary = input.comparables.slice(0, 3).map((item) => ({
-      price: item.price,
-      score: item.score,
-      reasons: item.reasons,
-    }));
-
-    return `Bạn là bộ ước lượng giá tham khảo cho EV Resale Platform tại Việt Nam.
-
-NHIỆM VỤ:
-- Ước lượng giá VND cho ${input.itemType} khi dữ liệu so sánh nội bộ ít hơn ${MIN_COMPARABLES}.
-- Chỉ dùng INPUT_JSON và COMPARABLE_SUMMARY được cung cấp.
-- Đây là ước lượng tham khảo, không phải cam kết hay giá thị trường chắc chắn.
-- Với xe/pin/phụ kiện có thương hiệu, model, năm, tình trạng hoặc thông số hợp lệ, hãy đưa ra ước lượng hợp lý thay vì null.
-- Chỉ đặt price là null khi input thiếu trường bắt buộc hoặc hoàn toàn không có cơ sở để ước lượng.
-- estimatedPrice, minPrice, maxPrice phải là số VND dương; minPrice <= estimatedPrice <= maxPrice.
-- Confidence chỉ được là "low" hoặc "medium", không bao giờ "high".
-- factors và assumptions dùng tiếng Việt ngắn gọn.
-
-OUTPUT:
-Chỉ trả JSON hợp lệ, không markdown, không giải thích ngoài JSON, đúng shape:
-{"estimatedPrice":number|null,"minPrice":number|null,"maxPrice":number|null,"confidence":"low"|"medium","factors":string[],"assumptions":string[]}
-
-INPUT_JSON:
-${JSON.stringify(input.payload)}
-
-COMPARABLE_SUMMARY:
-${JSON.stringify(comparableSummary)}`;
-  }
-
-  private parseGeminiPriceEstimation(response: string): PriceFallback | null {
-    try {
-      const parsed = JSON.parse(this.extractJsonObject(response)) as {
-        estimatedPrice?: unknown;
-        minPrice?: unknown;
-        maxPrice?: unknown;
-        confidence?: unknown;
-        factors?: unknown;
-        assumptions?: unknown;
-      };
-
-      return this.validateGeminiEstimatedPrice(parsed);
-    } catch {
-      return null;
-    }
-  }
-
-  private extractJsonObject(value: string): string {
-    const trimmed = value.trim();
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed;
-    const start = trimmed.indexOf('{');
-    const end = trimmed.lastIndexOf('}');
-    if (start === -1 || end === -1 || end <= start) throw new Error('No JSON');
-    return trimmed.slice(start, end + 1);
-  }
-
-  private validateGeminiEstimatedPrice(input: {
-    estimatedPrice?: unknown;
-    minPrice?: unknown;
-    maxPrice?: unknown;
-    confidence?: unknown;
-    factors?: unknown;
-    assumptions?: unknown;
-  }): PriceFallback | null {
-    if (input.estimatedPrice === null) return null;
-    if (
-      !this.isReasonableVndPrice(input.estimatedPrice) ||
-      !this.isReasonableVndPrice(input.minPrice) ||
-      !this.isReasonableVndPrice(input.maxPrice)
-    ) {
-      return null;
-    }
-
-    const estimatedPrice = Number(input.estimatedPrice);
-    const minPrice = Number(input.minPrice);
-    const maxPrice = Number(input.maxPrice);
-    if (!(minPrice <= estimatedPrice && estimatedPrice <= maxPrice)) {
-      return null;
-    }
-
-    const confidence = input.confidence === 'medium' ? 'medium' : 'low';
-    return {
-      estimatedPrice,
-      minPrice,
-      maxPrice,
-      confidence,
-      factors: this.toSafeStringArray(input.factors),
-      assumptions: this.toSafeStringArray(input.assumptions),
+    const providerInput: PriceEstimateInput = {
+      itemType: input.itemType,
+      payload: input.payload as Record<string, unknown>,
+      comparables: input.comparables,
     };
-  }
 
-  private isReasonableVndPrice(value: unknown): boolean {
-    if (typeof value === 'string' && !/^\d+(\.\d+)?$/.test(value.trim())) {
-      return false;
-    }
-    const price = Number(value);
-    return Number.isFinite(price) && price > 0 && price <= 100_000_000_000;
-  }
+    const gemini = new GeminiPriceProvider(this.configService);
+    const geminiResult = await gemini.estimatePrice(providerInput);
+    if (geminiResult) return geminiResult;
 
-  private toSafeStringArray(value: unknown): string[] {
-    if (!Array.isArray(value)) return [];
-    return value
-      .filter((item): item is string => typeof item === 'string')
-      .map((item) => item.trim().slice(0, 120))
-      .filter(Boolean)
-      .slice(0, 5);
+    const groq = new GroqPriceProvider(this.configService);
+    const groqResult = await groq.estimatePrice(providerInput);
+    if (groqResult) return groqResult;
+
+    return estimatePriceWithHeuristic(providerInput);
   }
 
   private trimOutliers(items: Comparable[]) {
@@ -720,20 +593,54 @@ ${JSON.stringify(comparableSummary)}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
-    let response: Response;
-    try {
-      response = await fetch(endpoint, {
+    const buildBody = (useJsonMimeType: boolean, retryPrompt = prompt) =>
+      JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: retryPrompt }] }],
+        generationConfig: {
+          temperature: 0,
+          maxOutputTokens: 512,
+          ...(useJsonMimeType
+            ? {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: 'OBJECT',
+                  properties: {
+                    estimatedPrice: { type: 'NUMBER' },
+                    minPrice: { type: 'NUMBER' },
+                    maxPrice: { type: 'NUMBER' },
+                    confidence: { type: 'STRING', enum: ['low', 'medium'] },
+                    factors: { type: 'ARRAY', items: { type: 'STRING' } },
+                    assumptions: { type: 'ARRAY', items: { type: 'STRING' } },
+                  },
+                  required: [
+                    'estimatedPrice',
+                    'minPrice',
+                    'maxPrice',
+                    'confidence',
+                    'factors',
+                    'assumptions',
+                  ],
+                },
+              }
+            : {}),
+        },
+      });
+
+    const requestGemini = (body: string) =>
+      fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 900,
-          },
-        }),
+        body,
       });
+
+    let response: Response;
+    try {
+      response = await requestGemini(buildBody(true));
+
+      if (response.status === 400) {
+        response = await requestGemini(buildBody(false));
+      }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Gemini request failed: timeout');
@@ -751,7 +658,24 @@ ${JSON.stringify(comparableSummary)}`;
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
 
-    return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    if (text.trim()) return text;
+
+    const retryResponse = await requestGemini(
+      buildBody(
+        false,
+        `${prompt}\n\nTRẢ LỜI LẠI: chỉ một object JSON thuần, không markdown, không lời dẫn.`,
+      ),
+    );
+    if (!retryResponse.ok) {
+      throw new Error(`Gemini request failed: ${retryResponse.status}`);
+    }
+
+    const retryData = (await retryResponse.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+
+    return retryData.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
   }
 
   private shouldRetryWithFallback(error: unknown): boolean {
