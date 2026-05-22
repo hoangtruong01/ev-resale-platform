@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -151,18 +152,94 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
         _lastSuggestedPrice = priceValue.toDouble();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gợi ý giá: ${priceValue.toString()} VNĐ')),
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Gợi ý giá thành công: ${priceValue.toString()} VNĐ',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: AppTheme.primaryGreen,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
           );
         }
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không lấy được giá gợi ý.')),
-        );
+      } else {
+        final message = response['message'] as String? ?? 'Chưa đủ dữ liệu so sánh trên thị trường để gợi ý giá trị.';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      message,
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.amber.shade800,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        }
       }
     } catch (error) {
       if (mounted) {
+        String userFriendlyError = 'Không thể kết nối đến hệ thống gợi ý giá.';
+        if (error is DioException) {
+          final response = error.response;
+          if (response != null && response.data is Map) {
+            final data = response.data as Map;
+            if (data.containsKey('message')) {
+              final msg = data['message'];
+              if (msg is List) {
+                userFriendlyError = msg.join('\n');
+              } else if (msg is String) {
+                userFriendlyError = msg;
+              }
+            }
+          } else if (error.type == DioExceptionType.connectionTimeout ||
+                     error.type == DioExceptionType.receiveTimeout) {
+            userFriendlyError = 'Kết nối mạng quá hạn. Vui lòng kiểm tra lại đường truyền.';
+          }
+        }
+
+        userFriendlyError = userFriendlyError
+            .replaceAll('year must not be greater than', 'Năm sản xuất không được lớn hơn')
+            .replaceAll('year must not be less than 2000', 'Năm sản xuất không được nhỏ hơn năm 2000')
+            .replaceAll('mileage must not be greater than', 'Số km đã đi không được lớn hơn')
+            .replaceAll('mileage must not be less than 0', 'Số km đã đi không được nhỏ hơn 0');
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi gợi ý giá: $error')),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    userFriendlyError,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.redAccent.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
         );
       }
     } finally {
