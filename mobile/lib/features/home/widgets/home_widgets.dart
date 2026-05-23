@@ -34,7 +34,9 @@ class ProductGridCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppTheme.darkCard
+              : Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -70,7 +72,9 @@ class ProductGridCard extends StatelessWidget {
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black54
+                          : Colors.white.withValues(alpha: 0.9),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -99,11 +103,13 @@ class ProductGridCard extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       height: 1.3,
-                      color: AppTheme.grey800,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : AppTheme.grey800,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -129,9 +135,11 @@ class ProductGridCard extends StatelessWidget {
                             sellerName!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppTheme.grey500,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white70
+                                  : AppTheme.grey500,
                             ),
                           ),
                         ),
@@ -149,9 +157,11 @@ class ProductGridCard extends StatelessWidget {
                           location,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 11,
-                            color: AppTheme.grey400,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white60
+                                : AppTheme.grey400,
                           ),
                         ),
                       ),
@@ -165,9 +175,11 @@ class ProductGridCard extends StatelessWidget {
                       const SizedBox(width: 3),
                       Text(
                         timeAgo,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppTheme.grey400,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white60
+                              : AppTheme.grey400,
                         ),
                       ),
                     ],
@@ -221,10 +233,12 @@ class HomeCategoryItem extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: AppTheme.grey700,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppTheme.grey700,
               ),
             ),
           ],
@@ -266,7 +280,11 @@ class FilterTab extends StatelessWidget {
           style: TextStyle(
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-            color: isActive ? AppTheme.primaryGreen : AppTheme.grey400,
+            color: isActive
+                ? AppTheme.primaryGreen
+                : (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white60
+                    : AppTheme.grey400),
           ),
         ),
       ),
@@ -280,9 +298,10 @@ class ProductCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkCard : Colors.white,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -291,7 +310,7 @@ class ProductCardSkeleton extends StatelessWidget {
           Container(
             height: 130,
             decoration: BoxDecoration(
-              color: AppTheme.grey200,
+              color: isDark ? Colors.white10 : AppTheme.grey200,
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(12)),
             ),
@@ -305,7 +324,7 @@ class ProductCardSkeleton extends StatelessWidget {
                   height: 14,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: AppTheme.grey200,
+                    color: isDark ? Colors.white10 : AppTheme.grey200,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -314,7 +333,7 @@ class ProductCardSkeleton extends StatelessWidget {
                   height: 14,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: AppTheme.grey200,
+                    color: isDark ? Colors.white10 : AppTheme.grey200,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -323,7 +342,7 @@ class ProductCardSkeleton extends StatelessWidget {
                   height: 10,
                   width: 60,
                   decoration: BoxDecoration(
-                    color: AppTheme.grey200,
+                    color: isDark ? Colors.white10 : AppTheme.grey200,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

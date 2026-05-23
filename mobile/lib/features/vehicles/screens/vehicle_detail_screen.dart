@@ -88,12 +88,15 @@ class _SpecGrid extends StatelessWidget {
       itemCount: specs.length,
       itemBuilder: (_, i) {
         final spec = specs[i];
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: AppTheme.grey50,
+            color: isDark ? AppTheme.darkCard : AppTheme.grey50,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.grey200),
+            border: Border.all(
+              color: isDark ? Colors.white10 : AppTheme.grey200,
+            ),
           ),
           child: Row(
             children: [
@@ -110,17 +113,22 @@ class _SpecGrid extends StatelessWidget {
                   children: [
                     Text(
                       spec['label'] as String,
-                      style: const TextStyle(
-                        color: AppTheme.grey400,
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white60
+                            : AppTheme.grey400,
                         fontSize: 11,
                       ),
                     ),
                     Text(
                       spec['value'] as String,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : AppTheme.grey900,
                       ),
                     ),
                   ],
@@ -285,10 +293,12 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                     const SizedBox(height: 12),
                     Text(
                       vehicle.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.grey900,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : AppTheme.grey900,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -348,6 +358,7 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                 final vehicle = vehicleAsync.value!;
                 final isMine = vehicle.sellerId == currentUser?.id;
 
+                final isDarkBar = Theme.of(context).brightness == Brightness.dark;
                 return Container(
                   padding: EdgeInsets.fromLTRB(
                     20,
@@ -356,8 +367,12 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                     MediaQuery.of(context).padding.bottom + 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(top: BorderSide(color: AppTheme.grey200)),
+                    color: isDarkBar ? AppTheme.darkSurface : Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: isDarkBar ? Colors.white10 : AppTheme.grey200,
+                      ),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.08),

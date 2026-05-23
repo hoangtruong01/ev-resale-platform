@@ -171,10 +171,12 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
 
                     Text(
                       battery.name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.grey900,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : AppTheme.grey900,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -231,10 +233,12 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                     // Condition bar
                     Row(
                       children: [
-                        const Text(
+                        Text(
                           'Tình trạng:',
                           style: TextStyle(
-                            color: AppTheme.grey600,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white70
+                                : AppTheme.grey600,
                             fontSize: 14,
                           ),
                         ),
@@ -244,7 +248,9 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                             percent: battery.condition / 100,
                             lineHeight: 10,
                             progressColor: _conditionColor(battery.condition),
-                            backgroundColor: AppTheme.grey200,
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white12
+                                : AppTheme.grey200,
                             barRadius: const Radius.circular(5),
                           ),
                         ),
@@ -401,6 +407,7 @@ class _BottomBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMine = battery.sellerId == currentUserId;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -409,8 +416,12 @@ class _BottomBar extends ConsumerWidget {
         MediaQuery.of(context).padding.bottom + 12,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppTheme.grey200)),
+        color: isDark ? AppTheme.darkSurface : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white10 : AppTheme.grey200,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -500,15 +511,22 @@ class _SpecRow extends StatelessWidget {
             width: 110,
             child: Text(
               label,
-              style: const TextStyle(color: AppTheme.grey600, fontSize: 14),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white70
+                    : AppTheme.grey600,
+                fontSize: 14,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w500,
-                color: AppTheme.grey900,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppTheme.grey900,
                 fontSize: 14,
               ),
             ),

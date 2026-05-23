@@ -86,7 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: AppTheme.grey100,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: RefreshIndicator(
           color: AppTheme.primaryGreen,
           onRefresh: () async {
@@ -263,7 +263,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ─── CATEGORIES ───
   Widget _buildCategories(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? AppTheme.darkSurface
+          : Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -300,7 +302,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   // ─── FILTER TABS ───
   Widget _buildFilterTabs() {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? AppTheme.darkSurface
+          : Colors.white,
       margin: const EdgeInsets.only(top: 8),
       child: Column(
         children: [
@@ -317,7 +321,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               }),
             ),
           ),
-          Container(height: 1, color: AppTheme.grey200),
+          Container(
+            height: 1,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white10
+                : AppTheme.grey200,
+          ),
         ],
       ),
     );

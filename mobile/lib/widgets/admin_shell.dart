@@ -56,9 +56,10 @@ class _AdminBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkSurface : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -67,7 +68,11 @@ class _AdminBottomNavBar extends StatelessWidget {
           ),
         ],
         border: Border(
-          top: BorderSide(color: AppTheme.grey200.withValues(alpha: 0.5)),
+          top: BorderSide(
+            color: isDark
+                ? Colors.white10
+                : AppTheme.grey200.withValues(alpha: 0.5),
+          ),
         ),
       ),
       child: SafeArea(

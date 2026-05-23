@@ -788,11 +788,14 @@ class _MenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.grey200),
+        border: Border.all(
+          color: isDark ? Colors.white10 : AppTheme.grey200,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -808,10 +811,10 @@ class _MenuSection extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppTheme.grey400,
+                color: isDark ? Colors.white60 : AppTheme.grey400,
                 letterSpacing: 0.5,
               ),
             ),
@@ -841,29 +844,31 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultColor = isDark ? Colors.white : AppTheme.grey800;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: color ?? AppTheme.grey800),
+            Icon(icon, size: 20, color: color ?? defaultColor),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  color: color ?? AppTheme.grey800,
+                  color: color ?? defaultColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
             trailing ??
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios,
                   size: 14,
-                  color: AppTheme.grey400,
+                  color: isDark ? Colors.white30 : AppTheme.grey400,
                 ),
           ],
         ),
