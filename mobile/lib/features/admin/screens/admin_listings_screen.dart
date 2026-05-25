@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
+import 'admin_auctions_screen.dart'; // Import to embed AdminAuctionsList
 
 class AdminListingsScreen extends ConsumerStatefulWidget {
   const AdminListingsScreen({super.key});
@@ -15,6 +16,11 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> with 
   late TabController _tabController;
   final TextEditingController _searchCtrl = TextEditingController();
   String _selectedType = 'all'; // all, vehicle, battery, accessory
+  bool _showAuctions = false; // Toggle regular listings vs auctions
+
+  // Auction specific sorting state
+  final String _auctionSortBy = 'createdAt';
+  final String _auctionSortOrder = 'desc';
 
   @override
   void initState() {
@@ -34,17 +40,90 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> with 
 
   @override
   Widget build(BuildContext context) {
-    final status = switch (_tabController.index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Regular Listings state
+    final regularStatus = switch (_tabController.index) {
       0 => 'PENDING',
       1 => 'APPROVED',
       2 => 'REJECTED',
       _ => 'PENDING'
     };
 
+    // Auctions state mapping
+    final auctionStatus = switch (_tabController.index) {
+      0 => 'PENDING',
+      1 => 'ACTIVE',
+      2 => 'ENDED',
+      _ => 'PENDING'
+    };
+    final auctionApprovalStatus = _tabController.index == 0 ? 'PENDING' : 'all';
+
     return Scaffold(
-      backgroundColor: AppTheme.grey50,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Duyệt tin đăng'),
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+        foregroundColor: isDark ? Colors.white : AppTheme.grey900,
+        elevation: 0,
+        title: Container(
+          height: 38,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : AppTheme.grey100,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showAuctions = false;
+                    _tabController.index = 0; // Reset to first tab
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: !_showAuctions ? AppTheme.primaryGreen : Colors.transparent,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    'Tin bán',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: !_showAuctions ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey600),
+                    ),
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _showAuctions = true;
+                    _tabController.index = 0; // Reset to first tab
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _showAuctions ? AppTheme.primaryGreen : Colors.transparent,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    'Đấu giá',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: _showAuctions ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey600),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(104),
           child: Column(
@@ -58,40 +137,45 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> with 
                       child: Container(
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppTheme.grey100,
+                          color: isDark ? AppTheme.darkCard : AppTheme.grey100,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: TextField(
                           controller: _searchCtrl,
                           onSubmitted: (_) => setState(() {}),
-                          decoration: const InputDecoration(
-                            hintText: 'Tìm kiếm tin đăng...',
-                            prefixIcon: Icon(Icons.search, size: 18),
+                          style: TextStyle(color: isDark ? Colors.white : AppTheme.grey900),
+                          decoration: InputDecoration(
+                            hintText: _showAuctions ? 'Tìm kiếm đấu giá...' : 'Tìm kiếm tin đăng...',
+                            hintStyle: TextStyle(color: isDark ? Colors.white38 : AppTheme.grey400),
+                            prefixIcon: Icon(Icons.search, size: 18, color: isDark ? Colors.white54 : AppTheme.grey500),
                             contentPadding: EdgeInsets.zero,
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
+                            filled: false,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    DropdownButton<String>(
-                      value: _selectedType,
-                      underline: const SizedBox(),
-                      icon: const Icon(Icons.filter_list_rounded, color: AppTheme.primaryGreen),
-                      items: const [
-                        DropdownMenuItem(value: 'all', child: Text('Tất cả')),
-                        DropdownMenuItem(value: 'vehicle', child: Text('Xe điện')),
-                        DropdownMenuItem(value: 'battery', child: Text('Pin EV')),
-                        DropdownMenuItem(value: 'accessory', child: Text('Phụ kiện')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() => _selectedType = val);
-                        }
-                      },
-                    ),
+                    if (!_showAuctions)
+                      DropdownButton<String>(
+                        value: _selectedType,
+                        dropdownColor: isDark ? AppTheme.darkSurface : Colors.white,
+                        underline: const SizedBox(),
+                        icon: const Icon(Icons.filter_list_rounded, color: AppTheme.primaryGreen),
+                        items: const [
+                          DropdownMenuItem(value: 'all', child: Text('Tất cả')),
+                          DropdownMenuItem(value: 'vehicle', child: Text('Xe điện')),
+                          DropdownMenuItem(value: 'battery', child: Text('Pin EV')),
+                          DropdownMenuItem(value: 'accessory', child: Text('Phụ kiện')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedType = val);
+                          }
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -99,22 +183,36 @@ class _AdminListingsScreenState extends ConsumerState<AdminListingsScreen> with 
                 controller: _tabController,
                 indicatorColor: AppTheme.primaryGreen,
                 labelColor: AppTheme.primaryGreen,
-                unselectedLabelColor: AppTheme.grey500,
-                tabs: const [
-                  Tab(text: 'Chờ duyệt'),
-                  Tab(text: 'Đã duyệt'),
-                  Tab(text: 'Từ chối'),
-                ],
+                unselectedLabelColor: isDark ? AppTheme.grey400 : AppTheme.grey500,
+                tabs: _showAuctions
+                    ? const [
+                        Tab(text: 'Chờ duyệt'),
+                        Tab(text: 'Đang đấu giá'),
+                        Tab(text: 'Đã kết thúc'),
+                      ]
+                    : const [
+                        Tab(text: 'Chờ duyệt'),
+                        Tab(text: 'Đã duyệt'),
+                        Tab(text: 'Từ chối'),
+                      ],
               ),
             ],
           ),
         ),
       ),
-      body: _ListingsTabContent(
-        status: status,
-        type: _selectedType,
-        search: _searchCtrl.text,
-      ),
+      body: _showAuctions
+          ? AdminAuctionsList(
+              status: auctionStatus,
+              approvalStatus: auctionApprovalStatus,
+              sortBy: _auctionSortBy,
+              sortOrder: _auctionSortOrder,
+              search: _searchCtrl.text.trim(),
+            )
+          : _ListingsTabContent(
+              status: regularStatus,
+              type: _selectedType,
+              search: _searchCtrl.text.trim(),
+            ),
     );
   }
 }
@@ -132,6 +230,7 @@ class _ListingsTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final queryParams = {
       'approvalStatus': status,
       'limit': 50,
@@ -151,7 +250,7 @@ class _ListingsTabContent extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
               const SizedBox(height: 12),
-              Text('Lỗi tải danh sách: $err'),
+              Text('Lỗi tải danh sách: $err', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700)),
               TextButton(
                 onPressed: () => ref.invalidate(_listingsProvider(queryParams)),
                 child: const Text('Tải lại'),
@@ -172,12 +271,12 @@ class _ListingsTabContent extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-                const Center(
+                Center(
                   child: Column(
                     children: [
-                      Icon(Icons.inventory_2_outlined, size: 64, color: AppTheme.grey300),
-                      SizedBox(height: 16),
-                      Text('Không có bài đăng nào', style: TextStyle(color: AppTheme.grey500)),
+                      Icon(Icons.inventory_2_outlined, size: 64, color: isDark ? Colors.white24 : AppTheme.grey300),
+                      const SizedBox(height: 16),
+                      Text('Không có bài đăng nào', style: TextStyle(color: isDark ? AppTheme.grey400 : AppTheme.grey500)),
                     ],
                   ),
                 ),
@@ -256,7 +355,6 @@ class _ListingItemCard extends ConsumerWidget {
               controller: reasonCtrl,
               decoration: const InputDecoration(
                 hintText: 'Lý do từ chối...',
-                fillColor: AppTheme.grey100,
               ),
               maxLines: 3,
             ),
@@ -355,6 +453,7 @@ class _ListingItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPending = item['approvalStatus'] == 'PENDING';
     final isApproved = item['approvalStatus'] == 'APPROVED';
     final isSpam = item['isSpamSuspicious'] == true || (item['spamScore'] ?? 0) > 50;
@@ -378,9 +477,9 @@ class _ListingItemCard extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSpam ? AppTheme.error.withValues(alpha: 0.5) : AppTheme.grey200, width: isSpam ? 1.5 : 1),
+        border: Border.all(color: isSpam ? AppTheme.error.withValues(alpha: 0.5) : (isDark ? Colors.white10 : AppTheme.grey200), width: isSpam ? 1.5 : 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -404,7 +503,7 @@ class _ListingItemCard extends ConsumerWidget {
                   child: Container(
                     width: 80,
                     height: 80,
-                    color: AppTheme.grey100,
+                    color: isDark ? AppTheme.darkCard : AppTheme.grey100,
                     child: imageUrl != null
                         ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppTheme.grey400))
                         : const Icon(Icons.image, color: AppTheme.grey400),
@@ -450,7 +549,7 @@ class _ListingItemCard extends ConsumerWidget {
                       const SizedBox(height: 6),
                       Text(
                         item['title'] ?? 'Không tên',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.grey900),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : AppTheme.grey900),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -468,7 +567,7 @@ class _ListingItemCard extends ConsumerWidget {
           // Additional metadata
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Divider(color: AppTheme.grey100, height: 1),
+            child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -477,7 +576,7 @@ class _ListingItemCard extends ConsumerWidget {
               children: [
                 Text(
                   'Bán bởi: ${item['seller']?['fullName'] ?? item['seller']?['name'] ?? 'N/A'}',
-                  style: const TextStyle(color: AppTheme.grey600, fontSize: 12),
+                  style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
                 ),
                 Text(
                   AppUtils.timeAgo(item['createdAt'] ?? ''),
@@ -497,7 +596,7 @@ class _ListingItemCard extends ConsumerWidget {
             ),
           // Action Buttons Footer
           Container(
-            color: AppTheme.grey50,
+            color: isDark ? AppTheme.darkCard : AppTheme.grey50,
             padding: const EdgeInsets.all(8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,

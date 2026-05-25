@@ -38,13 +38,31 @@ import '../../features/admin/screens/admin_listings_screen.dart';
 import '../../features/admin/screens/admin_transactions_screen.dart';
 import '../../features/admin/screens/admin_support_tickets_screen.dart';
 import '../../features/admin/screens/admin_settings_screen.dart';
+import '../../features/admin/screens/admin_more_screen.dart';
+import '../../features/admin/screens/admin_auctions_screen.dart';
+import '../../features/admin/screens/admin_fees_screen.dart';
+import '../../features/admin/screens/admin_contracts_screen.dart';
+import '../../features/admin/screens/admin_permissions_screen.dart';
+import '../../features/admin/screens/kyc_management_screen.dart';
 import '../../widgets/admin_shell.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
-    _ref.listen(authStateProvider, (_, __) => notifyListeners());
+    // Set admin mode on startup if user already has admin credentials
+    final initialUser = _ref.read(authStateProvider).value?.user;
+    if (initialUser?.isAdmin == true || initialUser?.isModerator == true) {
+      _ref.read(adminModeProvider.notifier).state = true;
+    }
+
+    _ref.listen(authStateProvider, (prev, next) {
+      final user = next.value?.user;
+      if (user?.isAdmin == true || user?.isModerator == true) {
+        _ref.read(adminModeProvider.notifier).state = true;
+      }
+      notifyListeners();
+    });
     _ref.listen(sessionExpiredTickProvider, (_, __) => notifyListeners());
     _ref.listen(adminModeProvider, (_, __) => notifyListeners());
   }
@@ -52,7 +70,6 @@ class RouterNotifier extends ChangeNotifier {
   String? redirect(BuildContext context, GoRouterState state) {
     final authState = _ref.read(authStateProvider);
     final sessionExpiredTick = _ref.read(sessionExpiredTickProvider);
-    final isAdminMode = _ref.read(adminModeProvider);
 
     final isLoggedIn = authState.value?.isAuthenticated ?? false;
     final isPublicRoute = state.matchedLocation.startsWith('/auth') ||
@@ -71,20 +88,25 @@ class RouterNotifier extends ChangeNotifier {
     final userHasAdminRights = user?.isAdmin == true || user?.isModerator == true;
 
     if (isLoggedIn) {
-      if (isPublicRoute && state.matchedLocation != '/splash') {
-        if (isAdminMode && userHasAdminRights) {
+      final isGoingToAdmin = state.matchedLocation.startsWith('/admin');
+
+      if (userHasAdminRights) {
+        if (!_ref.read(adminModeProvider)) {
+          Future.microtask(() {
+            _ref.read(adminModeProvider.notifier).state = true;
+          });
+        }
+        // Force admins to stay within admin screens
+        if (!isGoingToAdmin) {
           return '/admin';
         }
-        return '/';
-      }
-
-      final isGoingToAdmin = state.matchedLocation.startsWith('/admin');
-      if (isGoingToAdmin && (!userHasAdminRights || !isAdminMode)) {
-        return '/';
-      }
-      if (!isGoingToAdmin && userHasAdminRights && isAdminMode) {
-        if (state.matchedLocation == '/') {
-          return '/admin';
+      } else {
+        // Normal users cannot access admin pages
+        if (isGoingToAdmin) {
+          return '/';
+        }
+        if (isPublicRoute && state.matchedLocation != '/splash') {
+          return '/';
         }
       }
     }
@@ -146,8 +168,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AdminSupportTicketsScreen(),
           ),
           GoRoute(
+            path: '/admin/more',
+            builder: (context, state) => const AdminMoreScreen(),
+          ),
+          GoRoute(
+            path: '/admin/kyc',
+            builder: (context, state) => const KycManagementScreen(),
+          ),
+          GoRoute(
+            path: '/admin/auctions',
+            builder: (context, state) => const AdminAuctionsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/contracts',
+            builder: (context, state) => const AdminContractsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/fees',
+            builder: (context, state) => const AdminFeesScreen(),
+          ),
+          GoRoute(
+            path: '/admin/permissions',
+            builder: (context, state) => const AdminPermissionsScreen(),
+          ),
+          GoRoute(
             path: '/admin/settings',
-            builder: (context, state) => const AdminSettingsScreen(),
+            builder: (context, state) {
+              final tabIndexStr = state.uri.queryParameters['tab'];
+              final tabIndex = int.tryParse(tabIndexStr ?? '') ?? 0;
+              return AdminSettingsScreen(initialTab: tabIndex);
+            },
           ),
         ],
       ),

@@ -11,7 +11,7 @@ class AdminShell extends StatelessWidget {
     if (location == '/admin/listings') return 1;
     if (location == '/admin/transactions') return 2;
     if (location == '/admin/support') return 3;
-    if (location == '/admin/settings') return 4;
+    if (location == '/admin/more') return 4;
     return 0; // dashboard
   }
 
@@ -42,7 +42,7 @@ class AdminShell extends StatelessWidget {
         context.go('/admin/support');
         break;
       case 4:
-        context.go('/admin/settings');
+        context.go('/admin/more');
         break;
     }
   }
@@ -91,28 +91,28 @@ class _AdminBottomNavBar extends StatelessWidget {
               _AdminNavItem(
                 icon: Icons.fact_check_outlined,
                 activeIcon: Icons.fact_check_rounded,
-                label: 'Duyệt bài',
+                label: 'Duyệt Bài / Đấu Giá',
                 isSelected: selectedIndex == 1,
                 onTap: () => onTap(1),
               ),
               _AdminNavItem(
                 icon: Icons.receipt_long_outlined,
                 activeIcon: Icons.receipt_long_rounded,
-                label: 'Giao dịch',
+                label: 'Giao Dịch',
                 isSelected: selectedIndex == 2,
                 onTap: () => onTap(2),
               ),
               _AdminNavItem(
                 icon: Icons.support_agent_outlined,
                 activeIcon: Icons.support_agent_rounded,
-                label: 'Hỗ trợ',
+                label: 'Hỗ Trợ Chat',
                 isSelected: selectedIndex == 3,
                 onTap: () => onTap(3),
               ),
               _AdminNavItem(
-                icon: Icons.settings_outlined,
-                activeIcon: Icons.settings_rounded,
-                label: 'Cài đặt',
+                icon: Icons.grid_view_outlined,
+                activeIcon: Icons.grid_view_rounded,
+                label: 'Thêm (More)',
                 isSelected: selectedIndex == 4,
                 onTap: () => onTap(4),
               ),

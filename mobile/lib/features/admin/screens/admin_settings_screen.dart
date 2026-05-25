@@ -4,9 +4,11 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/auth/session_state_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'kyc_review_detail_screen.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
-  const AdminSettingsScreen({super.key});
+  final int initialTab;
+  const AdminSettingsScreen({super.key, this.initialTab = 0});
 
   @override
   ConsumerState<AdminSettingsScreen> createState() => _AdminSettingsScreenState();
@@ -18,7 +20,11 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 3, 
+      vsync: this, 
+      initialIndex: widget.initialTab.clamp(0, 2),
+    );
   }
 
   @override
@@ -29,10 +35,14 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppTheme.grey50,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Cài đặt hệ thống & User'),
+        title: const Text('Quản lý hệ thống'),
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+        foregroundColor: isDark ? Colors.white : AppTheme.grey900,
         actions: [
           IconButton(
             icon: const Icon(Icons.swap_horizontal_circle_outlined, color: AppTheme.primaryGreen),
@@ -47,10 +57,11 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
           controller: _tabController,
           indicatorColor: AppTheme.primaryGreen,
           labelColor: AppTheme.primaryGreen,
-          unselectedLabelColor: AppTheme.grey500,
+          unselectedLabelColor: isDark ? AppTheme.grey400 : AppTheme.grey500,
           tabs: const [
-            Tab(text: 'Cấu hình sàn'),
+            Tab(text: 'Hệ thống'),
             Tab(text: 'Người dùng'),
+            Tab(text: 'Duyệt eKYC'),
           ],
         ),
       ),
@@ -59,6 +70,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
         children: const [
           _PlatformConfigSection(),
           _UserManagementSection(),
+          _KycRequestSection(),
         ],
       ),
     );
@@ -136,25 +148,39 @@ class _PlatformConfigSectionState extends ConsumerState<_PlatformConfigSection> 
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final settingsAsync = ref.watch(_settingsProvider);
 
-    return settingsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Lỗi: $e')),
-      data: (data) {
-        // Only load text controllers once when data arrives
-        if (_commissionCtrl.text.isEmpty) {
-          _loadSettings(data);
-        }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'THÔNG SỐ VẬN HÀNH',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: AppTheme.grey500,
+            ),
+          ),
+          const SizedBox(height: 12),
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Thông số vận hành sàn', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 16),
-              Card(
+          settingsAsync.when(
+            loading: () => const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
+            error: (e, _) => Center(child: Text('Lỗi: $e')),
+            data: (data) {
+              if (_commissionCtrl.text.isEmpty) {
+                _loadSettings(data);
+              }
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkSurface : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -183,7 +209,12 @@ class _PlatformConfigSectionState extends ConsumerState<_PlatformConfigSection> 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Tự động kết thúc đấu giá khi hết giờ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          const Expanded(
+                            child: Text(
+                              'Tự động kết thúc đấu giá khi hết giờ',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                          ),
                           Switch(
                             value: _autoEndAuctions,
                             onChanged: (val) => setState(() => _autoEndAuctions = val),
@@ -191,21 +222,27 @@ class _PlatformConfigSectionState extends ConsumerState<_PlatformConfigSection> 
                           ),
                         ],
                       ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: _isSaving ? null : _saveSettings,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 44),
+                          backgroundColor: AppTheme.primaryGreen,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: _isSaving
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Text('Lưu thông số', style: TextStyle(fontSize: 14)),
+                      ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _isSaving ? null : _saveSettings,
-                child: _isSaving
-                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Lưu cấu hình hệ thống'),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+          const SizedBox(height: 24),
+        ],
+      ),
     );
   }
 }
@@ -231,17 +268,22 @@ class _SettingTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white70 : AppTheme.grey700)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
-            fillColor: AppTheme.grey50,
+            fillColor: isDark ? AppTheme.darkCard : AppTheme.grey50,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? Colors.white10 : AppTheme.grey200)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: isDark ? Colors.white10 : AppTheme.grey200)),
           ),
         ),
       ],
@@ -269,31 +311,34 @@ class _UserManagementSectionState extends ConsumerState<_UserManagementSection> 
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final search = _searchCtrl.text;
     final usersAsync = ref.watch(_usersProvider(search));
 
     return Column(
       children: [
-        // Search bar
         Padding(
           padding: const EdgeInsets.all(16),
           child: Container(
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? AppTheme.darkCard : Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.grey200),
+              border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
             ),
             child: TextField(
               controller: _searchCtrl,
               onSubmitted: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              style: TextStyle(color: isDark ? Colors.white : AppTheme.grey900),
+              decoration: InputDecoration(
                 hintText: 'Tìm kiếm email, họ tên...',
-                prefixIcon: Icon(Icons.search),
+                hintStyle: TextStyle(color: isDark ? Colors.white38 : AppTheme.grey400),
+                prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : AppTheme.grey500),
                 contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
+                filled: false,
               ),
             ),
           ),
@@ -303,12 +348,12 @@ class _UserManagementSectionState extends ConsumerState<_UserManagementSection> 
             onRefresh: () async => ref.invalidate(_usersProvider(search)),
             child: usersAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Lỗi: $e')),
+              error: (e, _) => Center(child: Text('Lỗi: $e', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700))),
               data: (res) {
                 final usersList = List<Map<String, dynamic>>.from(res['users'] ?? []);
 
                 if (usersList.isEmpty) {
-                  return const Center(child: Text('Không tìm thấy người dùng nào'));
+                  return Center(child: Text('Không tìm thấy người dùng nào', style: TextStyle(color: isDark ? AppTheme.grey400 : AppTheme.grey500)));
                 }
 
                 return ListView.separated(
@@ -444,7 +489,6 @@ class _UserCard extends ConsumerWidget {
     final dio = ref.read(dioProvider);
     final id = user['id'];
     
-    // Fetch available and current permissions
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -457,7 +501,7 @@ class _UserCard extends ConsumerWidget {
       data = Map<String, dynamic>.from(res.data);
     } catch (e) {
       if (context.mounted) {
-        Navigator.pop(context); // Pop loading
+        Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Lỗi tải quyền hạn: $e'), backgroundColor: AppTheme.error),
         );
@@ -465,12 +509,14 @@ class _UserCard extends ConsumerWidget {
       }
     }
 
-    if (context.mounted) Navigator.pop(context); // Pop loading
+    if (context.mounted) Navigator.pop(context);
     if (data == null) return;
 
     final available = List<String>.from(data['availablePermissions'] ?? []);
     final current = List<String>.from(data['permissions'] ?? []);
     final selectedPermissions = Set<String>.from(current);
+
+    if (!context.mounted) return;
 
     final updated = await showDialog<bool>(
       context: context,
@@ -542,6 +588,7 @@ class _UserCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = user['name'] ?? 'Ẩn danh';
     final email = user['email'] ?? 'N/A';
     final role = user['role'] ?? 'USER';
@@ -549,6 +596,11 @@ class _UserCard extends ConsumerWidget {
     final isModerator = role == 'MODERATOR';
 
     return Card(
+      color: isDark ? AppTheme.darkSurface : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: isDark ? Colors.white10 : AppTheme.grey200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -564,7 +616,7 @@ class _UserCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : AppTheme.grey900)),
                       Text(email, style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
                     ],
                   ),
@@ -618,5 +670,215 @@ class _UserCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+// ─── SECTION 3: eKYC Requests ──────────────────────────────────────────────────
+
+class _KycRequestSection extends ConsumerWidget {
+  const _KycRequestSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pendingKyc = ref.watch(_pendingKycProvider);
+
+    return RefreshIndicator(
+      onRefresh: () async => ref.invalidate(_pendingKycProvider),
+      child: pendingKyc.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, _) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: AppTheme.error, size: 48),
+              const SizedBox(height: 16),
+              Text('Lỗi: ${error.toString()}', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700)),
+              TextButton(
+                onPressed: () => ref.invalidate(_pendingKycProvider),
+                child: const Text('Thử lại'),
+              ),
+            ],
+          ),
+        ),
+        data: (profiles) {
+          if (profiles.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                Center(
+                  child: Column(
+                    children: [
+                      const Icon(Icons.verified_user_outlined, size: 64, color: AppTheme.grey300),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Không có yêu cầu eKYC nào đang chờ phê duyệt',
+                        style: TextStyle(color: isDark ? AppTheme.grey400 : AppTheme.grey600),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: profiles.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final profile = profiles[index];
+              final user = profile['user'] as Map<String, dynamic>?;
+
+              return _KycRequestCard(
+                profileId: profile['id'],
+                userId: user?['id'] ?? '',
+                fullName: user?['fullName'] ?? 'Người dùng EVN',
+                email: user?['email'] ?? 'N/A',
+                phone: user?['phone'] ?? 'N/A',
+                avatar: user?['avatar'],
+                submittedAt: profile['updatedAt'] ?? profile['createdAt'] ?? '',
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => KycReviewDetailScreen(
+                        userId: user?['id'] ?? '',
+                        profileData: profile,
+                      ),
+                    ),
+                  );
+                  if (result == true) {
+                    ref.invalidate(_pendingKycProvider);
+                  }
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+final _pendingKycProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final dio = ref.watch(dioProvider);
+  final res = await dio.get('/users/kyc/pending');
+  return List<Map<String, dynamic>>.from(res.data);
+});
+
+class _KycRequestCard extends StatelessWidget {
+  final String profileId;
+  final String userId;
+  final String fullName;
+  final String email;
+  final String phone;
+  final String? avatar;
+  final String submittedAt;
+  final VoidCallback onTap;
+
+  const _KycRequestCard({
+    required this.profileId,
+    required this.userId,
+    required this.fullName,
+    required this.email,
+    required this.phone,
+    this.avatar,
+    required this.submittedAt,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 28,
+              backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+              backgroundImage: avatar != null ? NetworkImage(avatar!) : null,
+              child: avatar == null
+                  ? const Icon(Icons.person, color: AppTheme.primaryGreen)
+                  : null,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    fullName,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? Colors.white : AppTheme.grey900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'SĐT: $phone',
+                    style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Ngày gửi: ${_formatDate(submittedAt)}',
+                    style: const TextStyle(color: AppTheme.grey400, fontSize: 11, fontStyle: FontStyle.italic),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              children: [
+                const Icon(Icons.chevron_right, color: AppTheme.grey400),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Đang chờ',
+                    style: TextStyle(
+                      color: AppTheme.warning,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(String isoDate) {
+    if (isoDate.isEmpty) return 'N/A';
+    try {
+      final date = DateTime.parse(isoDate);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return isoDate.split('T')[0];
+    }
   }
 }
