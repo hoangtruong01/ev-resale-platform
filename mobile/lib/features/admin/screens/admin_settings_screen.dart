@@ -422,44 +422,62 @@ class _UserCard extends ConsumerWidget {
   }
 
   Future<void> _changeRole(BuildContext context, WidgetRef ref) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     String selectedRole = user['role'] ?? 'USER';
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
-          title: const Text('Thay đổi vai trò'),
+          backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+          title: Text(
+            'Thay đổi vai trò',
+            style: TextStyle(color: isDark ? Colors.white : AppTheme.grey900),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('Người dùng (USER)'),
+                title: Text('Người dùng (USER)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
                 value: 'USER',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
+                activeColor: AppTheme.primaryGreen,
               ),
               RadioListTile<String>(
-                title: const Text('Quản trị viên (ADMIN)'),
+                title: Text('Quản trị viên (ADMIN)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
                 value: 'ADMIN',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
+                activeColor: AppTheme.primaryGreen,
               ),
               RadioListTile<String>(
-                title: const Text('Điều phối viên (MODERATOR)'),
+                title: Text('Điều phối viên (MODERATOR)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
                 value: 'MODERATOR',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
+                activeColor: AppTheme.primaryGreen,
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Huỷ', style: TextStyle(color: AppTheme.grey600)),
+              child: Text(
+                'Huỷ',
+                style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey600),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
-              child: const Text('Cập nhật'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text(
+                'Cập nhật',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -588,6 +606,218 @@ class _UserCard extends ConsumerWidget {
     }
   }
 
+  void _showUserDetails(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final name = user['name'] ?? 'Ẩn danh';
+    final email = user['email'] ?? 'N/A';
+    final phone = user['phone'] ?? 'Chưa cung cấp';
+    final role = user['role'] ?? 'USER';
+    final isBlocked = user['status'] == 'blocked';
+    final kycStatus = user['kycStatus'] ?? 'UNVERIFIED';
+    final createdAtStr = user['createdAt'] != null ? AppUtils.timeAgo(user['createdAt']) : 'N/A';
+    final profile = user['profile'] as Map<String, dynamic>?;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : AppTheme.grey300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Header (Avatar + Name)
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 32,
+                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      backgroundImage: user['avatar'] != null ? NetworkImage(user['avatar']) : null,
+                      child: user['avatar'] == null
+                          ? const Icon(Icons.person, size: 32, color: AppTheme.primaryGreen)
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : AppTheme.grey900,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: isBlocked 
+                                  ? AppTheme.error.withValues(alpha: 0.1) 
+                                  : AppTheme.primaryGreen.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isBlocked ? 'ĐÃ KHÓA' : role,
+                              style: TextStyle(
+                                color: isBlocked ? AppTheme.error : AppTheme.primaryGreen,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
+                const SizedBox(height: 20),
+                
+                // Information section
+                _buildInfoTitle(context, 'Thông tin cá nhân'),
+                const SizedBox(height: 12),
+                _buildInfoRow(context, Icons.email_outlined, 'Email', email),
+                _buildInfoRow(context, Icons.phone_android_outlined, 'Số điện thoại', phone),
+                _buildInfoRow(context, Icons.calendar_month_outlined, 'Ngày tham gia', createdAtStr),
+                
+                const SizedBox(height: 20),
+                _buildInfoTitle(context, 'Trạng thái eKYC'),
+                const SizedBox(height: 12),
+                _buildKycStatusRow(context, kycStatus),
+                
+                if (profile != null) ...[
+                  const SizedBox(height: 20),
+                  _buildInfoTitle(context, 'Thông tin chi tiết tài liệu eKYC'),
+                  const SizedBox(height: 12),
+                  _buildInfoRow(context, Icons.badge_outlined, 'Số CMND/CCCD', profile['idNumber'] ?? 'Chưa cung cấp'),
+                  _buildInfoRow(context, Icons.assignment_ind_outlined, 'Loại giấy tờ', profile['idType'] ?? 'CMND/CCCD'),
+                ],
+                
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoTitle(BuildContext context, String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: isDark ? Colors.white54 : AppTheme.grey500,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: AppTheme.primaryGreen),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white38 : AppTheme.grey400,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white : AppTheme.grey800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKycStatusRow(BuildContext context, String status) {
+    final kycColor = switch (status) {
+      'APPROVED' => AppTheme.success,
+      'PENDING' => AppTheme.warning,
+      'REJECTED' => AppTheme.error,
+      _ => AppTheme.grey400
+    };
+    final kycText = switch (status) {
+      'APPROVED' => 'eKYC đã xác thực thành công',
+      'PENDING' => 'Đang chờ Admin duyệt eKYC',
+      'REJECTED' => 'eKYC bị từ chối / eKYC thất bại',
+      _ => 'Chưa cập nhật tài liệu eKYC'
+    };
+
+    return Row(
+      children: [
+        Icon(
+          status == 'APPROVED'
+              ? Icons.verified_user_rounded
+              : status == 'PENDING'
+                  ? Icons.pending_actions_rounded
+                  : status == 'REJECTED'
+                      ? Icons.gpp_bad_rounded
+                      : Icons.help_outline_rounded,
+          size: 18,
+          color: kycColor,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            kycText,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: kycColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -609,81 +839,85 @@ class _UserCard extends ConsumerWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                  child: const Icon(Icons.person, color: AppTheme.primaryGreen),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : AppTheme.grey900)),
-                      Text(email, style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            kycStatus == 'APPROVED'
-                                ? Icons.verified_user_rounded
-                                : kycStatus == 'PENDING'
-                                    ? Icons.pending_actions_rounded
-                                    : kycStatus == 'REJECTED'
-                                        ? Icons.gpp_bad_rounded
-                                        : Icons.help_outline_rounded,
-                            size: 14,
-                            color: kycStatus == 'APPROVED'
-                                ? AppTheme.success
-                                : kycStatus == 'PENDING'
-                                    ? AppTheme.warning
-                                    : kycStatus == 'REJECTED'
-                                        ? AppTheme.error
-                                        : AppTheme.grey400,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            kycStatus == 'APPROVED'
-                                ? 'eKYC thành công'
-                                : kycStatus == 'PENDING'
-                                    ? 'eKYC chờ duyệt'
-                                    : kycStatus == 'REJECTED'
-                                        ? 'eKYC thất bại'
-                                        : 'Chưa cập nhật eKYC',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+            GestureDetector(
+              onTap: () => _showUserDetails(context, ref),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                    child: const Icon(Icons.person, color: AppTheme.primaryGreen),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : AppTheme.grey900)),
+                        Text(email, style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              kycStatus == 'APPROVED'
+                                  ? Icons.verified_user_rounded
+                                  : kycStatus == 'PENDING'
+                                      ? Icons.pending_actions_rounded
+                                      : kycStatus == 'REJECTED'
+                                          ? Icons.gpp_bad_rounded
+                                          : Icons.help_outline_rounded,
+                              size: 14,
                               color: kycStatus == 'APPROVED'
                                   ? AppTheme.success
                                   : kycStatus == 'PENDING'
                                       ? AppTheme.warning
                                       : kycStatus == 'REJECTED'
                                           ? AppTheme.error
-                                          : AppTheme.grey500,
+                                          : AppTheme.grey400,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: isBlocked ? AppTheme.error.withValues(alpha: 0.1) : AppTheme.primaryGreen.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    isBlocked ? 'Đã khóa' : role,
-                    style: TextStyle(
-                      color: isBlocked ? AppTheme.error : AppTheme.primaryGreen,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+                            const SizedBox(width: 4),
+                            Text(
+                              kycStatus == 'APPROVED'
+                                  ? 'eKYC thành công'
+                                  : kycStatus == 'PENDING'
+                                      ? 'eKYC chờ duyệt'
+                                      : kycStatus == 'REJECTED'
+                                          ? 'eKYC thất bại'
+                                          : 'Chưa cập nhật eKYC',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: kycStatus == 'APPROVED'
+                                    ? AppTheme.success
+                                    : kycStatus == 'PENDING'
+                                        ? AppTheme.warning
+                                        : kycStatus == 'REJECTED'
+                                            ? AppTheme.error
+                                            : AppTheme.grey500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isBlocked ? AppTheme.error.withValues(alpha: 0.1) : AppTheme.primaryGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      isBlocked ? 'Đã khóa' : role,
+                      style: TextStyle(
+                        color: isBlocked ? AppTheme.error : AppTheme.primaryGreen,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             Row(
