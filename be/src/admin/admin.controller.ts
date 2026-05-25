@@ -281,22 +281,26 @@ export class AdminController {
   })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   async getUsers(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page') page?: any,
+    @Query('limit') limit?: any,
     @Query('search') search?: string,
     @Query('role') role?: string,
-    @Query('isActive') isActive?: boolean,
+    @Query('isActive') isActive?: any,
   ) {
+    const parsedPage = page ? parseInt(page, 10) : undefined;
+    const parsedLimit = limit ? parseInt(limit, 10) : undefined;
+    const parsedIsActive = isActive !== undefined ? (isActive === 'true' || isActive === true) : undefined;
+
     const result = await this.usersService.findAll({
-      page,
-      limit,
+      page: parsedPage,
+      limit: parsedLimit,
       search,
       role,
-      isActive,
+      isActive: parsedIsActive,
     });
 
     // Transform data for frontend
-    const users = result.data.map((user) => ({
+    const users = result.data.map((user: any) => ({
       id: user.id,
       name: user.fullName || user.name,
       email: user.email,
@@ -310,6 +314,8 @@ export class AdminController {
       postCount: (user._count?.batteries || 0) + (user._count?.vehicles || 0),
       transactionCount: user._count?.auctions || 0,
       averageRating: user.rating || 0,
+      kycStatus: user.profile?.kycStatus || 'UNVERIFIED',
+      profile: user.profile || null,
     }));
 
     return {
@@ -327,7 +333,7 @@ export class AdminController {
     const result = await this.usersService.findAll({ page: 1, limit: 1000 });
 
     // Transform data for frontend
-    const users = result.data.map((user) => ({
+    const users = result.data.map((user: any) => ({
       id: user.id,
       name: user.fullName || user.name,
       email: user.email,
@@ -341,6 +347,8 @@ export class AdminController {
       postCount: (user._count?.batteries || 0) + (user._count?.vehicles || 0),
       transactionCount: user._count?.auctions || 0,
       averageRating: user.rating || 0,
+      kycStatus: user.profile?.kycStatus || 'UNVERIFIED',
+      profile: user.profile || null,
     }));
 
     return users;

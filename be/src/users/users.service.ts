@@ -79,6 +79,7 @@ export class UsersService {
           address: true,
           rating: true,
           totalRatings: true,
+          profile: true,
           _count: {
             select: {
               batteries: true,

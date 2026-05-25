@@ -90,18 +90,15 @@ class RouterNotifier extends ChangeNotifier {
     if (isLoggedIn) {
       final isGoingToAdmin = state.matchedLocation.startsWith('/admin');
 
-      if (userHasAdminRights) {
-        if (!_ref.read(adminModeProvider)) {
-          Future.microtask(() {
-            _ref.read(adminModeProvider.notifier).state = true;
-          });
-        }
-        // Force admins to stay within admin screens
+      final isAdminMode = _ref.read(adminModeProvider);
+
+      if (userHasAdminRights && isAdminMode) {
+        // Force admins in admin mode to stay within admin screens
         if (!isGoingToAdmin) {
           return '/admin';
         }
       } else {
-        // Normal users cannot access admin pages
+        // Normal users, or admins who switched off admin mode, cannot access admin pages
         if (isGoingToAdmin) {
           return '/';
         }

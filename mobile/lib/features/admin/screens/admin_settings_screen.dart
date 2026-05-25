@@ -21,10 +21,14 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 3, 
+      length: 2, 
       vsync: this, 
-      initialIndex: widget.initialTab.clamp(0, 2),
+      initialIndex: widget.initialTab.clamp(0, 1),
     );
+    _tabController.addListener(() {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   @override
@@ -40,7 +44,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Quản lý hệ thống'),
+        title: Text(_tabController.index == 0 ? 'Cấu hình phí' : 'Quản lý người dùng'),
         backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
         foregroundColor: isDark ? Colors.white : AppTheme.grey900,
         actions: [
@@ -59,9 +63,8 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
           labelColor: AppTheme.primaryGreen,
           unselectedLabelColor: isDark ? AppTheme.grey400 : AppTheme.grey500,
           tabs: const [
-            Tab(text: 'Hệ thống'),
+            Tab(text: 'Cấu hình phí'),
             Tab(text: 'Người dùng'),
-            Tab(text: 'Duyệt eKYC'),
           ],
         ),
       ),
@@ -70,7 +73,6 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
         children: const [
           _PlatformConfigSection(),
           _UserManagementSection(),
-          _KycRequestSection(),
         ],
       ),
     );
@@ -594,6 +596,8 @@ class _UserCard extends ConsumerWidget {
     final role = user['role'] ?? 'USER';
     final isBlocked = user['status'] == 'blocked';
     final isModerator = role == 'MODERATOR';
+    final kycStatus = user['kycStatus'] ?? 'UNVERIFIED';
+    final profile = user['profile'] as Map<String, dynamic>?;
 
     return Card(
       color: isDark ? AppTheme.darkSurface : Colors.white,
@@ -618,6 +622,49 @@ class _UserCard extends ConsumerWidget {
                     children: [
                       Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : AppTheme.grey900)),
                       Text(email, style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            kycStatus == 'APPROVED'
+                                ? Icons.verified_user_rounded
+                                : kycStatus == 'PENDING'
+                                    ? Icons.pending_actions_rounded
+                                    : kycStatus == 'REJECTED'
+                                        ? Icons.gpp_bad_rounded
+                                        : Icons.help_outline_rounded,
+                            size: 14,
+                            color: kycStatus == 'APPROVED'
+                                ? AppTheme.success
+                                : kycStatus == 'PENDING'
+                                    ? AppTheme.warning
+                                    : kycStatus == 'REJECTED'
+                                        ? AppTheme.error
+                                        : AppTheme.grey400,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            kycStatus == 'APPROVED'
+                                ? 'eKYC thành công'
+                                : kycStatus == 'PENDING'
+                                    ? 'eKYC chờ duyệt'
+                                    : kycStatus == 'REJECTED'
+                                        ? 'eKYC thất bại'
+                                        : 'Chưa cập nhật eKYC',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: kycStatus == 'APPROVED'
+                                  ? AppTheme.success
+                                  : kycStatus == 'PENDING'
+                                      ? AppTheme.warning
+                                      : kycStatus == 'REJECTED'
+                                          ? AppTheme.error
+                                          : AppTheme.grey500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -642,6 +689,39 @@ class _UserCard extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (kycStatus != 'UNVERIFIED' && profile != null) ...[
+                  TextButton.icon(
+                    onPressed: () async {
+                      final profileDataForScreen = Map<String, dynamic>.from(profile);
+                      profileDataForScreen['user'] = {
+                        'id': user['id'],
+                        'fullName': user['name'] ?? name,
+                        'email': email,
+                        'phone': user['phone'] ?? '',
+                        'avatar': user['avatar'],
+                      };
+
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => KycReviewDetailScreen(
+                            userId: user['id'] ?? '',
+                            profileData: profileDataForScreen,
+                          ),
+                        ),
+                      );
+                      if (result == true) {
+                        onActionDone();
+                      }
+                    },
+                    icon: const Icon(Icons.verified_rounded, size: 16, color: AppTheme.primaryGreen),
+                    label: const Text(
+                      'Duyệt eKYC',
+                      style: TextStyle(fontSize: 12, color: AppTheme.primaryGreen),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (isModerator) ...[
                   TextButton.icon(
                     onPressed: () => _managePermissions(context, ref),
