@@ -105,17 +105,12 @@ class _TransactionsTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final queryParams = {
-      'status': status,
-      'limit': 50,
-      'page': 1,
-      if (search.isNotEmpty) 'search': search,
-    };
+    final queryKey = 'status=$status&search=${Uri.encodeComponent(search)}';
 
-    final transactionsAsync = ref.watch(_transactionsProvider(queryParams));
+    final transactionsAsync = ref.watch(_transactionsProvider(queryKey));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_transactionsProvider(queryParams)),
+      onRefresh: () async => ref.invalidate(_transactionsProvider(queryKey)),
       child: transactionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -126,7 +121,7 @@ class _TransactionsTabContent extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Lỗi tải giao dịch: $err'),
               TextButton(
-                onPressed: () => ref.invalidate(_transactionsProvider(queryParams)),
+                onPressed: () => ref.invalidate(_transactionsProvider(queryKey)),
                 child: const Text('Tải lại'),
               ),
             ],
@@ -169,7 +164,7 @@ class _TransactionsTabContent extends ConsumerWidget {
               return _TransactionCard(
                 tx: item,
                 onActionDone: () {
-                  ref.invalidate(_transactionsProvider(queryParams));
+                  ref.invalidate(_transactionsProvider(queryKey));
                 },
               );
             },
@@ -180,7 +175,18 @@ class _TransactionsTabContent extends ConsumerWidget {
   }
 }
 
-final _transactionsProvider = FutureProvider.autoDispose.family<dynamic, Map<String, dynamic>>((ref, params) async {
+final _transactionsProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, queryKey) async {
+  final uri = Uri.parse('http://placeholder.local/?$queryKey');
+  final status = uri.queryParameters['status'] ?? 'processing';
+  final search = uri.queryParameters['search'] ?? '';
+
+  final params = {
+    'status': status,
+    'limit': 50,
+    'page': 1,
+    if (search.isNotEmpty) 'search': search,
+  };
+
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/admin/transactions', queryParameters: params);
   return res.data;

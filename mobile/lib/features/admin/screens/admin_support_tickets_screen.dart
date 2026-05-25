@@ -105,17 +105,12 @@ class _TicketsTabContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final queryParams = {
-      'status': status,
-      'limit': 50,
-      'page': 1,
-      if (search.isNotEmpty) 'search': search,
-    };
+    final queryKey = 'status=$status&search=${Uri.encodeComponent(search)}';
 
-    final ticketsAsync = ref.watch(_ticketsProvider(queryParams));
+    final ticketsAsync = ref.watch(_ticketsProvider(queryKey));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_ticketsProvider(queryParams)),
+      onRefresh: () async => ref.invalidate(_ticketsProvider(queryKey)),
       child: ticketsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -126,7 +121,7 @@ class _TicketsTabContent extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Lỗi tải ticket: $err'),
               TextButton(
-                onPressed: () => ref.invalidate(_ticketsProvider(queryParams)),
+                onPressed: () => ref.invalidate(_ticketsProvider(queryKey)),
                 child: const Text('Tải lại'),
               ),
             ],
@@ -168,7 +163,7 @@ class _TicketsTabContent extends ConsumerWidget {
               return _TicketCard(
                 ticket: item,
                 onActionDone: () {
-                  ref.invalidate(_ticketsProvider(queryParams));
+                  ref.invalidate(_ticketsProvider(queryKey));
                 },
               );
             },
@@ -179,7 +174,18 @@ class _TicketsTabContent extends ConsumerWidget {
   }
 }
 
-final _ticketsProvider = FutureProvider.autoDispose.family<dynamic, Map<String, dynamic>>((ref, params) async {
+final _ticketsProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, queryKey) async {
+  final uri = Uri.parse('http://placeholder.local/?$queryKey');
+  final status = uri.queryParameters['status'] ?? 'OPEN';
+  final search = uri.queryParameters['search'] ?? '';
+
+  final params = {
+    'status': status,
+    'limit': 50,
+    'page': 1,
+    if (search.isNotEmpty) 'search': search,
+  };
+
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/admin/support-tickets', queryParameters: params);
   return res.data;

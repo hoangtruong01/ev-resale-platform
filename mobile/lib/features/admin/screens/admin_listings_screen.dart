@@ -231,17 +231,12 @@ class _ListingsTabContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final queryParams = {
-      'approvalStatus': status,
-      'limit': 50,
-      'page': 1,
-      if (search.isNotEmpty) 'search': search,
-    };
+    final queryKey = 'approvalStatus=$status&search=${Uri.encodeComponent(search)}';
     
-    final listingsAsync = ref.watch(_listingsProvider(queryParams));
+    final listingsAsync = ref.watch(_listingsProvider(queryKey));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_listingsProvider(queryParams)),
+      onRefresh: () async => ref.invalidate(_listingsProvider(queryKey)),
       child: listingsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -252,7 +247,7 @@ class _ListingsTabContent extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Lỗi tải danh sách: $err', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700)),
               TextButton(
-                onPressed: () => ref.invalidate(_listingsProvider(queryParams)),
+                onPressed: () => ref.invalidate(_listingsProvider(queryKey)),
                 child: const Text('Tải lại'),
               ),
             ],
@@ -293,7 +288,7 @@ class _ListingsTabContent extends ConsumerWidget {
               return _ListingItemCard(
                 item: item,
                 onActionDone: () {
-                  ref.invalidate(_listingsProvider(queryParams));
+                  ref.invalidate(_listingsProvider(queryKey));
                 },
               );
             },
@@ -304,7 +299,18 @@ class _ListingsTabContent extends ConsumerWidget {
   }
 }
 
-final _listingsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, Map<String, dynamic>>((ref, params) async {
+final _listingsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, queryKey) async {
+  final uri = Uri.parse('http://placeholder.local/?$queryKey');
+  final approvalStatus = uri.queryParameters['approvalStatus'] ?? 'PENDING';
+  final search = uri.queryParameters['search'] ?? '';
+
+  final params = {
+    'approvalStatus': approvalStatus,
+    'limit': 50,
+    'page': 1,
+    if (search.isNotEmpty) 'search': search,
+  };
+
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/admin/listings', queryParameters: params);
   return Map<String, dynamic>.from(res.data);

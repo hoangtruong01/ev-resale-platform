@@ -154,20 +154,12 @@ class AdminAuctionsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final queryParams = {
-      'page': 1,
-      'limit': 50,
-      'sortBy': sortBy,
-      'sortOrder': sortOrder,
-      if (status != 'all' && status != 'PENDING') 'status': status,
-      if (approvalStatus != 'all') 'approvalStatus': approvalStatus,
-      if (search.isNotEmpty) 'search': search,
-    };
+    final queryKey = 'status=$status&approvalStatus=$approvalStatus&sortBy=$sortBy&sortOrder=$sortOrder&search=${Uri.encodeComponent(search)}';
 
-    final auctionsAsync = ref.watch(_auctionsProvider(queryParams));
+    final auctionsAsync = ref.watch(_auctionsProvider(queryKey));
 
     return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_auctionsProvider(queryParams)),
+      onRefresh: () async => ref.invalidate(_auctionsProvider(queryKey)),
       child: auctionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(
@@ -178,7 +170,7 @@ class AdminAuctionsList extends ConsumerWidget {
               const SizedBox(height: 12),
               Text('Lỗi tải đấu giá: $err', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700)),
               TextButton(
-                onPressed: () => ref.invalidate(_auctionsProvider(queryParams)),
+                onPressed: () => ref.invalidate(_auctionsProvider(queryKey)),
                 child: const Text('Tải lại'),
               ),
             ],
@@ -217,7 +209,7 @@ class AdminAuctionsList extends ConsumerWidget {
               return _AuctionCard(
                 auction: item,
                 onActionDone: () {
-                  ref.invalidate(_auctionsProvider(queryParams));
+                  ref.invalidate(_auctionsProvider(queryKey));
                 },
               );
             },
@@ -230,7 +222,24 @@ class AdminAuctionsList extends ConsumerWidget {
 
 // ─── Riverpod Providers ───────────────────────────────────────────────────────
 
-final _auctionsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, Map<String, dynamic>>((ref, params) async {
+final _auctionsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, queryKey) async {
+  final uri = Uri.parse('http://placeholder.local/?$queryKey');
+  final status = uri.queryParameters['status'] ?? 'all';
+  final approvalStatus = uri.queryParameters['approvalStatus'] ?? 'all';
+  final sortBy = uri.queryParameters['sortBy'] ?? 'createdAt';
+  final sortOrder = uri.queryParameters['sortOrder'] ?? 'desc';
+  final search = uri.queryParameters['search'] ?? '';
+
+  final params = {
+    'page': 1,
+    'limit': 50,
+    'sortBy': sortBy,
+    'sortOrder': sortOrder,
+    if (status != 'all' && status != 'PENDING') 'status': status,
+    if (approvalStatus != 'all') 'approvalStatus': approvalStatus,
+    if (search.isNotEmpty) 'search': search,
+  };
+
   final dio = ref.watch(dioProvider);
   final res = await dio.get('/admin/auctions', queryParameters: params);
   return Map<String, dynamic>.from(res.data);
