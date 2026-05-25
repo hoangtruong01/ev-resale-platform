@@ -29,6 +29,7 @@ import { UsersService } from '../users/users.service';
 import { BatteriesService } from '../batteries/batteries.service';
 import { AccessoriesService } from '../accessories/accessories.service';
 import { AuctionsService } from '../auctions/auctions.service';
+import { SearchAuctionDto } from '../auctions/dto/search-auction.dto';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { SupportTicketsService } from '../support-tickets/support-tickets.service';
@@ -878,7 +879,7 @@ export class AdminController {
     required: false,
     enum: ['PENDING', 'ACTIVE', 'ENDED', 'CANCELLED'],
   })
-  async getAuctions(@Query(ValidationPipe) query: any) {
+  async getAuctions(@Query(ValidationPipe) query: SearchAuctionDto) {
     return this.auctionsService.findAll(query, { includeAllStatuses: true });
   }
 
@@ -1137,7 +1138,7 @@ export class AdminController {
 
     const result = await this.transactionsService.resolveTransactionDispute(
       id,
-      body.resolution,
+      body.resolution.toLowerCase() as any,
       adminId,
       body.notes,
     );
