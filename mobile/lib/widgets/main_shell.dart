@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
+import 'floating_ai_button.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
@@ -84,8 +85,26 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = _getSelectedIndex(context);
+    final location = GoRouterState.of(context).matchedLocation;
+    
+    // Show FAB only on Home page and product detail pages (vehicles, batteries, accessories)
+    final showFab = location == '/' ||
+        location.startsWith('/vehicles/') ||
+        location.startsWith('/batteries/') ||
+        location.startsWith('/accessories/');
+
     return Scaffold(
-      body: child,
+      body: Stack(
+        children: [
+          child,
+          if (showFab)
+            Positioned(
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 76,
+              child: const FloatingAiButton(),
+            ),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
