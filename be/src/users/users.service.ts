@@ -417,17 +417,10 @@ export class UsersService {
       try {
         console.log(`[Mock OCR] Processing KYC for user ${userId}...`);
 
-        // Simulate logic: if fullName exists, it "matches" the OCR
-        // In this mock, we always approve for demonstration
-        await this.prisma.profile.update({
-          where: { userId },
-          data: {
-            kycStatus: KycStatus.APPROVED,
-          } as any,
-        });
-
+        // Simulate logic: OCR processed, but do NOT automatically approve.
+        // The status remains PENDING until the admin reviews it.
         console.log(
-          `[Mock OCR] KYC for user ${userId} APPROVED automatically.`,
+          `[Mock OCR] KYC information for user ${userId} processed by OCR engine. Status remains PENDING for Admin review.`,
         );
       } catch (error) {
         console.error(`[Mock OCR] Error auto-approving KYC:`, error);
