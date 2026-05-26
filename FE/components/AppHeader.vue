@@ -11,7 +11,7 @@
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-2xl">⚡</span>
+          <img src="/logo.png" alt="EVN Logo" class="h-8 w-8 object-contain rounded-lg" />
           <NuxtLink
             to="/"
             :class="[

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/auth/session_state_provider.dart';
+import '../../../core/utils/app_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'kyc_review_detail_screen.dart';
 
@@ -437,21 +438,21 @@ class _UserCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: Text('Người dùng (USER)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
+                title: Text('Người dùng (USER)', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey800)),
                 value: 'USER',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
                 activeColor: AppTheme.primaryGreen,
               ),
               RadioListTile<String>(
-                title: Text('Quản trị viên (ADMIN)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
+                title: Text('Quản trị viên (ADMIN)', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey800)),
                 value: 'ADMIN',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
                 activeColor: AppTheme.primaryGreen,
               ),
               RadioListTile<String>(
-                title: Text('Điều phối viên (MODERATOR)', style: TextStyle(color: isDark ? Colors.white80 : AppTheme.grey800)),
+                title: Text('Điều phối viên (MODERATOR)', style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey800)),
                 value: 'MODERATOR',
                 groupValue: selectedRole,
                 onChanged: (val) => setModalState(() => selectedRole = val!),
@@ -617,6 +618,18 @@ class _UserCard extends ConsumerWidget {
     final createdAtStr = user['createdAt'] != null ? AppUtils.timeAgo(user['createdAt']) : 'N/A';
     final profile = user['profile'] as Map<String, dynamic>?;
 
+    final address = user['address'] != null && user['address'].toString().isNotEmpty 
+        ? user['address'].toString() 
+        : 'Chưa cập nhật';
+    final lastActiveStr = user['lastActive'] != null 
+        ? AppUtils.timeAgo(user['lastActive']) 
+        : 'N/A';
+    final postCount = user['postCount'] ?? 0;
+    final transactionCount = user['transactionCount'] ?? 0;
+    final averageRating = user['averageRating'] != null 
+        ? double.tryParse(user['averageRating'].toString()) ?? 0.0 
+        : 0.0;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -702,8 +715,48 @@ class _UserCard extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _buildInfoRow(context, Icons.email_outlined, 'Email', email),
                 _buildInfoRow(context, Icons.phone_android_outlined, 'Số điện thoại', phone),
+                _buildInfoRow(context, Icons.location_on_outlined, 'Địa chỉ', address),
                 _buildInfoRow(context, Icons.calendar_month_outlined, 'Ngày tham gia', createdAtStr),
                 
+                const SizedBox(height: 20),
+                _buildInfoTitle(context, 'Thống kê hoạt động'),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        Icons.post_add_rounded,
+                        'Tin đăng',
+                        '$postCount',
+                        AppTheme.primaryGreen,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        Icons.swap_horizontal_circle_outlined,
+                        'Giao dịch',
+                        '$transactionCount',
+                        Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildStatCard(
+                        context,
+                        Icons.star_rounded,
+                        'Đánh giá',
+                        '${averageRating.toStringAsFixed(1)} / 5.0',
+                        Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                _buildInfoRow(context, Icons.access_time_rounded, 'Hoạt động gần nhất', lastActiveStr),
+
                 const SizedBox(height: 20),
                 _buildInfoTitle(context, 'Trạng thái eKYC'),
                 const SizedBox(height: 12),
@@ -723,6 +776,58 @@ class _UserCard extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+    Color color,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.grey50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : AppTheme.grey200,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : AppTheme.grey500,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.grey900,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

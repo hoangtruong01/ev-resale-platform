@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://img.icons8.com/external-flat-icons-inmotus-design/128/external-Battery-electric-vehicles-flat-icons-inmotus-design.png" width="100" height="100" alt="Logo"/>
+  <img src="logo.png" width="120" height="120" style="border-radius: 20%;" alt="Logo"/>
   <h1>🔋 EV Resale Platform</h1>
   <p><b>The Future of Second-hand EV Battery Trading</b></p>
 

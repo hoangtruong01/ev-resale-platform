@@ -184,12 +184,12 @@ class _HeroSection extends StatelessWidget {
                                 spreadRadius: 4,
                                 offset: const Offset(0, 8),
                               ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.battery_charging_full_rounded,
-                            size: 50,
-                            color: AppTheme.primaryGreen,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(24),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       ),
