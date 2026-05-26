@@ -37,3 +37,9 @@ ios/.symlinks/
 .idea/
 .vscode/
 *.iml
+
+# Kotlin compilation cache
+android/.kotlin/
+
+# Diagnostic log files
+*.log
