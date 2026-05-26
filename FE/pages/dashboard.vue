@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <NuxtLink to="/" class="flex items-center gap-2">
-              <span class="text-2xl">⚡</span>
+              <img src="/logo.png" alt="EVN Logo" class="h-6 w-6 object-contain rounded-lg" />
               <h1 class="text-2xl font-bold text-foreground">EV Market</h1>
             </NuxtLink>
           </div>

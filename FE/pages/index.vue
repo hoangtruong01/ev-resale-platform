@@ -490,7 +490,7 @@
             <div
               class="flex items-center justify-center md:justify-start gap-2"
             >
-              <span class="text-3xl">⚡</span>
+              <img src="/logo.png" alt="EVN Logo" class="h-8 w-8 object-contain rounded-lg" />
               <span class="font-black text-2xl">EVN Market</span>
             </div>
             <p class="text-muted-foreground leading-relaxed">

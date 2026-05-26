@@ -15,7 +15,7 @@
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="flex items-center justify-center gap-2 mb-4">
-          <span class="text-3xl">⚡</span>
+          <img src="/logo.png" alt="EVN Logo" class="h-8 w-8 object-contain rounded-lg" />
           <button
             type="button"
             class="text-3xl font-bold text-gray-300 hover:text-green-600 transition-colors cursor-pointer"

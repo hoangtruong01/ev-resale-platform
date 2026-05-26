@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="logo.png" width="120" height="120" style="border-radius: 20%;" alt="Logo"/>
-  <h1>🔋 EV Resale Platform</h1>
-  <p><b>The Future of Second-hand EV Battery Trading</b></p>
+  <img src="logo.png" width="120" height="120" style="border-radius: 24px;" alt="Logo"/>
+  <h1>⚡ EVN Market</h1>
+  <p><b>Nền tảng giao dịch xe điện và pin cũ hàng đầu Việt Nam</b></p>
 
   [![NestJS](https://img.shields.io/badge/Backend-NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
   [![Nuxt](https://img.shields.io/badge/Frontend-Nuxt_3-00DC82?style=for-the-badge&logo=nuxt.js&logoColor=white)](https://nuxt.com/)
