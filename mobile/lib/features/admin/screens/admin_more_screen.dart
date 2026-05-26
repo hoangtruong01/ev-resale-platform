@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/auth/session_state_provider.dart';
+import '../../auth/providers/auth_provider.dart';
+
 
 class AdminMoreScreen extends ConsumerWidget {
   const AdminMoreScreen({super.key});
@@ -18,16 +19,6 @@ class AdminMoreScreen extends ConsumerWidget {
         backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
         foregroundColor: isDark ? Colors.white : AppTheme.grey900,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horizontal_circle_outlined, color: AppTheme.primaryGreen),
-            tooltip: 'Chuyển về User Mode',
-            onPressed: () {
-              ref.read(adminModeProvider.notifier).state = false;
-              context.go('/');
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -117,8 +108,10 @@ class AdminMoreScreen extends ConsumerWidget {
                 ),
                 trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.grey400, size: 20),
                 onTap: () async {
-                  ref.read(adminModeProvider.notifier).state = false;
-                  context.go('/auth/login');
+                  await ref.read(authStateProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/auth/login');
+                  }
                 },
               ),
             ),

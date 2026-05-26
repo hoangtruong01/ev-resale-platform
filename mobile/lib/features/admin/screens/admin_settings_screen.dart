@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
-import '../../../core/auth/session_state_provider.dart';
 import '../../../core/utils/app_utils.dart';
-import 'package:go_router/go_router.dart';
 import 'kyc_review_detail_screen.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
@@ -48,16 +46,6 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen> with 
         title: Text(_tabController.index == 0 ? 'Cấu hình phí' : 'Quản lý người dùng'),
         backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
         foregroundColor: isDark ? Colors.white : AppTheme.grey900,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.swap_horizontal_circle_outlined, color: AppTheme.primaryGreen),
-            tooltip: 'Chuyển về User Mode',
-            onPressed: () {
-              ref.read(adminModeProvider.notifier).state = false;
-              context.go('/');
-            },
-          ),
-        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.primaryGreen,
