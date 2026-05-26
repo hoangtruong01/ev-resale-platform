@@ -4,6 +4,9 @@ import {
   TransactionStatus,
   BatteryType,
   AuctionStatus,
+  ApprovalStatus,
+  SupportTicketStatus,
+  KycStatus,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -81,6 +84,28 @@ export interface AdminAnalyticsResponse {
   recentActivities: ActivityItem[];
   marketTrends: MarketTrendItem[];
   systemHealth: SystemHealthSummary;
+  generatedAt: string;
+}
+
+export interface AdminDashboardOverviewResponse {
+  pendingPosts: number;
+  pendingAuctions: number;
+  processingTransactions: number;
+  supportTickets: {
+    pending: number;
+    processing: number;
+  };
+  users: {
+    total: number;
+    pendingKyc: number;
+  };
+  transactionOverview: {
+    total: number;
+    successful: number;
+    processing: number;
+    cancelled: number;
+  };
+  feeRevenue: number;
   generatedAt: string;
 }
 
@@ -470,6 +495,106 @@ export class AdminAnalyticsService {
       marketTrends,
       systemHealth,
       generatedAt: endDate.toISOString(),
+    };
+  }
+
+  async getDashboardOverview(): Promise<AdminDashboardOverviewResponse> {
+    const [
+      pendingVehicles,
+      pendingBatteries,
+      pendingAccessories,
+      pendingAuctions,
+      totalUsers,
+      pendingKyc,
+      supportTicketsRaw,
+      transactionOverviewRaw,
+      feeRevenueRaw,
+    ] = await Promise.all([
+      this.prisma.vehicle.count({ where: { approvalStatus: ApprovalStatus.PENDING } }),
+      this.prisma.battery.count({ where: { approvalStatus: ApprovalStatus.PENDING } }),
+      this.prisma.accessory.count({ where: { approvalStatus: ApprovalStatus.PENDING } }),
+      this.prisma.auction.count({ where: { approvalStatus: ApprovalStatus.PENDING } }),
+      this.prisma.user.count(),
+      this.prisma.profile.count({ where: { kycStatus: KycStatus.PENDING } }),
+      this.prisma.supportTicket.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      this.prisma.transaction.groupBy({
+        by: ['status'],
+        _count: { _all: true },
+      }),
+      this.prisma.transaction.aggregate({
+        _sum: { fee: true, commission: true },
+        where: { status: TransactionStatus.COMPLETED },
+      }),
+    ]);
+
+    // 1. Pending posts
+    const pendingPosts = pendingVehicles + pendingBatteries + pendingAccessories;
+
+    // 2. Support tickets
+    let supportPending = 0;
+    let supportProcessing = 0;
+    supportTicketsRaw.forEach((ticket) => {
+      if (ticket.status === SupportTicketStatus.OPEN) {
+        supportPending += ticket._count._all;
+      } else if (ticket.status === SupportTicketStatus.IN_PROGRESS) {
+        supportProcessing += ticket._count._all;
+      }
+    });
+
+    // 3. Transactions overview & processing count
+    let txTotal = 0;
+    let txSuccessful = 0;
+    let txProcessing = 0;
+    let txCancelled = 0;
+
+    const processingStatuses: TransactionStatus[] = [
+      TransactionStatus.PENDING,
+      TransactionStatus.AWAITING_DEPOSIT,
+      TransactionStatus.DEPOSIT_PAID,
+      TransactionStatus.AWAITING_CONTRACT,
+      TransactionStatus.CONTRACT_SIGNED,
+      TransactionStatus.AWAITING_BALANCE,
+    ];
+
+    transactionOverviewRaw.forEach((tx) => {
+      const count = tx._count._all;
+      txTotal += count;
+
+      if (tx.status === TransactionStatus.COMPLETED) {
+        txSuccessful += count;
+      } else if (processingStatuses.includes(tx.status)) {
+        txProcessing += count;
+      } else if (tx.status === TransactionStatus.CANCELLED || tx.status === TransactionStatus.REFUNDED) {
+        txCancelled += count;
+      }
+    });
+
+    // 4. Fee revenue
+    const feeRevenue = Number(feeRevenueRaw._sum?.fee ?? 0) + Number(feeRevenueRaw._sum?.commission ?? 0);
+
+    return {
+      pendingPosts,
+      pendingAuctions,
+      processingTransactions: txProcessing,
+      supportTickets: {
+        pending: supportPending,
+        processing: supportProcessing,
+      },
+      users: {
+        total: totalUsers,
+        pendingKyc,
+      },
+      transactionOverview: {
+        total: txTotal,
+        successful: txSuccessful,
+        processing: txProcessing,
+        cancelled: txCancelled,
+      },
+      feeRevenue: Math.round(feeRevenue),
+      generatedAt: new Date().toISOString(),
     };
   }
 

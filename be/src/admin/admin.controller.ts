@@ -40,6 +40,7 @@ import {
   AdminAnalyticsService,
   AdminAnalyticsPeriod,
   AdminAnalyticsResponse,
+  AdminDashboardOverviewResponse,
 } from './admin-analytics.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -101,6 +102,16 @@ export class AdminController {
       batteries: batteryStats,
       auctions: auctionStats,
     };
+  }
+
+  @Get('dashboard/overview')
+  @Roles(UserRole.ADMIN, UserRole.MODERATOR)
+  @ApiOperation({
+    summary: 'Lấy dữ liệu tổng quan admin dashboard thời gian thực',
+    description: 'Trả về các chỉ số duyệt tin, KYC, giao dịch, doanh thu phí hệ thống',
+  })
+  async getDashboardOverview(): Promise<AdminDashboardOverviewResponse> {
+    return this.analyticsService.getDashboardOverview();
   }
 
   @Get('support-tickets')

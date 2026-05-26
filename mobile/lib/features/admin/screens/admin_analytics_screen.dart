@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
@@ -12,100 +13,178 @@ class AdminAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
-  String _selectedPeriod = '7d';
-
   @override
   Widget build(BuildContext context) {
-    final analyticsAsync = ref.watch(_analyticsProvider(_selectedPeriod));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final overviewAsync = ref.watch(_dashboardOverviewProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.grey50,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
       appBar: AppBar(
-        title: const Text('Thống kê hệ thống'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (val) => setState(() => _selectedPeriod = val),
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: '7d', child: Text('7 ngày qua')),
-              const PopupMenuItem(value: '30d', child: Text('30 ngày qua')),
-              const PopupMenuItem(value: '3m', child: Text('3 tháng qua')),
-              const PopupMenuItem(value: '6m', child: Text('6 tháng qua')),
-              const PopupMenuItem(value: '1y', child: Text('1 năm qua')),
-            ],
-            icon: const Icon(Icons.filter_list_rounded),
-          ),
-        ],
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+        foregroundColor: isDark ? Colors.white : AppTheme.grey900,
+        elevation: 0,
+        title: const Text(
+          'Tổng quan hệ thống',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(_analyticsProvider(_selectedPeriod)),
-        child: analyticsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Lỗi: $e')),
+        onRefresh: () async => ref.invalidate(_dashboardOverviewProvider),
+        child: overviewAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen)),
+          error: (e, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline_rounded, size: 64, color: AppTheme.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Lỗi tải dữ liệu hệ thống: $e',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(_dashboardOverviewProvider),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                    child: const Text('Thử lại'),
+                  ),
+                ],
+              ),
+            ),
+          ),
           data: (data) {
-            final metrics = data['metrics'] as Map<String, dynamic>;
-            
+            final supportTickets = data['supportTickets'] as Map<String, dynamic>;
+            final users = data['users'] as Map<String, dynamic>;
+            final txStats = data['transactionOverview'] as Map<String, dynamic>;
+            final feeRevenue = data['feeRevenue'] ?? 0;
+
+            final totalSupportPending = (supportTickets['pending'] ?? 0) + (supportTickets['processing'] ?? 0);
+
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Summary Metrics
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.5,
+                // Section Title: việc cần làm
+                _SectionTitle(
+                  title: 'Việc cần xử lý',
+                  isDark: isDark,
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      'Kiểm duyệt',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.warning),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Compact action list for Moderation actions (Apple design style)
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.darkSurface : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Column(
+                    children: [
+                      _ActionRow(
+                        label: 'Bài viết chờ duyệt',
+                        value: (data['pendingPosts'] ?? 0).toString(),
+                        icon: Icons.assignment_turned_in_rounded,
+                        color: AppTheme.warning,
+                        isDark: isDark,
+                        onTap: () => context.go('/admin/listings'),
+                      ),
+                      Divider(height: 1, color: isDark ? Colors.white10 : AppTheme.grey100),
+                      _ActionRow(
+                        label: 'Đấu giá chờ duyệt',
+                        value: (data['pendingAuctions'] ?? 0).toString(),
+                        icon: Icons.gavel_rounded,
+                        color: Colors.purple,
+                        isDark: isDark,
+                        onTap: () => context.go('/admin/listings'),
+                      ),
+                      Divider(height: 1, color: isDark ? Colors.white10 : AppTheme.grey100),
+                      _ActionRow(
+                        label: 'Yêu cầu KYC chờ',
+                        value: (users['pendingKyc'] ?? 0).toString(),
+                        icon: Icons.admin_panel_settings_rounded,
+                        color: AppTheme.info,
+                        isDark: isDark,
+                        onTap: () => context.go('/admin/kyc'),
+                      ),
+                      Divider(height: 1, color: isDark ? Colors.white10 : AppTheme.grey100),
+                      _ActionRow(
+                        label: 'Hỗ trợ chưa xử lý',
+                        value: totalSupportPending.toString(),
+                        subtitle: '${supportTickets['pending'] ?? 0} mới, ${supportTickets['processing'] ?? 0} xử lý',
+                        icon: Icons.support_agent_rounded,
+                        color: AppTheme.error,
+                        isDark: isDark,
+                        onTap: () => context.go('/admin/support'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Section Title: Số liệu vận hành
+                _SectionTitle(title: 'Số liệu vận hành', isDark: isDark),
+                const SizedBox(height: 10),
+
+                // Emerald large card for Fee Revenue
+                _LargeRevenueCard(
+                  label: 'Doanh thu phí hệ thống',
+                  value: AppUtils.formatCurrency(feeRevenue),
+                  icon: Icons.monetization_on_rounded,
+                  color: AppTheme.primaryGreen,
+                  isDark: isDark,
+                ),
+
+                const SizedBox(height: 12),
+
+                // 2 columns for Total users & processing transactions
+                Row(
                   children: [
-                    _MetricCard(
-                      label: 'Tổng doanh thu',
-                      value: AppUtils.formatCurrency(metrics['totalRevenue'] ?? 0),
-                      trend: metrics['revenueTrend'] ?? 0,
-                      icon: Icons.payments_rounded,
-                      color: AppTheme.primaryGreen,
+                    Expanded(
+                      child: _OperationalCard(
+                        label: 'Tổng người dùng',
+                        value: (users['total'] ?? 0).toString(),
+                        icon: Icons.people_alt_rounded,
+                        color: Colors.indigo,
+                        isDark: isDark,
+                      ),
                     ),
-                    _MetricCard(
-                      label: 'Tổng giao dịch',
-                      value: (metrics['totalTransactions'] ?? 0).toString(),
-                      trend: metrics['transactionsTrend'] ?? 0,
-                      icon: Icons.swap_horiz_rounded,
-                      color: AppTheme.info,
-                    ),
-                    _MetricCard(
-                      label: 'Người dùng mới',
-                      value: (metrics['activeUsers'] ?? 0).toString(),
-                      trend: metrics['usersTrend'] ?? 0,
-                      icon: Icons.person_add_rounded,
-                      color: AppTheme.warning,
-                    ),
-                    _MetricCard(
-                      label: 'Tin đăng mới',
-                      value: (metrics['totalPosts'] ?? 0).toString(),
-                      trend: metrics['postsTrend'] ?? 0,
-                      icon: Icons.post_add_rounded,
-                      color: Colors.purple,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _OperationalCard(
+                        label: 'Giao dịch đang chạy',
+                        value: (data['processingTransactions'] ?? 0).toString(),
+                        icon: Icons.swap_horizontal_circle_rounded,
+                        color: Colors.deepOrange,
+                        isDark: isDark,
+                      ),
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: 20),
-                
+
+                const SizedBox(height: 24),
+
                 // Transaction Status Distribution
-                _SectionTitle(title: 'Phân bổ giao dịch'),
-                _TransactionStatsCard(stats: data['transactionStats']),
-                
-                const SizedBox(height: 20),
-                
-                // Top Users
-                _SectionTitle(title: 'Người dùng nổi bật'),
-                ...((data['topUsers'] as List? ?? []).map((user) => _UserListItem(user: user))),
-                
-                const SizedBox(height: 20),
-                
-                // System Health
-                _SectionTitle(title: 'Tình trạng hệ thống'),
-                _SystemHealthCard(health: data['systemHealth']),
-                
-                const SizedBox(height: 100),
+                _SectionTitle(title: 'Phân bổ giao dịch', isDark: isDark),
+                const SizedBox(height: 10),
+                _TransactionStatsCard(stats: txStats, isDark: isDark),
+
+                const SizedBox(height: 40),
               ],
             );
           },
@@ -115,85 +194,215 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
   }
 }
 
-final _analyticsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, period) async {
+final _dashboardOverviewProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final dio = ref.watch(dioProvider);
-  final res = await dio.get('/admin/analytics', queryParameters: {'period': period});
+  final res = await dio.get('/admin/dashboard/overview');
   return Map<String, dynamic>.from(res.data);
 });
 
-class _MetricCard extends StatelessWidget {
+class _ActionRow extends StatelessWidget {
   final String label;
   final String value;
-  final num trend;
+  final String? subtitle;
   final IconData icon;
   final Color color;
+  final bool isDark;
+  final VoidCallback onTap;
 
-  const _MetricCard({
+  const _ActionRow({
     required this.label,
     required this.value,
-    required this.trend,
+    this.subtitle,
     required this.icon,
     required this.color,
+    required this.isDark,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = trend >= 0;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
             children: [
-              Icon(icon, color: color, size: 20),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: (isPositive ? AppTheme.success : AppTheme.error).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      isPositive ? Icons.trending_up : Icons.trending_down,
-                      size: 10,
-                      color: isPositive ? AppTheme.success : AppTheme.error,
-                    ),
-                    const SizedBox(width: 2),
                     Text(
-                      '${trend.abs()}%',
+                      label,
                       style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: isPositive ? AppTheme.success : AppTheme.error,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : AppTheme.grey800,
                       ),
                     ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: const TextStyle(fontSize: 11, color: AppTheme.grey500),
+                      ),
+                    ],
                   ],
                 ),
               ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: value == '0' 
+                          ? (isDark ? Colors.white10 : AppTheme.grey100) 
+                          : color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: value == '0' 
+                            ? (isDark ? Colors.white38 : AppTheme.grey400) 
+                            : color,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.chevron_right_rounded, color: AppTheme.grey400, size: 20),
+                ],
+              ),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                label,
-                style: const TextStyle(color: AppTheme.grey500, fontSize: 11),
-              ),
-            ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LargeRevenueCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+
+  const _LargeRevenueCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isDark ? Colors.white60 : AppTheme.grey500,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OperationalCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+
+  const _OperationalCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+              color: isDark ? Colors.white : AppTheme.grey900,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.white60 : AppTheme.grey500,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -203,15 +412,32 @@ class _MetricCard extends StatelessWidget {
 
 class _SectionTitle extends StatelessWidget {
   final String title;
-  const _SectionTitle({required this.title});
+  final bool isDark;
+  final Widget? trailing;
+
+  const _SectionTitle({
+    required this.title,
+    required this.isDark,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.grey900),
+      padding: const EdgeInsets.only(bottom: 6, top: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : AppTheme.grey800,
+            ),
+          ),
+          if (trailing != null) trailing!,
+        ],
       ),
     );
   }
@@ -219,28 +445,64 @@ class _SectionTitle extends StatelessWidget {
 
 class _TransactionStatsCard extends StatelessWidget {
   final Map<String, dynamic>? stats;
-  const _TransactionStatsCard({this.stats});
+  final bool isDark;
+
+  const _TransactionStatsCard({this.stats, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
-    final successful = stats?['successful'] ?? 0;
-    final pending = stats?['pending'] ?? 0;
-    final cancelled = stats?['cancelled'] ?? 0;
+    final total = (stats?['total'] ?? 0) as int;
+    final successful = (stats?['successful'] ?? 0) as int;
+    final processing = (stats?['processing'] ?? 0) as int;
+    final cancelled = (stats?['cancelled'] ?? 0) as int;
+
+    final successfulPct = total > 0 ? (successful / total * 100).round() : 0;
+    final processingPct = total > 0 ? (processing / total * 100).round() : 0;
+    final cancelledPct = total > 0 ? (cancelled / total * 100).round() : 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.grey200),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
       ),
       child: Column(
         children: [
-          _StatBar(label: 'Thành công', value: successful.toDouble(), color: AppTheme.success),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Tổng giao dịch đã phát sinh:',
+                style: TextStyle(fontSize: 12, color: isDark ? Colors.white60 : AppTheme.grey500),
+              ),
+              Text(
+                '$total',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.grey900),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
-          _StatBar(label: 'Đang xử lý', value: pending.toDouble(), color: AppTheme.warning),
+          _StatBar(
+            label: 'Thành công ($successful)',
+            percent: successfulPct,
+            color: AppTheme.success,
+            isDark: isDark,
+          ),
           const SizedBox(height: 12),
-          _StatBar(label: 'Đã hủy', value: cancelled.toDouble(), color: AppTheme.error),
+          _StatBar(
+            label: 'Đang xử lý ($processing)',
+            percent: processingPct,
+            color: AppTheme.warning,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+          _StatBar(
+            label: 'Đã huỷ ($cancelled)',
+            percent: cancelledPct,
+            color: AppTheme.error,
+            isDark: isDark,
+          ),
         ],
       ),
     );
@@ -249,10 +511,16 @@ class _TransactionStatsCard extends StatelessWidget {
 
 class _StatBar extends StatelessWidget {
   final String label;
-  final double value;
+  final int percent;
   final Color color;
+  final bool isDark;
 
-  const _StatBar({required this.label, required this.value, required this.color});
+  const _StatBar({
+    required this.label,
+    required this.percent,
+    required this.color,
+    required this.isDark,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -261,104 +529,20 @@ class _StatBar extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(fontSize: 13, color: AppTheme.grey700)),
-            Text('${value.toInt()}%', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            Text(label, style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : AppTheme.grey700)),
+            Text('$percent%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isDark ? Colors.white : AppTheme.grey900)),
           ],
         ),
         const SizedBox(height: 6),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: value / 100,
+            value: percent / 100,
             backgroundColor: color.withValues(alpha: 0.1),
             valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
+            minHeight: 6,
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _UserListItem extends StatelessWidget {
-  final Map<String, dynamic> user;
-  const _UserListItem({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-            backgroundImage: user['avatar'] != null ? NetworkImage(user['avatar']) : null,
-            child: user['avatar'] == null ? const Icon(Icons.person, color: AppTheme.primaryGreen) : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(user['name'] ?? 'Ẩn danh', style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text('${user['transactions'] ?? 0} giao dịch', style: const TextStyle(fontSize: 12, color: AppTheme.grey500)),
-              ],
-            ),
-          ),
-          Text(
-            AppUtils.formatCurrency(user['revenue'] ?? 0),
-            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SystemHealthCard extends StatelessWidget {
-  final Map<String, dynamic>? health;
-  const _SystemHealthCard({this.health});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.grey200),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _HealthItem(label: 'Uptime', value: '${health?['uptime'] ?? 0}%', isGood: true),
-          _HealthItem(label: 'Load', value: '${health?['avgLoad'] ?? 0}%', isGood: (health?['avgLoad'] ?? 0) < 80),
-          _HealthItem(label: 'Errors', value: '${health?['errorsPerHour'] ?? 0}', isGood: (health?['errorsPerHour'] ?? 0) < 10),
-        ],
-      ),
-    );
-  }
-}
-
-class _HealthItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isGood;
-
-  const _HealthItem({required this.label, required this.value, required this.isGood});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: isGood ? AppTheme.success : AppTheme.error)),
-        Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.grey500)),
       ],
     );
   }
