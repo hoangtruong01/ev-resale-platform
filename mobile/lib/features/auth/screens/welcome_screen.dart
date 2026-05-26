@@ -184,6 +184,8 @@ class _HeroSection extends StatelessWidget {
                                 spreadRadius: 4,
                                 offset: const Offset(0, 8),
                               ),
+                            ],
+                          ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(24),
                             child: Image.asset(
