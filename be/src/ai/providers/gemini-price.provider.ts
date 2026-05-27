@@ -183,8 +183,10 @@ ${JSON.stringify(comparableSummary)}`;
     const configured = this.configService.get<string>('GEMINI_MODEL');
     return [
       configured,
-      'gemini-2.5-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
       'gemini-2.0-flash',
+      'gemini-2.5-flash',
       'gemini-pro-latest',
       'gemini-flash-latest',
     ].filter((model): model is string => Boolean(model));

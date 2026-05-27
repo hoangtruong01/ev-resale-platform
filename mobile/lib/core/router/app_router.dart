@@ -144,9 +144,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
+      GoRoute(
+        path: '/ai-chat',
+        builder: (context, state) => const AiChatScreen(),
+      ),
+
       // Admin shell with bottom nav
       ShellRoute(
-        builder: (context, state, child) => AdminShell(child: child),
+        builder: (context, state, child) =>
+            AdminShell(location: state.matchedLocation, child: child),
         routes: [
           GoRoute(
             path: '/admin',
@@ -201,7 +207,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Main shell with bottom nav
       ShellRoute(
-        builder: (context, state, child) => MainShell(child: child),
+        builder: (context, state, child) =>
+            MainShell(location: state.matchedLocation, child: child),
         routes: [
           GoRoute(
             path: '/',
@@ -295,10 +302,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/compare',
             builder: (context, state) => const CompareScreen(),
-          ),
-          GoRoute(
-            path: '/ai-chat',
-            builder: (context, state) => const AiChatScreen(),
           ),
         ],
       ),

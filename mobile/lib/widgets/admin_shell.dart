@@ -4,20 +4,21 @@ import '../core/theme/app_theme.dart';
 
 class AdminShell extends StatelessWidget {
   final Widget child;
-  const AdminShell({super.key, required this.child});
+  final String? location;
+  const AdminShell({super.key, required this.child, this.location});
 
-  int _getSelectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location == '/admin/listings') return 1;
-    if (location == '/admin/transactions') return 2;
-    if (location == '/admin/support') return 3;
-    if (location == '/admin/more') return 4;
+  int _getSelectedIndex(String currentLoc) {
+    if (currentLoc == '/admin/listings') return 1;
+    if (currentLoc == '/admin/transactions') return 2;
+    if (currentLoc == '/admin/support') return 3;
+    if (currentLoc == '/admin/more') return 4;
     return 0; // dashboard
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _getSelectedIndex(context);
+    final activeLocation = location ?? GoRouterState.of(context).matchedLocation;
+    final selectedIndex = _getSelectedIndex(activeLocation);
     return Scaffold(
       body: child,
       bottomNavigationBar: _AdminBottomNavBar(

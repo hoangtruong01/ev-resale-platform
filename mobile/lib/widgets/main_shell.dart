@@ -5,16 +5,16 @@ import 'floating_ai_button.dart';
 
 class MainShell extends StatelessWidget {
   final Widget child;
-  const MainShell({super.key, required this.child});
+  final String? location;
+  const MainShell({super.key, required this.child, this.location});
 
-  int _getSelectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/auctions')) return 1;
-    if (location.startsWith('/sell')) return 2;
-    if (location.startsWith('/support') || location.startsWith('/chat')) {
+  int _getSelectedIndex(String currentLoc) {
+    if (currentLoc.startsWith('/auctions')) return 1;
+    if (currentLoc.startsWith('/sell')) return 2;
+    if (currentLoc.startsWith('/support') || currentLoc.startsWith('/chat')) {
       return 3;
     }
-    if (location.startsWith('/profile')) return 4;
+    if (currentLoc.startsWith('/profile')) return 4;
     return 0; // home
   }
 
@@ -84,14 +84,14 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedIndex = _getSelectedIndex(context);
-    final location = GoRouterState.of(context).matchedLocation;
+    final activeLocation = location ?? GoRouterState.of(context).matchedLocation;
+    final selectedIndex = _getSelectedIndex(activeLocation);
     
     // Show FAB only on Home page and product detail pages (vehicles, batteries, accessories)
-    final showFab = location == '/' ||
-        location.startsWith('/vehicles/') ||
-        location.startsWith('/batteries/') ||
-        location.startsWith('/accessories/');
+    final showFab = activeLocation == '/' ||
+        activeLocation.startsWith('/vehicles/') ||
+        activeLocation.startsWith('/batteries/') ||
+        activeLocation.startsWith('/accessories/');
 
     return Scaffold(
       body: Stack(
