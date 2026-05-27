@@ -34,11 +34,12 @@ async function bootstrap() {
         process.env.FRONTEND_URL ?? '',
       ].filter(Boolean);
 
-      const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(
-        origin,
-      );
+      const isLocalhostOrLocalNetwork = 
+        /^http:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)(:\d+)?$/.test(
+          origin,
+        );
 
-      if (allowed.includes(origin) || isLocalhost) {
+      if (allowed.includes(origin) || isLocalhostOrLocalNetwork) {
         callback(null, true);
         return;
       }

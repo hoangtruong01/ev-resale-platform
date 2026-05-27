@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/network/dio_client.dart';
 
 import '../../../services/battery_service.dart';
 import '../../../services/vehicle_service.dart';
@@ -79,6 +81,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     });
 
     final isLoading = batteries.isLoading || vehicles.isLoading;
+    final hasError = batteries.hasError || vehicles.hasError;
+    final dynamic errorObj = batteries.error ?? vehicles.error;
+    final errorMessage = errorObj != null ? parseApiError(errorObj) : null;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -111,6 +116,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               // 4. Product grid
               if (isLoading)
                 _buildSkeletonGrid()
+              else if (hasError)
+                SliverToBoxAdapter(
+                  child: _buildErrorState(errorMessage ?? 'Lỗi tải dữ liệu'),
+                )
               else if (allProducts.isEmpty)
                 SliverToBoxAdapter(
                   child: SizedBox(
@@ -142,6 +151,111 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2C1A1A) : const Color(0xFFFFF2F2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.red.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.cloud_off_rounded,
+              color: Colors.red,
+              size: 40,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Không thể kết nối máy chủ',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppTheme.grey900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark ? Colors.white70 : AppTheme.grey600,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.black26 : Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isDark ? Colors.white10 : AppTheme.grey200,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.link_rounded,
+                  size: 14,
+                  color: AppTheme.grey500,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Cấu hình: ${AppConstants.baseUrl}',
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: AppTheme.grey500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () {
+              ref.invalidate(homeBatteriesProvider);
+              ref.invalidate(homeVehiclesProvider);
+            },
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text(
+              'Thử lại',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
