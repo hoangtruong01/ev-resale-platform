@@ -437,20 +437,10 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">
-                {{ $t("location") }} *
-              </label>
-              <select
-                v-model="form.location"
-                class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 focus:bg-white transition-colors"
-                required
-              >
-                <option value="">{{ $t("choose_city") }}</option>
-                <option value="Hà Nội">{{ $t("hanoi") }}</option>
-                <option value="TP. Hồ Chí Minh">{{ $t("hcm") }}</option>
-                <option value="Đà Nẵng">{{ $t("danang") }}</option>
-                <option value="Cần Thơ">{{ $t("cantho") }}</option>
-              </select>
+              <SharedAddressSelector
+                v-model="addressData"
+                :errors="addressErrors"
+              />
             </div>
 
             <div>
@@ -592,7 +582,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, reactive, ref, watch } from "vue";
 import { useAIPricing } from "~/composables/useAIPricing";
 
 definePageMeta({
@@ -669,6 +659,36 @@ const form = reactive({
   accessoryCompatibleModel: "",
   accessoryCondition: "",
 });
+
+const addressData = reactive({
+  streetAddress: "",
+  ward: "",
+  district: "",
+  province: "",
+});
+
+const addressErrors = reactive({
+  streetAddress: "",
+  ward: "",
+  district: "",
+  province: "",
+});
+
+watch(
+  addressData,
+  (newVal) => {
+    const parts = [
+      newVal.streetAddress,
+      newVal.ward,
+      newVal.district,
+      newVal.province,
+    ]
+      .map((val) => (val ? val.trim() : ""))
+      .filter((val) => val.length > 0);
+    form.location = parts.join(", ");
+  },
+  { deep: true }
+);
 
 const { resolve: resolveAsset } = useAssetUrl();
 const { post } = useApi();

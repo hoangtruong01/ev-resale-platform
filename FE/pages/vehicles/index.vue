@@ -665,6 +665,15 @@ const priceRanges: Record<string, { min: number; max: number | null }> = {
 
 let fetchToken = 0;
 
+const formatShortLocation = (location?: string | null) => {
+  if (!location) return t("location");
+  const parts = location.split(",").map((part) => part.trim());
+  if (parts.length >= 2) {
+    return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`;
+  }
+  return location;
+};
+
 const mapVehicleToCard = (item: VehicleApiItem): VehicleCardItem => {
   const priceNumber =
     typeof item.price === "number" ? item.price : Number(item.price ?? 0);
@@ -687,7 +696,7 @@ const mapVehicleToCard = (item: VehicleApiItem): VehicleCardItem => {
     model: item.model?.trim() ?? "",
     year: item.year ?? undefined,
     price: Number.isFinite(priceNumber) ? priceNumber : 0,
-    location: item.location?.trim() || t("location"),
+    location: formatShortLocation(item.location),
     image: firstImage,
     rating,
     reviewCount,

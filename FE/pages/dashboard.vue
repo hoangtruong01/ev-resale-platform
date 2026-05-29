@@ -744,84 +744,10 @@
               </p>
             </div>
             <div class="sm:col-span-2">
-              <label class="block text-sm font-medium text-foreground mb-2"
-                >Số nhà, tên đường</label
-              >
-              <input
-                v-model="profileForm.streetAddress"
-                type="text"
-                placeholder="Ví dụ: 123 Lê Lợi"
-                class="w-full rounded-lg border border-border bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus:ring-primary/60"
-                :class="{
-                  'border-red-500 focus:ring-red-500/60':
-                    profileErrors.streetAddress,
-                }"
-              >
-              <p
-                v-if="profileErrors.streetAddress"
-                class="mt-2 text-sm text-red-500"
-              >
-                {{ profileErrors.streetAddress }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-2"
-                >Phường/Xã</label
-              >
-              <input
-                v-model="profileForm.ward"
-                type="text"
-                placeholder="Ví dụ: Phường 12"
-                class="w-full rounded-lg border border-border bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus:ring-primary/60"
-                :class="{
-                  'border-red-500 focus:ring-red-500/60': profileErrors.ward,
-                }"
-              >
-              <p v-if="profileErrors.ward" class="mt-2 text-sm text-red-500">
-                {{ profileErrors.ward }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-foreground mb-2"
-                >Quận/Huyện</label
-              >
-              <input
-                v-model="profileForm.district"
-                type="text"
-                placeholder="Ví dụ: Quận 1"
-                class="w-full rounded-lg border border-border bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus:ring-primary/60"
-                :class="{
-                  'border-red-500 focus:ring-red-500/60':
-                    profileErrors.district,
-                }"
-              >
-              <p
-                v-if="profileErrors.district"
-                class="mt-2 text-sm text-red-500"
-              >
-                {{ profileErrors.district }}
-              </p>
-            </div>
-            <div class="sm:col-span-2">
-              <label class="block text-sm font-medium text-foreground mb-2"
-                >Tỉnh/Thành phố</label
-              >
-              <input
-                v-model="profileForm.province"
-                type="text"
-                placeholder="Ví dụ: TP. Hồ Chí Minh"
-                class="w-full rounded-lg border border-border bg-background text-foreground p-3 focus:outline-none focus:ring-2 focus:ring-primary/60"
-                :class="{
-                  'border-red-500 focus:ring-red-500/60':
-                    profileErrors.province,
-                }"
-              >
-              <p
-                v-if="profileErrors.province"
-                class="mt-2 text-sm text-red-500"
-              >
-                {{ profileErrors.province }}
-              </p>
+              <SharedAddressSelector
+                v-model="profileForm"
+                :errors="profileErrors"
+              />
             </div>
           </div>
 

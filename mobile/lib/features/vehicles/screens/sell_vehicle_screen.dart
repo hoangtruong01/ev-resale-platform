@@ -9,6 +9,8 @@ import '../../../services/vehicle_service.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/user_model.dart';
 
+import '../../../widgets/address_selector.dart';
+
 class SellVehicleScreen extends ConsumerStatefulWidget {
   const SellVehicleScreen({super.key});
 
@@ -30,6 +32,11 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
   final _seatCountCtrl = TextEditingController();
   final _mileageCtrl = TextEditingController();
   final _descriptionCtrl = TextEditingController();
+
+  String _streetAddress = '';
+  String _ward = '';
+  String _district = '';
+  String _province = '';
 
   bool _hasWarranty = false;
   bool _isSubmitting = false;
@@ -387,11 +394,56 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                     value == null || value.trim().isEmpty ? 'Bắt buộc' : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _locationCtrl,
-                decoration: const InputDecoration(labelText: 'Khu vực *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Bắt buộc' : null,
+              FormField<String>(
+                initialValue: _locationCtrl.text,
+                validator: (value) {
+                  if (_locationCtrl.text.trim().isEmpty) {
+                    return 'Vui lòng chọn địa chỉ đầy đủ';
+                  }
+                  return null;
+                },
+                builder: (formState) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AddressSelector(
+                        initialStreetAddress: _streetAddress,
+                        initialWard: _ward,
+                        initialDistrict: _district,
+                        initialProvince: _province,
+                        onAddressChanged: ({
+                          required streetAddress,
+                          required ward,
+                          required district,
+                          required province,
+                        }) {
+                          _streetAddress = streetAddress;
+                          _ward = ward;
+                          _district = district;
+                          _province = province;
+
+                          final parts = [streetAddress, ward, district, province]
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList();
+                          final composed = parts.join(', ');
+                          _locationCtrl.text = composed;
+                          formState.didChange(composed);
+                        },
+                      ),
+                      if (formState.hasError) ...[
+                        const SizedBox(height: 6),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            formState.errorText ?? '',
+                            style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
