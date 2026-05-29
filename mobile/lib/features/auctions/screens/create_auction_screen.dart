@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/auction_service.dart';
+import '../../../widgets/address_selector.dart';
 
 class CreateAuctionScreen extends ConsumerStatefulWidget {
   const CreateAuctionScreen({super.key});
@@ -35,6 +36,11 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
   final _locationController = TextEditingController();
   final _contactPhoneController = TextEditingController();
   final _contactEmailController = TextEditingController();
+
+  String _streetAddress = '';
+  String _ward = '';
+  String _district = '';
+  String _province = '';
 
   final List<XFile> _images = [];
   final _picker = ImagePicker();
@@ -381,7 +387,57 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
-            _buildTextField('Địa điểm', _locationController, required: true),
+            FormField<String>(
+              initialValue: _locationController.text,
+              validator: (value) {
+                if (_locationController.text.trim().isEmpty) {
+                  return 'Vui lòng chọn địa chỉ đầy đủ';
+                }
+                return null;
+              },
+              builder: (formState) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AddressSelector(
+                      initialStreetAddress: _streetAddress,
+                      initialWard: _ward,
+                      initialDistrict: _district,
+                      initialProvince: _province,
+                      onAddressChanged: ({
+                        required streetAddress,
+                        required ward,
+                        required district,
+                        required province,
+                      }) {
+                        _streetAddress = streetAddress;
+                        _ward = ward;
+                        _district = district;
+                        _province = province;
+
+                        final parts = [streetAddress, ward, district, province]
+                            .map((e) => e.trim())
+                            .where((e) => e.isNotEmpty)
+                            .toList();
+                        final composed = parts.join(', ');
+                        _locationController.text = composed;
+                        formState.didChange(composed);
+                      },
+                    ),
+                    if (formState.hasError) ...[
+                      const SizedBox(height: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text(
+                          formState.errorText ?? '',
+                          style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 12),
             _buildTextField(
               'Số điện thoại liên hệ',

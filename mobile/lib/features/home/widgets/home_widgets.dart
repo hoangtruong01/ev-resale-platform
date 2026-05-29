@@ -154,7 +154,7 @@ class ProductGridCard extends StatelessWidget {
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
-                          location,
+                          AppUtils.formatShortLocation(location),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
