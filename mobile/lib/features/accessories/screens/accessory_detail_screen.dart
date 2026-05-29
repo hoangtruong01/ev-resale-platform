@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/accessory_service.dart';
 import '../../../models/accessory_model.dart';
@@ -105,9 +106,53 @@ class AccessoryDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: accessory.status == 'AVAILABLE' ? () {} : null,
-                                icon: const Icon(Icons.shopping_bag_outlined),
-                                label: const Text('Mua ngay'),
+                                onPressed: () async {
+                                  final phone = accessory.seller?.phone;
+                                  if (phone == null || phone.trim().isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Người bán chưa đăng ký số điện thoại'),
+                                        backgroundColor: AppTheme.warning,
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  
+                                  final Uri launchUri = Uri(
+                                    scheme: 'tel',
+                                    path: phone.trim(),
+                                  );
+                                  
+                                  try {
+                                    if (await canLaunchUrl(launchUri)) {
+                                      await launchUrl(launchUri);
+                                    } else {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Không thể gọi điện đến số: $phone'),
+                                            backgroundColor: AppTheme.error,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Lỗi: $e'),
+                                          backgroundColor: AppTheme.error,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                icon: const Icon(Icons.phone),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryGreen,
+                                  foregroundColor: Colors.white,
+                                ),
+                                label: const Text('Gọi điện'),
                               ),
                             ),
                           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/battery_service.dart';
 import '../../../models/battery_model.dart';
@@ -193,28 +194,7 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Live Monitoring Button
-                    if (battery.isActive) // Only show if active
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => context.push(
-                            '/battery-monitor/${battery.id}?name=${battery.name}',
-                          ),
-                          icon: const Icon(Icons.sensors_outlined),
-                          label: const Text('Theo dõi trực tiếp qua PLC'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.primaryGreen,
-                            side: const BorderSide(
-                              color: AppTheme.primaryGreen,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                        ),
-                      ),
+
 
                     const SizedBox(height: 16),
                     const Divider(),
@@ -483,9 +463,53 @@ class _BottomBar extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: battery.isAvailable ? () {} : null,
-                    icon: const Icon(Icons.shopping_bag_outlined),
-                    label: const Text('Mua ngay'),
+                    onPressed: () async {
+                      final phone = battery.seller?.phone;
+                      if (phone == null || phone.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Người bán chưa đăng ký số điện thoại'),
+                            backgroundColor: AppTheme.warning,
+                          ),
+                        );
+                        return;
+                      }
+                      
+                      final Uri launchUri = Uri(
+                        scheme: 'tel',
+                        path: phone.trim(),
+                      );
+                      
+                      try {
+                        if (await canLaunchUrl(launchUri)) {
+                          await launchUrl(launchUri);
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Không thể gọi điện đến số: $phone'),
+                                backgroundColor: AppTheme.error,
+                              ),
+                            );
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Lỗi: $e'),
+                              backgroundColor: AppTheme.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.phone),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                    ),
+                    label: const Text('Gọi điện'),
                   ),
                 ),
               ],
