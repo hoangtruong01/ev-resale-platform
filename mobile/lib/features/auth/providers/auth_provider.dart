@@ -147,7 +147,6 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
       final googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
         clientId: kIsWeb ? webClientId : null,
-        serverClientId: kIsWeb ? null : webClientId,
       );
       final account = await googleSignIn.signIn();
       if (account == null) {
