@@ -104,4 +104,14 @@ class AppUtils {
 
     return '$origin$normalizedPath';
   }
+
+  /// Format địa chỉ rút gọn (lấy 2 phần tử cuối cùng)
+  static String formatShortLocation(String? location) {
+    if (location == null || location.isEmpty) return 'Chưa cập nhật';
+    final parts = location.split(',').map((e) => e.trim()).toList();
+    if (parts.length >= 2) {
+      return '${parts[parts.length - 2]}, ${parts[parts.length - 1]}';
+    }
+    return location;
+  }
 }

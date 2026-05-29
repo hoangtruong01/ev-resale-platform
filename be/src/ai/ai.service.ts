@@ -84,6 +84,16 @@ export class AiService {
           };
         }
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (
+          errorMsg.includes('API_KEY_INVALID') ||
+          errorMsg.includes('API Key not found') ||
+          errorMsg.includes('400')
+        ) {
+          throw new ServiceUnavailableException(
+            'Khóa API Gemini không hợp lệ hoặc đã hết hạn. Vui lòng cấu hình GEMINI_API_KEY chính xác trong file .env của backend.',
+          );
+        }
         if (this.shouldRetryWithFallback(error)) {
           continue;
         }
@@ -577,8 +587,10 @@ export class AiService {
     const configured = this.configService.get<string>('GEMINI_MODEL');
     return [
       configured,
-      'gemini-2.5-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
       'gemini-2.0-flash',
+      'gemini-2.5-flash',
       'gemini-pro-latest',
       'gemini-flash-latest',
     ].filter((model): model is string => Boolean(model));
@@ -593,36 +605,12 @@ export class AiService {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
 
-    const buildBody = (useJsonMimeType: boolean, retryPrompt = prompt) =>
+    const buildBody = (retryPrompt = prompt) =>
       JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: retryPrompt }] }],
         generationConfig: {
-          temperature: 0,
+          temperature: 0.7,
           maxOutputTokens: 512,
-          ...(useJsonMimeType
-            ? {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                  type: 'OBJECT',
-                  properties: {
-                    estimatedPrice: { type: 'NUMBER' },
-                    minPrice: { type: 'NUMBER' },
-                    maxPrice: { type: 'NUMBER' },
-                    confidence: { type: 'STRING', enum: ['low', 'medium'] },
-                    factors: { type: 'ARRAY', items: { type: 'STRING' } },
-                    assumptions: { type: 'ARRAY', items: { type: 'STRING' } },
-                  },
-                  required: [
-                    'estimatedPrice',
-                    'minPrice',
-                    'maxPrice',
-                    'confidence',
-                    'factors',
-                    'assumptions',
-                  ],
-                },
-              }
-            : {}),
         },
       });
 
@@ -636,11 +624,7 @@ export class AiService {
 
     let response: Response;
     try {
-      response = await requestGemini(buildBody(true));
-
-      if (response.status === 400) {
-        response = await requestGemini(buildBody(false));
-      }
+      response = await requestGemini(buildBody());
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Gemini request failed: timeout');
@@ -661,12 +645,7 @@ export class AiService {
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     if (text.trim()) return text;
 
-    const retryResponse = await requestGemini(
-      buildBody(
-        false,
-        `${prompt}\n\nTRẢ LỜI LẠI: chỉ một object JSON thuần, không markdown, không lời dẫn.`,
-      ),
-    );
+    const retryResponse = await requestGemini(buildBody(prompt));
     if (!retryResponse.ok) {
       throw new Error(`Gemini request failed: ${retryResponse.status}`);
     }
