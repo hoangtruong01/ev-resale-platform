@@ -73,14 +73,14 @@ class AddressService {
     }
   }
 
-  /// Tải danh sách Phường/Xã theo Quận/Huyện
-  Future<List<WardModel>> getWards(int districtCode) async {
-    if (_wardsCache.containsKey(districtCode)) {
-      return _wardsCache[districtCode]!;
+  /// Tải danh sách Phường/Xã theo Tỉnh/Thành phố
+  Future<List<WardModel>> getWards(int provinceCode) async {
+    if (_wardsCache.containsKey(provinceCode)) {
+      return _wardsCache[provinceCode]!;
     }
 
     try {
-      final response = await _dio.get('/d/$districtCode', queryParameters: {'depth': 2});
+      final response = await _dio.get('/p/$provinceCode', queryParameters: {'depth': 2});
       final data = response.data;
       if (data is Map && data['wards'] is List) {
         final wardsList = data['wards'] as List;
@@ -91,7 +91,7 @@ class AddressService {
         // Sắp xếp theo tên tiếng Việt
         wards.sort((a, b) => a.name.compareTo(b.name));
 
-        _wardsCache[districtCode] = wards;
+        _wardsCache[provinceCode] = wards;
         return wards;
       }
       return const [];
