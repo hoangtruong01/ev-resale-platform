@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -59,6 +60,7 @@ export class PaymentsService {
   async createVnpayPayment(
     dto: CreateVnpayPaymentDto,
     clientIp: string,
+    currentUserId: string,
   ): Promise<{
     paymentUrl: string;
     paymentAttemptId: string;
@@ -68,27 +70,61 @@ export class PaymentsService {
   }> {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id: dto.transactionId },
+      include: {
+        chatRoom: {
+          select: {
+            buyerId: true,
+            sellerId: true,
+          },
+        },
+        purchase: {
+          select: {
+            buyerId: true,
+          },
+        },
+      },
     });
 
     if (!transaction) {
       throw new NotFoundException('Không tìm thấy giao dịch');
     }
 
-    if (transaction.status === TransactionStatus.COMPLETED) {
-      throw new BadRequestException('Giao dịch này đã được thanh toán.');
+    const participantIds = new Set<string>([transaction.sellerId]);
+    if (transaction.chatRoom?.buyerId) {
+      participantIds.add(transaction.chatRoom.buyerId);
     }
+    if (transaction.chatRoom?.sellerId) {
+      participantIds.add(transaction.chatRoom.sellerId);
+    }
+    if (transaction.purchase?.buyerId) {
+      participantIds.add(transaction.purchase.buyerId);
+    }
+
+    if (!participantIds.has(currentUserId)) {
+      throw new ForbiddenException(
+        'Bạn không có quyền tạo thanh toán cho giao dịch này.',
+      );
+    }
+
+    const paymentType = dto.paymentType ?? PaymentType.FULL;
+
+    this.validateTransactionStatusForPaymentType(
+      transaction.status,
+      paymentType,
+    );
 
     const existingSuccessAttempt = await this.prisma.paymentAttempt.findFirst({
       where: {
         transactionId: transaction.id,
         gateway: PaymentGateway.VNPAY,
         status: PaymentAttemptStatus.SUCCESS,
+        paymentType,
       },
     });
 
     if (existingSuccessAttempt) {
       throw new BadRequestException(
-        'Giao dịch này đã có phiên thanh toán VNPay thành công.',
+        'Giao dịch này đã có phiên thanh toán VNPay thành công cho loại thanh toán này.',
       );
     }
 
@@ -102,7 +138,6 @@ export class PaymentsService {
     const orderType =
       this.configService.get<string>('VNPAY_DEFAULT_ORDER_TYPE') ?? 'other';
 
-    const paymentType = dto.paymentType ?? PaymentType.FULL;
     let totalAmount = this.calculateTotalAmount(transaction);
 
     if (paymentType === PaymentType.DEPOSIT) {
@@ -428,6 +463,47 @@ export class PaymentsService {
     }
 
     server.to(roomId).emit('chat:message', payload);
+  }
+
+  private validateTransactionStatusForPaymentType(
+    status: TransactionStatus,
+    paymentType: PaymentType,
+  ) {
+    if (status === TransactionStatus.COMPLETED) {
+      throw new BadRequestException('Giao dịch này đã được thanh toán.');
+    }
+
+    if (paymentType === PaymentType.DEPOSIT) {
+      if (
+        status !== TransactionStatus.PENDING &&
+        status !== TransactionStatus.AWAITING_DEPOSIT
+      ) {
+        throw new BadRequestException(
+          'Giao dịch không ở trạng thái chờ đặt cọc.',
+        );
+      }
+      return;
+    }
+
+    if (paymentType === PaymentType.BALANCE) {
+      if (status !== TransactionStatus.AWAITING_BALANCE) {
+        throw new BadRequestException(
+          'Giao dịch không ở trạng thái chờ thanh toán phần còn lại.',
+        );
+      }
+      return;
+    }
+
+    if (paymentType === PaymentType.FULL) {
+      if (
+        status !== TransactionStatus.PENDING &&
+        status !== TransactionStatus.AWAITING_DEPOSIT
+      ) {
+        throw new BadRequestException(
+          'Giao dịch không ở trạng thái chờ thanh toán toàn bộ.',
+        );
+      }
+    }
   }
 
   private calculateTotalAmount(transaction: {

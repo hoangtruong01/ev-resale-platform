@@ -98,41 +98,14 @@ export class TransactionsController {
     return this.transactionsService.findAll(page || 1, limit || 10, status);
   }
 
-  @Get(':id')
+  @Get('my')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get a transaction by ID' })
-  @ApiParam({ name: 'id', description: 'Transaction ID' })
-  @ApiResponse({ status: 200, description: 'Return the transaction' })
-  @ApiResponse({ status: 404, description: 'Transaction not found' })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.transactionsService.findOne(id);
-  }
-
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update a transaction' })
-  @ApiParam({ name: 'id', description: 'Transaction ID' })
-  @ApiResponse({ status: 200, description: 'Transaction has been updated' })
-  @ApiResponse({ status: 404, description: 'Transaction not found' })
-  update(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateTransactionDto: UpdateTransactionDto,
-  ) {
-    return this.transactionsService.update(id, updateTransactionDto);
-  }
-
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete a transaction' })
-  @ApiParam({ name: 'id', description: 'Transaction ID' })
-  @ApiResponse({ status: 200, description: 'Transaction has been deleted' })
-  @ApiResponse({ status: 404, description: 'Transaction not found' })
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.transactionsService.remove(id);
+  @ApiOperation({ summary: 'Get transactions for current user' })
+  @ApiResponse({ status: 200, description: 'Return current user transactions' })
+  findMyTransactions(@Req() req: Request) {
+    const userId = this.resolveUserId(req);
+    return this.transactionsService.findMyTransactions(userId);
   }
 
   @Get('vehicle/:vehicleId')
@@ -192,6 +165,43 @@ export class TransactionsController {
       page || 1,
       limit || 10,
     );
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a transaction by ID' })
+  @ApiParam({ name: 'id', description: 'Transaction ID' })
+  @ApiResponse({ status: 200, description: 'Return the transaction' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.transactionsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a transaction' })
+  @ApiParam({ name: 'id', description: 'Transaction ID' })
+  @ApiResponse({ status: 200, description: 'Transaction has been updated' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateTransactionDto: UpdateTransactionDto,
+  ) {
+    return this.transactionsService.update(id, updateTransactionDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a transaction' })
+  @ApiParam({ name: 'id', description: 'Transaction ID' })
+  @ApiResponse({ status: 200, description: 'Transaction has been deleted' })
+  @ApiResponse({ status: 404, description: 'Transaction not found' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.transactionsService.remove(id);
   }
 
   @Patch(':id/status')

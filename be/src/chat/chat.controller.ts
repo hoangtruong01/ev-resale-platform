@@ -33,6 +33,13 @@ interface AuthenticatedRequest extends Request {
   };
 }
 
+function resolveUserId(user?: {
+  id?: string;
+  sub?: string;
+}): string | undefined {
+  return user?.id ?? user?.sub;
+}
+
 @ApiTags('Chat')
 @Controller('chat')
 export class ChatController {
@@ -42,8 +49,12 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get or create a chat room' })
-  createRoom(@Body() dto: CreateRoomDto) {
-    return this.chatService.getOrCreateRoom(dto);
+  createRoom(@Req() req: AuthenticatedRequest, @Body() dto: CreateRoomDto) {
+    const buyerId = resolveUserId(req.user);
+    if (!buyerId) {
+      throw new BadRequestException('User identity is required.');
+    }
+    return this.chatService.getOrCreateRoom({ ...dto, buyerId });
   }
 
   @Get('rooms')
@@ -51,7 +62,7 @@ export class ChatController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'List chat rooms for a user' })
   async listRooms(@Req() req: AuthenticatedRequest) {
-    const userId = req.user?.id ?? req.user?.sub;
+    const userId = resolveUserId(req.user);
     if (!userId) {
       throw new BadRequestException('User identity is required.');
     }
@@ -59,32 +70,52 @@ export class ChatController {
   }
 
   @Get('rooms/:roomId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get room details' })
   @ApiParam({ name: 'roomId', description: 'Chat room ID' })
-  getRoom(@Param('roomId') roomId: string) {
-    return this.chatService.getRoom(roomId);
+  getRoom(@Param('roomId') roomId: string, @Req() req: AuthenticatedRequest) {
+    const userId = resolveUserId(req.user);
+    if (!userId) {
+      throw new BadRequestException('User identity is required.');
+    }
+    return this.chatService.getRoom(roomId, userId);
   }
 
   @Get('rooms/:roomId/messages')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get messages in a room' })
   @ApiParam({ name: 'roomId', description: 'Chat room ID' })
   getRoomMessages(
     @Param('roomId') roomId: string,
+    @Req() req: AuthenticatedRequest,
     @Query('limit') limit?: string,
   ) {
+    const userId = resolveUserId(req.user);
+    if (!userId) {
+      throw new BadRequestException('User identity is required.');
+    }
     const parsedLimit = Number(limit);
     const safeLimit = Number.isFinite(parsedLimit) ? parsedLimit : undefined;
-    return this.chatService.getRoomMessages(roomId, safeLimit);
+    return this.chatService.getRoomMessages(roomId, userId, safeLimit);
   }
 
   @Post('rooms/:roomId/messages')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Send a message in a room' })
   @ApiParam({ name: 'roomId', description: 'Chat room ID' })
   createMessage(
     @Param('roomId') roomId: string,
+    @Req() req: AuthenticatedRequest,
     @Body() dto: Omit<SendMessageDto, 'roomId'>,
   ) {
-    return this.chatService.createMessage({ ...dto, roomId });
+    const senderId = resolveUserId(req.user);
+    if (!senderId) {
+      throw new BadRequestException('User identity is required.');
+    }
+    return this.chatService.createMessage({ ...dto, roomId, senderId });
   }
 
   /**
@@ -108,7 +139,7 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Body(new ValidationPipe({ whitelist: true })) dto: ProposeContractDto,
   ) {
-    const proposerId = req.user?.id ?? req.user?.sub;
+    const proposerId = resolveUserId(req.user);
     if (!proposerId) {
       throw new BadRequestException('User identity is required.');
     }
