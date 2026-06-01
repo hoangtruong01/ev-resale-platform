@@ -37,6 +37,32 @@
       <!-- Login Form -->
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <form class="space-y-4" @submit.prevent="handleLogin">
+          <!-- Error Alert Banner -->
+          <div
+            v-if="loginError"
+            class="p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2.5 transition-all duration-300"
+          >
+            <Icon
+              name="mdi:alert-circle"
+              class="h-5 w-5 text-red-500 shrink-0 mt-0.5"
+            />
+            <div class="flex-1">
+              <h3 class="text-sm font-semibold text-red-800">
+                Lỗi đăng nhập!
+              </h3>
+              <p class="text-xs text-red-600 mt-0.5">
+                {{ loginError }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="text-red-400 hover:text-red-700 transition-colors cursor-pointer"
+              @click="loginError = ''"
+            >
+              <Icon name="mdi:close" class="h-4 w-4" />
+            </button>
+          </div>
+
           <div>
             <label class="block text-sm font-medium mb-2 text-gray-700">{{
               $t("email_or_phone")
@@ -62,9 +88,6 @@
               :placeholder="$t('enter_password')"
               required
             />
-            <p v-if="loginError" class="mt-2 text-sm text-red-600">
-              {{ loginError }}
-            </p>
           </div>
 
           <div class="flex items-center justify-between">
@@ -136,7 +159,7 @@
 </template>
 
 <script setup>
-import { nextTick, ref, reactive, computed } from "vue";
+import { nextTick, ref, reactive, computed, onMounted } from "vue";
 
 // Use i18n
 const { t } = useI18n({ useScope: "global" });
@@ -163,6 +186,14 @@ const route = useRoute();
 const isAdminLogin = computed(
   () => route.query.admin === "1" || route.query.admin === "true",
 );
+
+onMounted(() => {
+  if (route.query.error === "auth_failed") {
+    loginError.value = "Đăng nhập Google/Facebook thất bại hoặc bị hủy. Vui lòng thử lại.";
+  } else if (route.query.error) {
+    loginError.value = "Xác thực tài khoản thất bại. Vui lòng thử lại.";
+  }
+});
 
 const tapCount = ref(0);
 const lastTapAt = ref(0);

@@ -30,6 +30,32 @@
       <!-- Register Form -->
       <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <form class="space-y-4" @submit.prevent="handleRegister">
+          <!-- Error Alert Banner -->
+          <div
+            v-if="registerError"
+            class="p-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-2.5 transition-all duration-300"
+          >
+            <Icon
+              name="mdi:alert-circle"
+              class="h-5 w-5 text-red-500 shrink-0 mt-0.5"
+            />
+            <div class="flex-1">
+              <h3 class="text-sm font-semibold text-red-800">
+                Lỗi đăng ký!
+              </h3>
+              <p class="text-xs text-red-600 mt-0.5">
+                {{ registerError }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="text-red-400 hover:text-red-700 transition-colors cursor-pointer"
+              @click="registerError = ''"
+            >
+              <Icon name="mdi:close" class="h-4 w-4" />
+            </button>
+          </div>
+
           <div>
             <label class="block text-sm font-medium mb-2 text-gray-700"
               >{{ $t("full_name") }} *</label
@@ -175,6 +201,7 @@ const form = reactive({
 
 // Loading state
 const loading = ref(false);
+const registerError = ref("");
 
 // Set head
 useHead({
@@ -186,9 +213,11 @@ useHead({
 const handleRegister = async () => {
   console.log('🚀 Register form submitted with data:', form)
   loading.value = true
+  registerError.value = ""
   
   if (form.password !== form.confirmPassword) {
     console.log('❌ Password mismatch')
+    registerError.value = 'Mật khẩu xác nhận không khớp.'
     useCustomToast().add({
       title: 'Lỗi!',
       description: 'Mật khẩu xác nhận không khớp.',
@@ -260,6 +289,8 @@ const handleRegister = async () => {
     } else if (typeof error === 'string') {
       errorMessage = error
     }
+    
+    registerError.value = errorMessage
     
     useCustomToast().add({
       title: 'Lỗi đăng ký!',
