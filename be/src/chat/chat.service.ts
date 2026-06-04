@@ -105,7 +105,9 @@ export class ChatService {
     }));
   }
 
-  async getRoom(roomId: string) {
+  async getRoom(roomId: string, userId: string) {
+    await this.ensureRoomParticipant(roomId, userId);
+
     const room = await this.prisma.chatRoom.findUnique({
       where: { id: roomId },
       include: this.roomInclude,
@@ -118,8 +120,17 @@ export class ChatService {
     return room;
   }
 
-  async getRoomMessages(roomId: string, limit = 50) {
-    await this.ensureRoomExists(roomId);
+  async getRoomMessages(
+    roomId: string,
+    userIdOrLimit?: string | number,
+    limit = 50,
+  ) {
+    if (typeof userIdOrLimit === 'string') {
+      await this.ensureRoomParticipant(roomId, userIdOrLimit);
+    } else {
+      await this.ensureRoomExists(roomId);
+      limit = userIdOrLimit ?? limit;
+    }
 
     const baseLimit = Number.isFinite(limit) ? limit : 50;
     const clampedLimit = Math.min(Math.max(baseLimit, 1), 200);
@@ -327,7 +338,7 @@ export class ChatService {
     }
 
     if (room.buyerId !== userId && room.sellerId !== userId) {
-      throw new BadRequestException('User is not a participant of this room.');
+      throw new ForbiddenException('User is not a participant of this room.');
     }
   }
 

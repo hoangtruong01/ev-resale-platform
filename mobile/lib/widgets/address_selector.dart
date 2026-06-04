@@ -36,17 +36,14 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
 
   // Loading states
   bool _isLoadingProvinces = false;
-  bool _isLoadingDistricts = false;
   bool _isLoadingWards = false;
 
   // Dropdown lists
   List<ProvinceModel> _provinces = [];
-  List<DistrictModel> _districts = [];
   List<WardModel> _wards = [];
 
   // Selections
   ProvinceModel? _selectedProvince;
-  DistrictModel? _selectedDistrict;
   WardModel? _selectedWard;
 
   // Controllers for manual inputs and streetAddress
@@ -101,7 +98,7 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
           );
           if (match.code != -1) {
             _selectedProvince = match;
-            _loadDistricts(match.code);
+            _loadWards(match.code);
           }
         }
       });
@@ -117,42 +114,10 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
     }
   }
 
-  // Load level 2: Districts
-  Future<void> _loadDistricts(int provinceCode) async {
-    setState(() {
-      _isLoadingDistricts = true;
-      _districts = [];
-      _wards = [];
-      _selectedDistrict = null;
-      _selectedWard = null;
-    });
-    try {
-      final service = ref.read(addressServiceProvider);
-      final list = await service.getDistricts(provinceCode);
-      setState(() {
-        _districts = list;
 
-        // Auto select district
-        if (widget.initialDistrict != null && widget.initialDistrict!.isNotEmpty) {
-          final match = list.firstWhere(
-            (d) => d.name.toLowerCase() == widget.initialDistrict!.toLowerCase(),
-            orElse: () => const DistrictModel(code: -1, name: '', codename: ''),
-          );
-          if (match.code != -1) {
-            _selectedDistrict = match;
-            _loadWards(match.code);
-          }
-        }
-      });
-    } catch (e) {
-      setState(() => _isManualMode = true);
-    } finally {
-      setState(() => _isLoadingDistricts = false);
-    }
-  }
 
   // Load level 3: Wards
-  Future<void> _loadWards(int districtCode) async {
+  Future<void> _loadWards(int provinceCode) async {
     setState(() {
       _isLoadingWards = true;
       _wards = [];
@@ -160,7 +125,7 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
     });
     try {
       final service = ref.read(addressServiceProvider);
-      final list = await service.getWards(districtCode);
+      final list = await service.getWards(provinceCode);
       setState(() {
         _wards = list;
 
@@ -195,7 +160,7 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
       widget.onAddressChanged(
         streetAddress: _streetCtrl.text.trim(),
         ward: _selectedWard?.name ?? '',
-        district: _selectedDistrict?.name ?? '',
+        district: '',
         province: _selectedProvince?.name ?? '',
       );
     }
@@ -205,9 +170,7 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
     setState(() {
       _isManualMode = !_isManualMode;
       _selectedProvince = null;
-      _selectedDistrict = null;
       _selectedWard = null;
-      _districts = [];
       _wards = [];
       
       _manualProvinceCtrl.clear();
@@ -304,67 +267,19 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
                           setState(() {
                             _selectedProvince = val;
                           });
-                          _loadDistricts(val.code);
+                          _loadWards(val.code);
                         }
                       },
                     ),
                   ),
           ),
-          const SizedBox(height: 12),
 
-          // District Dropdown
-          _buildDropdownContainer(
-            label: 'Quận / Huyện',
-            isDisabled: _selectedProvince == null,
-            child: _isLoadingDistricts
-                ? const LinearProgressIndicator(color: AppTheme.primaryGreen, backgroundColor: Colors.transparent)
-                : DropdownButtonHideUnderline(
-                    child: DropdownButtonFormField<DistrictModel>(
-                      value: _selectedDistrict,
-                      dropdownColor: Theme.of(context).colorScheme.surface,
-                      hint: Text(
-                        'Chọn Quận / Huyện',
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? AppTheme.grey400
-                              : AppTheme.grey500,
-                        ),
-                      ),
-                      isExpanded: true,
-                      style: TextStyle(
-                        fontFamily: 'BeVietnamPro',
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      items: _districts.map((d) {
-                        return DropdownMenuItem<DistrictModel>(
-                          value: d,
-                          child: Text(d.name),
-                        );
-                      }).toList(),
-                      onChanged: _selectedProvince == null
-                          ? null
-                          : (val) {
-                              if (val != null) {
-                                setState(() {
-                                  _selectedDistrict = val;
-                                });
-                                _loadWards(val.code);
-                              }
-                            },
-                    ),
-                  ),
-          ),
           const SizedBox(height: 12),
 
           // Ward Dropdown
           _buildDropdownContainer(
             label: 'Phường / Xã',
-            isDisabled: _selectedDistrict == null,
+            isDisabled: _selectedProvince == null,
             child: _isLoadingWards
                 ? const LinearProgressIndicator(color: AppTheme.primaryGreen, backgroundColor: Colors.transparent)
                 : DropdownButtonHideUnderline(
@@ -395,7 +310,7 @@ class _AddressSelectorState extends ConsumerState<AddressSelector> {
                           child: Text(w.name),
                         );
                       }).toList(),
-                      onChanged: _selectedDistrict == null
+                      onChanged: _selectedProvince == null
                           ? null
                           : (val) {
                               if (val != null) {

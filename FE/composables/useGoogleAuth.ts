@@ -15,12 +15,10 @@ export const useGoogleAuth = () => {
 
   const handleCredentialResponse = async (response: any) => {
     try {
-      // Gửi credential token đến backend để xác thực
-      const data = await $fetch<{user: any, access_token: string}>('/api/auth/google/verify', {
-        method: 'POST',
-        body: {
-          credential: response.credential
-        }
+      // Gửi credential token đến backend để xác thực qua useApi composable
+      const api = useApi()
+      const data = await api.post<{user: any, access_token: string}>('/auth/google/verify', {
+        credential: response.credential
       })
       
       // Lưu token và user info
