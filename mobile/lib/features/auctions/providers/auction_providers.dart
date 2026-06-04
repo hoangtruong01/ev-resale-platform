@@ -65,6 +65,8 @@ final auctionListProvider = FutureProvider<List<AuctionModel>>((ref) async {
 final auctionDetailProvider =
     FutureProvider.autoDispose.family<AuctionModel, String>((ref, auctionId) async {
   ref.watch(auctionRealtimeTickProvider(auctionId));
+  // keepAlive prevents disposal between polls so data is retained during refresh
+  ref.keepAlive();
   final dio = ref.watch(dioProvider);
   final response = await dio.get('/auctions/$auctionId');
   final data = response.data;
@@ -79,6 +81,7 @@ final auctionDetailProvider =
 final auctionBidsProvider =
     FutureProvider.autoDispose.family<List<BidModel>, String>((ref, auctionId) async {
   ref.watch(auctionRealtimeTickProvider(auctionId));
+  ref.keepAlive();
   final dio = ref.watch(dioProvider);
   final response = await dio.get(
     '/auctions/$auctionId/bids',

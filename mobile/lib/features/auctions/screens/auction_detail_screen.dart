@@ -22,37 +22,26 @@ class AuctionDetailScreen extends ConsumerStatefulWidget {
 class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   final _bidController = TextEditingController();
   Timer? _pollingTimer;
-  Timer? _countdownTimer;
-  String _countdown = 'Đang tải...';
   bool _isBidding = false;
 
   @override
   void initState() {
     super.initState();
-    _startRealtimeUpdates();
+    _startPolling();
   }
 
   @override
   void dispose() {
     _pollingTimer?.cancel();
-    _countdownTimer?.cancel();
     _bidController.dispose();
     super.dispose();
   }
 
-  void _startRealtimeUpdates() {
+  void _startPolling() {
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
       final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
       notifier.state = notifier.state + 1;
-    });
-
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      final auction = ref.read(auctionDetailProvider(widget.id)).value;
-      if (auction == null) return;
-      setState(() {
-        _countdown = AppUtils.formatCountdown(auction.endDateTime);
-      });
     });
   }
 
@@ -107,11 +96,20 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
     final auctionAsync = ref.watch(auctionDetailProvider(widget.id));
     final bidsAsync = ref.watch(auctionBidsProvider(widget.id));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết đấu giá')),
-      body: auctionAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
+    // Show full loading screen only on the very first load (no data yet).
+    // During background refreshes (isLoading=true but value != null) we keep
+    // the existing UI visible to avoid flicker.
+    if (auctionAsync.isLoading && !auctionAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (auctionAsync.hasError && !auctionAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+        body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -119,7 +117,10 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
               children: [
                 const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
                 const SizedBox(height: 12),
-                Text('Không tải được dữ liệu: $error', textAlign: TextAlign.center),
+                Text(
+                  'Không tải được dữ liệu: ${auctionAsync.error}',
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(auctionDetailProvider(widget.id)),
@@ -129,163 +130,269 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
             ),
           ),
         ),
-        data: (auction) {
-          _countdown = AppUtils.formatCountdown(auction.endDateTime);
+      );
+    }
 
-          final minBid = auction.currentPrice + auction.bidStep;
-          final canBid = auction.status == 'ACTIVE' && !auction.isEnded;
+    // Null-safe guard: nếu value là null dù không có error thì hiện loading
+    final auction = auctionAsync.value;
+    if (auction == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              _AuctionHeaderCard(auction: auction, countdown: _countdown),
-              const SizedBox(height: 16),
-              _AuctionMetaCard(auction: auction),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Đặt giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+    final minBid = auction.currentPrice + auction.bidStep;
+    final isNotStarted = auction.status == 'PENDING';
+    final canBid = auction.status == 'ACTIVE' && !auction.isEnded;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _AuctionHeaderCard(auction: auction),
+          const SizedBox(height: 16),
+          _AuctionMetaCard(auction: auction),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Đặt giá',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  // Banner khi đấu giá chưa bắt đầu
+                  if (isNotStarted)
+                    _BidNotStartedBanner(startDateTime: auction.startDateTime)
+                  else ...[
+                    Text(
+                      'Giá tối thiểu: ${AppUtils.formatCurrency(minBid)}',
+                      style: const TextStyle(color: AppTheme.grey600),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _bidController,
+                      enabled: canBid && !_isBidding,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Nhập số tiền muốn bid (VND)',
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Giá tối thiểu: ${AppUtils.formatCurrency(minBid)}',
-                        style: const TextStyle(color: AppTheme.grey600),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _bidController,
-                        enabled: canBid && !_isBidding,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Nhập số tiền muốn bid (VND)',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        children: [1, 2, 3]
-                            .map(
-                              (times) => ActionChip(
-                                label: Text(
-                                  '+ ${AppUtils.formatCurrency(auction.bidStep * times)}',
-                                ),
-                                onPressed: canBid && !_isBidding
-                                    ? () {
-                                        final value = minBid + (auction.bidStep * (times - 1));
-                                        _bidController.text = value.toStringAsFixed(0);
-                                      }
-                                    : null,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      children: [1, 2, 3]
+                          .map(
+                            (times) => ActionChip(
+  backgroundColor: Colors.black,
+                              label: Text(
+                                '+ ${AppUtils.formatCurrency(auction.bidStep * times)}',
                               ),
-                            )
-                            .toList(),
+                              onPressed: canBid && !_isBidding
+                                  ? () {
+                                      final value = minBid + (auction.bidStep * (times - 1));
+                                      _bidController.text = value.toStringAsFixed(0);
+                                    }
+                                  : null,
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 12),
+                    // Dùng ConstrainedBox thay SizedBox(width: double.infinity)
+                    // để tránh BoxConstraints infinite width trong Column
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(minWidth: double.infinity),
+                      child: ElevatedButton.icon(
+                        onPressed: canBid && !_isBidding ? () => _placeBid(auction) : null,
+                        icon: _isBidding
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.gavel_rounded),
+                        label: Text(_isBidding
+                            ? 'Đang gửi giá...'
+                            : (canBid ? 'Đặt giá ngay' : 'Phiên không còn nhận bid')),
                       ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: canBid && !_isBidding ? () => _placeBid(auction) : null,
-                          icon: _isBidding
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.gavel_rounded),
-                          label: Text(_isBidding
-                              ? 'Đang gửi giá...'
-                              : (canBid ? 'Đặt giá ngay' : 'Phiên không còn nhận bid')),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Lịch sử đặt giá',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
+                  const SizedBox(height: 12),
+                  // Show stale bids data while refreshing — no flicker
+                  if (bidsAsync.isLoading && !bidsAsync.hasValue)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (bidsAsync.hasError && !bidsAsync.hasValue)
+                    Text(
+                      'Không tải được lịch sử bid: ${bidsAsync.error}',
+                      style: const TextStyle(color: AppTheme.error),
+                    )
+                  else
+                    _buildBidList(bidsAsync.value ?? const []),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBidList(List<BidModel> bids) {
+    if (bids.isEmpty) {
+      return const Text(
+        'Chưa có lượt bid nào.',
+        style: TextStyle(color: AppTheme.grey600),
+      );
+    }
+    return Column(
+      children: bids
+          .map(
+            (bid) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                child: const Icon(
+                  Icons.person,
+                  color: AppTheme.primaryGreen,
                 ),
               ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Lịch sử đặt giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 12),
-                      bidsAsync.when(
-                        loading: () => const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        error: (error, _) => Text(
-                          'Không tải được lịch sử bid: $error',
-                          style: const TextStyle(color: AppTheme.error),
-                        ),
-                        data: (bids) {
-                          if (bids.isEmpty) {
-                            return const Text(
-                              'Chưa có lượt bid nào.',
-                              style: TextStyle(color: AppTheme.grey600),
-                            );
-                          }
-                          return Column(
-                            children: bids
-                                .map(
-                                  (bid) => ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: CircleAvatar(
-                                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: AppTheme.primaryGreen,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      bid.bidder?.fullName ?? 'Người dùng',
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
-                                    ),
-                                    subtitle: Text(AppUtils.timeAgo(bid.createdAt)),
-                                    trailing: Text(
-                                      AppUtils.formatCurrency(bid.amount),
-                                      style: const TextStyle(
-                                        color: AppTheme.primaryGreen,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+              title: Text(
+                bid.bidder?.fullName ?? 'Người dùng',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(AppUtils.timeAgo(bid.createdAt)),
+              trailing: Text(
+                AppUtils.formatCurrency(bid.amount),
+                style: const TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _BidNotStartedBanner extends StatelessWidget {
+  final DateTime startDateTime;
+
+  const _BidNotStartedBanner({required this.startDateTime});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // Không set width: double.infinity — để parent Column tự stretch
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        border: Border.all(color: const Color(0xFFFFE082)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.schedule_rounded, color: Color(0xFFF59E0B), size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Đấu giá chưa diễn ra!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF92400E),
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Vui lòng chờ đến khi bắt đầu vào lúc ${AppUtils.formatDateTime(startDateTime.toIso8601String())}',
+                  style: const TextStyle(
+                    color: Color(0xFF78350F),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _AuctionHeaderCard extends StatelessWidget {
+class _AuctionHeaderCard extends StatefulWidget {
   final AuctionModel auction;
-  final String countdown;
 
-  const _AuctionHeaderCard({required this.auction, required this.countdown});
+  const _AuctionHeaderCard({required this.auction});
+
+  @override
+  State<_AuctionHeaderCard> createState() => _AuctionHeaderCardState();
+}
+
+class _AuctionHeaderCardState extends State<_AuctionHeaderCard> {
+  late String _countdown;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _countdown = AppUtils.formatCountdown(widget.auction.endDateTime);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      setState(() {
+        _countdown = AppUtils.formatCountdown(widget.auction.endDateTime);
+      });
+    });
+  }
+
+  @override
+  void didUpdateWidget(_AuctionHeaderCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update countdown immediately when auction data refreshes
+    if (oldWidget.auction.endDateTime != widget.auction.endDateTime) {
+      _countdown = AppUtils.formatCountdown(widget.auction.endDateTime);
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final auction = widget.auction;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -332,7 +439,7 @@ class _AuctionHeaderCard extends StatelessWidget {
                       const Icon(Icons.timer_outlined, color: Colors.white, size: 14),
                       const SizedBox(width: 6),
                       Text(
-                        countdown,
+                        _countdown,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -361,7 +468,7 @@ class _AuctionHeaderCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 if ((auction.description ?? '').isNotEmpty)
                   Text(
-                    auction.description!,
+                    auction.description ?? '',
                     style: const TextStyle(color: AppTheme.grey700),
                   ),
                 const SizedBox(height: 12),

@@ -551,14 +551,21 @@ export class AuctionsService {
     });
   }
 
-  async getBidsForAuction(auctionId: string, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+  async getBidsForAuction(auctionId: string, page: unknown = 1, limit: unknown = 20) {
+    const toSafeInt = (value: unknown, fallback: number, min = 1, max = 100): number => {
+      const n = typeof value === 'string' ? Number(value) : Number(value);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
+    };
+
+    const pageNumber = toSafeInt(page, 1, 1, 10000);
+    const limitNumber = toSafeInt(limit, 20, 1, 100);
+    const skip = (pageNumber - 1) * limitNumber;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { auctionId },
         skip,
-        take: limit,
+        take: limitNumber,
         orderBy: { createdAt: 'desc' },
         include: {
           bidder: {
@@ -577,9 +584,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
       },
     };
   }
@@ -637,14 +644,21 @@ export class AuctionsService {
     };
   }
 
-  async getMyBids(userId: string, page = 1, limit = 10) {
-    const skip = (page - 1) * limit;
+  async getMyBids(userId: string, page: unknown = 1, limit: unknown = 10) {
+    const toSafeInt = (value: unknown, fallback: number, min = 1, max = 100): number => {
+      const n = typeof value === 'string' ? Number(value) : Number(value);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
+    };
+
+    const pageNumber = toSafeInt(page, 1, 1, 10000);
+    const limitNumber = toSafeInt(limit, 10, 1, 100);
+    const skip = (pageNumber - 1) * limitNumber;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { bidderId: userId },
         skip,
-        take: limit,
+        take: limitNumber,
         orderBy: { createdAt: 'desc' },
         include: {
           auction: {
@@ -669,9 +683,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
       },
     };
   }
