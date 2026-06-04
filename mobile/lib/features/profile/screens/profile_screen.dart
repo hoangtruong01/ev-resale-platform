@@ -316,7 +316,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.list_alt_outlined,
                         label: 'Tin đăng của tôi',
-                        onTap: () => _showMyListingActions(context),
+                        onTap: () => context.push('/profile/listings'),
                       ),
                       _MenuItem(
                         icon: Icons.receipt_long_outlined,

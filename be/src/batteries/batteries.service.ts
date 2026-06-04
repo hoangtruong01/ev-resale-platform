@@ -432,14 +432,35 @@ export class BatteriesService {
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = query;
-    const skip = (page - 1) * limit;
-    const orderBy = { [sortBy]: sortOrder };
+
+    const toNumber = (value: unknown) => {
+      if (value === undefined || value === null || value === '') {
+        return undefined;
+      }
+
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
+    const allowedSortFields = ['createdAt', 'price', 'capacity', 'condition'];
+    const safePage = Math.max(1, Math.floor(toNumber(page) ?? 1));
+    const safeLimit = Math.min(
+      100,
+      Math.max(1, Math.floor(toNumber(limit) ?? 10)),
+    );
+    const safeSortBy = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : 'createdAt';
+    const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
+    const where = { sellerId: userId };
+    const skip = (safePage - 1) * safeLimit;
+    const orderBy = { [safeSortBy]: safeSortOrder };
 
     const [batteries, total] = await Promise.all([
       this.prisma.battery.findMany({
-        where: { sellerId: userId, isActive: true },
+        where,
         skip,
-        take: limit,
+        take: safeLimit,
         orderBy,
         include: {
           _count: {
@@ -449,18 +470,16 @@ export class BatteriesService {
           },
         },
       }),
-      this.prisma.battery.count({
-        where: { sellerId: userId, isActive: true },
-      }),
+      this.prisma.battery.count({ where }),
     ]);
 
     return {
       data: batteries,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: safePage,
+        limit: safeLimit,
+        totalPages: Math.ceil(total / safeLimit),
       },
     };
   }
