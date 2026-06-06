@@ -80,13 +80,19 @@ final auctionBidsProvider =
     FutureProvider.autoDispose.family<List<BidModel>, String>((ref, auctionId) async {
   ref.watch(auctionRealtimeTickProvider(auctionId));
   final dio = ref.watch(dioProvider);
-  final response = await dio.get(
-    '/auctions/$auctionId/bids',
-    queryParameters: {
-      'page': 1,
-      'limit': 20,
-    },
-  );
-
-  return _parseBidList(response.data);
+  try {
+    final response = await dio.get(
+      '/auctions/$auctionId/bids',
+      queryParameters: {
+        'page': 1,
+        'limit': 20,
+      },
+    );
+    return _parseBidList(response.data);
+  } catch (e) {
+    // Return empty list on error instead of throwing,
+    // which prevents the error state from being shown and
+    // avoids triggering continuous rebuild + retry loops.
+    return const [];
+  }
 });

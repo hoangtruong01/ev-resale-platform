@@ -41,7 +41,9 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   }
 
   void _startRealtimeUpdates() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    // Poll every 15 seconds instead of 5 to reduce server load
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (!mounted) return;
       final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
       notifier.state = notifier.state + 1;
     });
