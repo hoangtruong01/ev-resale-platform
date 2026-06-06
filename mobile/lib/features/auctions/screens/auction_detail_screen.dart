@@ -21,7 +21,6 @@ class AuctionDetailScreen extends ConsumerStatefulWidget {
 
 class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   final _bidController = TextEditingController();
-  Timer? _pollingTimer;
   Timer? _countdownTimer;
   String _countdown = 'Đang tải...';
   bool _isBidding = false;
@@ -29,25 +28,17 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _startRealtimeUpdates();
+    _startCountdownTimer();
   }
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
     _countdownTimer?.cancel();
     _bidController.dispose();
     super.dispose();
   }
 
-  void _startRealtimeUpdates() {
-    // Poll every 15 seconds instead of 5 to reduce server load
-    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
-      if (!mounted) return;
-      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
-      notifier.state = notifier.state + 1;
-    });
-
+  void _startCountdownTimer() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       final auction = ref.read(auctionDetailProvider(widget.id)).value;
@@ -90,8 +81,9 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đặt giá thành công.')),
       );
-      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
-      notifier.state = notifier.state + 1;
+      await ref
+          .read(auctionDetailProvider(widget.id).notifier)
+          .refreshAfterBid();
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -112,6 +104,7 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết đấu giá')),
       body: auctionAsync.when(
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
@@ -221,6 +214,7 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                       ),
                       const SizedBox(height: 12),
                       bidsAsync.when(
+                        skipLoadingOnReload: true,
                         loading: () => const Center(
                           child: Padding(
                             padding: EdgeInsets.all(12),
