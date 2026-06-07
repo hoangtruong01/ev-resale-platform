@@ -551,21 +551,16 @@ export class AuctionsService {
     });
   }
 
-  async getBidsForAuction(auctionId: string, page: unknown = 1, limit: unknown = 20) {
-    const toSafeInt = (value: unknown, fallback: number, min = 1, max = 100): number => {
-      const n = typeof value === 'string' ? Number(value) : Number(value);
-      return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
-    };
-
-    const pageNumber = toSafeInt(page, 1, 1, 10000);
-    const limitNumber = toSafeInt(limit, 20, 1, 100);
-    const skip = (pageNumber - 1) * limitNumber;
+  async getBidsForAuction(auctionId: string, page = 1, limit = 20) {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { auctionId },
         skip,
-        take: limitNumber,
+        take: limitNum,
         orderBy: { createdAt: 'desc' },
         include: {
           bidder: {
@@ -584,9 +579,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page: pageNumber,
-        limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
       },
     };
   }
@@ -644,21 +639,16 @@ export class AuctionsService {
     };
   }
 
-  async getMyBids(userId: string, page: unknown = 1, limit: unknown = 10) {
-    const toSafeInt = (value: unknown, fallback: number, min = 1, max = 100): number => {
-      const n = typeof value === 'string' ? Number(value) : Number(value);
-      return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
-    };
-
-    const pageNumber = toSafeInt(page, 1, 1, 10000);
-    const limitNumber = toSafeInt(limit, 10, 1, 100);
-    const skip = (pageNumber - 1) * limitNumber;
+  async getMyBids(userId: string, page = 1, limit = 10) {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { bidderId: userId },
         skip,
-        take: limitNumber,
+        take: limitNum,
         orderBy: { createdAt: 'desc' },
         include: {
           auction: {
@@ -683,9 +673,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page: pageNumber,
-        limit: limitNumber,
-        totalPages: Math.ceil(total / limitNumber),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
       },
     };
   }
