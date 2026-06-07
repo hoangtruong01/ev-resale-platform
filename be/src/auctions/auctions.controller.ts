@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
@@ -84,8 +85,8 @@ export class AuctionsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getMyBids(
     @Req() req: AuthenticatedRequest,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ) {
     return this.auctionsService.getMyBids(req.user.sub, page, limit);
   }
@@ -118,8 +119,8 @@ export class AuctionsController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getBids(
     @Param('id') auctionId: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
   ) {
     return this.auctionsService.getBidsForAuction(auctionId, page, limit);
   }
