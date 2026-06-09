@@ -43,6 +43,7 @@ import {
   ResendOtpDto,
   VerifyOtpDto,
 } from './dto/password-reset.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { PasswordResetService } from './password-reset.service';
 
 class AuthResponseDto {
@@ -327,6 +328,33 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: AuthenticatedRequest) {
     return req.user;
+  }
+
+  @Post('password/change')
+  @ApiOperation({
+    summary: 'Change current user password',
+    description: 'Allows authenticated users to change password using current password',
+  })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  async changePassword(
+    @Body(new ValidationPipe({ whitelist: true })) payload: ChangePasswordDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const userId = req.user?.id ?? req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('Missing authenticated user id');
+    }
+
+    if (payload.newPassword !== payload.confirmPassword) {
+      throw new BadRequestException('Mật khẩu xác nhận không khớp');
+    }
+
+    return this.authService.changePassword(
+      userId,
+      payload.currentPassword,
+      payload.newPassword,
+    );
   }
   @Delete('users/:id')
   @ApiOperation({

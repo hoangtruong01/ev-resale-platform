@@ -5,6 +5,7 @@ import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/notification_model.dart';
 import '../../../services/notification_service.dart';
+import 'notification_settings_screen.dart';
 import 'dart:async';
 
 final myNotificationsProvider = FutureProvider<List<NotificationModel>>((ref) async {
@@ -102,6 +103,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Cài đặt thông báo',
+          ),
           TextButton(
             onPressed: _markAllAsRead,
             child: const Text(
@@ -123,6 +136,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               child: ListView(
                 children: const [
                   SizedBox(height: 140),
+                  Center(
+                    child: Icon(
+                      Icons.notifications_off_outlined,
+                      size: 64,
+                      color: AppTheme.grey300,
+                    ),
+                  ),
+                  SizedBox(height: 12),
                   Center(
                     child: Text(
                       'Bạn chưa có thông báo nào',
