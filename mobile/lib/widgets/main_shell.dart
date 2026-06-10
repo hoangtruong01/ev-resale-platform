@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import 'floating_ai_button.dart';
 
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   final Widget child;
   final String? location;
   const MainShell({super.key, required this.child, this.location});
@@ -83,10 +84,10 @@ class MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final activeLocation = location ?? GoRouterState.of(context).matchedLocation;
     final selectedIndex = _getSelectedIndex(activeLocation);
-    
+
     // Show FAB only on Home page and product detail pages (vehicles, batteries, accessories)
     final showFab = activeLocation == '/' ||
         activeLocation.startsWith('/vehicles/') ||
@@ -130,6 +131,7 @@ class MainShell extends StatelessWidget {
                   activeIcon: Icons.home_rounded,
                   label: 'Trang chủ',
                   isSelected: selectedIndex == 0,
+                  badgeCount: 0,
                   onTap: () => context.go('/'),
                 ),
                 _NavItem(
@@ -137,6 +139,7 @@ class MainShell extends StatelessWidget {
                   activeIcon: Icons.gavel_rounded,
                   label: 'Đấu giá',
                   isSelected: selectedIndex == 1,
+                  badgeCount: 0,
                   onTap: () => context.go('/auctions'),
                 ),
                 // Custom Elevated Center Button for "Đăng tin"
@@ -193,6 +196,7 @@ class MainShell extends StatelessWidget {
                   activeIcon: Icons.chat_bubble_rounded,
                   label: 'Chat',
                   isSelected: selectedIndex == 3,
+                  badgeCount: 0,
                   onTap: () => context.go('/chat'),
                 ),
                 _NavItem(
@@ -200,6 +204,7 @@ class MainShell extends StatelessWidget {
                   activeIcon: Icons.person_rounded,
                   label: 'Tài khoản',
                   isSelected: selectedIndex == 4,
+                  badgeCount: 0,
                   onTap: () => context.go('/profile'),
                 ),
               ],
@@ -216,6 +221,7 @@ class _NavItem extends StatelessWidget {
   final IconData activeIcon;
   final String label;
   final bool isSelected;
+  final int badgeCount;
   final VoidCallback onTap;
 
   const _NavItem({
@@ -223,6 +229,7 @@ class _NavItem extends StatelessWidget {
     required this.activeIcon,
     required this.label,
     required this.isSelected,
+    required this.badgeCount,
     required this.onTap,
   });
 
@@ -236,14 +243,42 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? activeIcon : icon,
-                key: ValueKey(isSelected),
-                color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
-                size: 24,
-              ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    isSelected ? activeIcon : icon,
+                    key: ValueKey(isSelected),
+                    color: isSelected ? AppTheme.primaryGreen : AppTheme.grey400,
+                    size: 24,
+                  ),
+                ),
+                if (badgeCount > 0)
+                  Positioned(
+                    right: -6,
+                    top: -3,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: AppTheme.error,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                      child: Text(
+                        badgeCount > 99 ? '99+' : '$badgeCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(

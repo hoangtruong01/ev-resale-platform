@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../widgets/app_text_field.dart';
 import '../../../widgets/loading_button.dart';
 import '../../../core/auth/session_state_provider.dart';
+import '../../../widgets/app_toast.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -41,6 +42,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
     final authState = ref.read(authStateProvider).value;
     if (authState?.isAuthenticated == true) {
+      AppToast.globalSuccess(
+        title: 'Đăng nhập thành công',
+        message: 'Chào mừng bạn quay lại EVN Market',
+      );
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (!mounted) return;
       final user = authState!.user;
       if (_isAdminLoginMode || user?.role == 'ADMIN' || user?.role == 'MODERATOR') {
         ref.read(adminModeProvider.notifier).state = true;
