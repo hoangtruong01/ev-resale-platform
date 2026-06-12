@@ -552,13 +552,15 @@ export class AuctionsService {
   }
 
   async getBidsForAuction(auctionId: string, page = 1, limit = 20) {
-    const skip = (page - 1) * limit;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const skip = (pageNum - 1) * limitNum;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { auctionId },
         skip,
-        take: limit,
+        take: limitNum,
         orderBy: { createdAt: 'desc' },
         include: {
           bidder: {
@@ -577,9 +579,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
       },
     };
   }
@@ -638,13 +640,15 @@ export class AuctionsService {
   }
 
   async getMyBids(userId: string, page = 1, limit = 10) {
-    const skip = (page - 1) * limit;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
 
     const [bids, total] = await Promise.all([
       this.prisma.bid.findMany({
         where: { bidderId: userId },
         skip,
-        take: limit,
+        take: limitNum,
         orderBy: { createdAt: 'desc' },
         include: {
           auction: {
@@ -669,9 +673,9 @@ export class AuctionsService {
       data: bids,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
       },
     };
   }

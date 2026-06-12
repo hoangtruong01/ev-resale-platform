@@ -38,53 +38,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final batteries = ref.watch(homeBatteriesProvider);
     final vehicles = ref.watch(homeVehiclesProvider);
 
-    // Merge batteries + vehicles into a unified product list
-    final List<_ProductItem> allProducts = [];
-
-    batteries.whenData((data) {
-      for (final b in data.data) {
-        allProducts.add(_ProductItem(
-          id: b.id,
-          title: b.name,
-          price: b.price,
-          imageUrl: b.thumbnailUrl,
-          sellerName: b.seller?.displayName,
-          location: b.location,
-          createdAt: b.createdAt,
-          type: 'battery',
-          icon: Icons.battery_charging_full_rounded,
-        ));
-      }
-    });
-
-    vehicles.whenData((data) {
-      for (final v in data.data) {
-        allProducts.add(_ProductItem(
-          id: v.id,
-          title: v.name,
-          price: v.price,
-          imageUrl: v.thumbnailUrl,
-          sellerName: v.seller?.displayName,
-          location: v.location,
-          createdAt: v.createdAt,
-          type: 'vehicle',
-          icon: Icons.electric_car_rounded,
-        ));
-      }
-    });
-
-    // Sort by newest
-    allProducts.sort((a, b) {
-      final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
-      final bDate = DateTime.tryParse(b.createdAt) ?? DateTime(2020);
-      return bDate.compareTo(aDate);
-    });
-
-    final isLoading = batteries.isLoading || vehicles.isLoading;
-    final hasError = batteries.hasError || vehicles.hasError;
-    final dynamic errorObj = batteries.error ?? vehicles.error;
-    final errorMessage = errorObj != null ? parseApiError(errorObj) : null;
-
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -98,164 +51,247 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ref.invalidate(homeBatteriesProvider);
             ref.invalidate(homeVehiclesProvider);
           },
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // 1. Header (status bar safe area included)
-              SliverToBoxAdapter(child: _buildHeader(context)),
-
-              // 2. Categories
-              SliverToBoxAdapter(child: _buildCategories(context)),
-
-              // 2.5. Sell Banner
-              SliverToBoxAdapter(child: _buildSellBanner(context)),
-
-              // 3. Filter tabs
-              SliverToBoxAdapter(child: _buildFilterTabs()),
-
-              // 4. Product grid
-              if (isLoading)
-                _buildSkeletonGrid()
-              else if (hasError)
-                SliverToBoxAdapter(
-                  child: _buildErrorState(errorMessage ?? 'Lỗi tải dữ liệu'),
-                )
-              else if (allProducts.isEmpty)
-                SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 200,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.inventory_2_outlined,
-                              size: 48, color: AppTheme.grey300),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Chưa có sản phẩm nào',
-                            style: TextStyle(
-                              color: AppTheme.grey400,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                )
-              else
-                _buildProductGrid(allProducts),
-
-              // Bottom padding for nav bar
-              const SliverToBoxAdapter(child: SizedBox(height: 100)),
-            ],
+          child: batteries.when(
+            loading: () => _buildLoadingContent(context),
+            error: (err, stack) =>
+                _buildErrorContent(context, parseApiError(err)),
+            data: (batteryData) {
+              return vehicles.when(
+                loading: () => _buildLoadingContent(context),
+                error: (err, stack) =>
+                    _buildErrorContent(context, parseApiError(err)),
+                data: (vehicleData) {
+                  return _buildMainContent(context, batteryData, vehicleData);
+                },
+              );
+            },
           ),
         ),
       ),
     );
   }
 
+  Widget _buildLoadingContent(BuildContext context) {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(context)),
+        SliverToBoxAdapter(child: _buildCategories(context)),
+        SliverToBoxAdapter(child: _buildSellBanner(context)),
+        SliverToBoxAdapter(child: _buildFilterTabs()),
+        _buildSkeletonGrid(),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
+    );
+  }
+
+  Widget _buildErrorContent(BuildContext context, String message) {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(context)),
+        SliverToBoxAdapter(child: _buildCategories(context)),
+        SliverToBoxAdapter(child: _buildSellBanner(context)),
+        SliverToBoxAdapter(child: _buildFilterTabs()),
+        _buildErrorState(message),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
+    );
+  }
+
+  Widget _buildMainContent(
+    BuildContext context,
+    BatteryListResponse batteryData,
+    VehicleListResponse vehicleData,
+  ) {
+    // Merge and sort products
+    final List<_ProductItem> allProducts = [];
+
+    for (final b in batteryData.data) {
+      allProducts.add(
+        _ProductItem(
+          id: b.id,
+          title: b.name,
+          price: b.price,
+          imageUrl: b.thumbnailUrl,
+          sellerName: b.seller?.displayName,
+          location: b.location,
+          createdAt: b.createdAt,
+          type: 'battery',
+          icon: Icons.battery_charging_full_rounded,
+        ),
+      );
+    }
+
+    for (final v in vehicleData.data) {
+      allProducts.add(
+        _ProductItem(
+          id: v.id,
+          title: v.name,
+          price: v.price,
+          imageUrl: v.thumbnailUrl,
+          sellerName: v.seller?.displayName,
+          location: v.location,
+          createdAt: v.createdAt,
+          type: 'vehicle',
+          icon: Icons.electric_car_rounded,
+        ),
+      );
+    }
+
+    allProducts.sort((a, b) {
+      final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
+      final bDate = DateTime.tryParse(b.createdAt) ?? DateTime(2020);
+      return bDate.compareTo(aDate);
+    });
+
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(child: _buildHeader(context)),
+        SliverToBoxAdapter(child: _buildCategories(context)),
+        SliverToBoxAdapter(child: _buildSellBanner(context)),
+        SliverToBoxAdapter(child: _buildFilterTabs()),
+        if (allProducts.isEmpty)
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 200,
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 48,
+                      color: AppTheme.grey300,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Chưa có sản phẩm nào',
+                      style: TextStyle(color: AppTheme.grey400, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          _buildProductGrid(allProducts),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)),
+      ],
+    );
+  }
+
   Widget _buildErrorState(String message) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C1A1A) : const Color(0xFFFFF2F2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.red.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.2),
-          width: 1,
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF2C1A1A) : const Color(0xFFFFF2F2),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.red.withValues(alpha: 0.3)
+                : Colors.red.withValues(alpha: 0.2),
+            width: 1,
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.cloud_off_rounded,
-              color: Colors.red,
-              size: 40,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Không thể kết nối máy chủ',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : AppTheme.grey900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark ? Colors.white70 : AppTheme.grey600,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.black26 : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isDark ? Colors.white10 : AppTheme.grey200,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cloud_off_rounded,
+                color: Colors.red,
+                size: 40,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.link_rounded,
-                  size: 14,
-                  color: AppTheme.grey500,
+            const SizedBox(height: 16),
+            Text(
+              'Không thể kết nối máy chủ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : AppTheme.grey900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white70 : AppTheme.grey600,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.black26 : Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : AppTheme.grey200,
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Cấu hình: ${AppConstants.baseUrl}',
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 11,
-                      color: AppTheme.grey500,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.link_rounded,
+                    size: 14,
+                    color: AppTheme.grey500,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'URL: ${AppConstants.baseUrl}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: AppTheme.grey500,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () {
-              ref.invalidate(homeBatteriesProvider);
-              ref.invalidate(homeVehiclesProvider);
-            },
-            icon: const Icon(Icons.refresh_rounded, size: 18),
-            label: const Text(
-              'Thử lại',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryGreen,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                ref.invalidate(homeBatteriesProvider);
+                ref.invalidate(homeVehiclesProvider);
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text(
+                'Thử lại',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -269,10 +305,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryDark,
-            AppTheme.primaryGreen,
-          ],
+          colors: [AppTheme.primaryDark, AppTheme.primaryGreen],
         ),
       ),
       child: Row(
@@ -287,8 +320,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.menu_rounded,
-                  color: Colors.white, size: 22),
+              child: const Icon(
+                Icons.menu_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -305,16 +341,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.search_rounded,
-                        color: AppTheme.grey400, size: 20),
+                    Icon(
+                      Icons.search_rounded,
+                      color: AppTheme.grey400,
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Tìm sản phẩm...',
-                        style: TextStyle(
-                          color: AppTheme.grey400,
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: AppTheme.grey400, fontSize: 14),
                       ),
                     ),
                   ],
@@ -333,8 +369,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.favorite_border_rounded,
-                  color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.favorite_border_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -351,8 +390,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Icon(Icons.notifications_outlined,
-                      color: Colors.white, size: 20),
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   Positioned(
                     top: 6,
                     right: 6,
@@ -457,28 +499,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           crossAxisSpacing: 10,
           childAspectRatio: 0.58,
         ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final item = products[index];
-            return ProductGridCard(
-              imageUrl: item.imageUrl,
-              title: item.title,
-              price: item.price,
-              sellerName: item.sellerName,
-              location: item.location,
-              timeAgo: formatTimeAgo(item.createdAt),
-              placeholderIcon: item.icon,
-              onTap: () {
-                if (item.type == 'battery') {
-                  context.push('/batteries/${item.id}');
-                } else {
-                  context.push('/vehicles/${item.id}');
-                }
-              },
-            );
-          },
-          childCount: products.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final item = products[index];
+          return ProductGridCard(
+            imageUrl: item.imageUrl,
+            title: item.title,
+            price: item.price,
+            sellerName: item.sellerName,
+            location: item.location,
+            timeAgo: formatTimeAgo(item.createdAt),
+            placeholderIcon: item.icon,
+            onTap: () {
+              if (item.type == 'battery') {
+                context.push('/batteries/${item.id}');
+              } else {
+                context.push('/vehicles/${item.id}');
+              }
+            },
+          );
+        }, childCount: products.length),
       ),
     );
   }
@@ -683,17 +722,28 @@ class _SellOption extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600, fontSize: 15)),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          color: AppTheme.grey600, fontSize: 13)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppTheme.grey600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios,
-                size: 16, color: AppTheme.grey400),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppTheme.grey400,
+            ),
           ],
         ),
       ),

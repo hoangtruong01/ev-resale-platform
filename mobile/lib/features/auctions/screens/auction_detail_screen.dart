@@ -16,12 +16,12 @@ class AuctionDetailScreen extends ConsumerStatefulWidget {
   const AuctionDetailScreen({super.key, required this.id});
 
   @override
-  ConsumerState<AuctionDetailScreen> createState() => _AuctionDetailScreenState();
+  ConsumerState<AuctionDetailScreen> createState() =>
+      _AuctionDetailScreenState();
 }
 
 class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   final _bidController = TextEditingController();
-  Timer? _pollingTimer;
   Timer? _countdownTimer;
   String _countdown = 'Đang tải...';
   bool _isBidding = false;
@@ -29,23 +29,17 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _startRealtimeUpdates();
+    _startCountdownTimer();
   }
 
   @override
   void dispose() {
-    _pollingTimer?.cancel();
     _countdownTimer?.cancel();
     _bidController.dispose();
     super.dispose();
   }
 
-  void _startRealtimeUpdates() {
-    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
-      notifier.state = notifier.state + 1;
-    });
-
+  void _startCountdownTimer() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       final auction = ref.read(auctionDetailProvider(widget.id)).value;
@@ -85,21 +79,103 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
       await dio.post('/auctions/${widget.id}/bid', data: {'amount': amount});
       if (!mounted) return;
       _bidController.clear();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đặt giá thành công.')),
-      );
-      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
-      notifier.state = notifier.state + 1;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đặt giá thành công.')));
+      await ref
+          .read(auctionDetailProvider(widget.id).notifier)
+          .refreshAfterBid();
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(parseApiError(e))),
-      );
+
+      final errorMessage = parseApiError(e);
+
+      // Check for duplicate highest bid error
+      if (errorMessage.contains('already have the highest bid')) {
+        _showDuplicateBidDialog(auction);
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
     } finally {
       if (mounted) {
         setState(() => _isBidding = false);
       }
     }
+  }
+
+  void _showDuplicateBidDialog(AuctionModel auction) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: AppTheme.accentOrange),
+            SizedBox(width: 8),
+            Text('Bạn đã có giá cao nhất'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bạn hiện đang có giá cao nhất trong phiên đấu giá này (${AppUtils.formatCurrency(auction.currentPrice)}).',
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppTheme.accentOrange.withValues(alpha: 0.2),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 18,
+                    color: AppTheme.accentOrange,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Chỉ những người khác mới có thể đặt giá cao hơn.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.accentOrange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Đóng'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _bidController.clear();
+            },
+            icon: const Icon(Icons.clear, size: 18),
+            label: const Text('Xóa số tiền'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGreen,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -110,6 +186,7 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Chi tiết đấu giá')),
       body: auctionAsync.when(
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
@@ -117,12 +194,20 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: AppTheme.error,
+                ),
                 const SizedBox(height: 12),
-                Text('Không tải được dữ liệu: $error', textAlign: TextAlign.center),
+                Text(
+                  'Không tải được dữ liệu: $error',
+                  textAlign: TextAlign.center,
+                ),
                 const SizedBox(height: 12),
                 ElevatedButton(
-                  onPressed: () => ref.invalidate(auctionDetailProvider(widget.id)),
+                  onPressed: () =>
+                      ref.invalidate(auctionDetailProvider(widget.id)),
                   child: const Text('Thử lại'),
                 ),
               ],
@@ -150,7 +235,10 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                     children: [
                       const Text(
                         'Đặt giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -177,8 +265,11 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                                 ),
                                 onPressed: canBid && !_isBidding
                                     ? () {
-                                        final value = minBid + (auction.bidStep * (times - 1));
-                                        _bidController.text = value.toStringAsFixed(0);
+                                        final value =
+                                            minBid +
+                                            (auction.bidStep * (times - 1));
+                                        _bidController.text = value
+                                            .toStringAsFixed(0);
                                       }
                                     : null,
                               ),
@@ -189,17 +280,25 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: canBid && !_isBidding ? () => _placeBid(auction) : null,
+                          onPressed: canBid && !_isBidding
+                              ? () => _placeBid(auction)
+                              : null,
                           icon: _isBidding
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.gavel_rounded),
-                          label: Text(_isBidding
-                              ? 'Đang gửi giá...'
-                              : (canBid ? 'Đặt giá ngay' : 'Phiên không còn nhận bid')),
+                          label: Text(
+                            _isBidding
+                                ? 'Đang gửi giá...'
+                                : (canBid
+                                      ? 'Đặt giá ngay'
+                                      : 'Phiên không còn nhận bid'),
+                          ),
                         ),
                       ),
                     ],
@@ -215,10 +314,14 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                     children: [
                       const Text(
                         'Lịch sử đặt giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       bidsAsync.when(
+                        skipLoadingOnReload: true,
                         loading: () => const Center(
                           child: Padding(
                             padding: EdgeInsets.all(12),
@@ -242,7 +345,8 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                                   (bid) => ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     leading: CircleAvatar(
-                                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                                      backgroundColor: AppTheme.primaryGreen
+                                          .withValues(alpha: 0.1),
                                       child: const Icon(
                                         Icons.person,
                                         color: AppTheme.primaryGreen,
@@ -250,9 +354,13 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                                     ),
                                     title: Text(
                                       bid.bidder?.fullName ?? 'Người dùng',
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                    subtitle: Text(AppUtils.timeAgo(bid.createdAt)),
+                                    subtitle: Text(
+                                      AppUtils.timeAgo(bid.createdAt),
+                                    ),
                                     trailing: Text(
                                       AppUtils.formatCurrency(bid.amount),
                                       style: const TextStyle(
@@ -303,9 +411,14 @@ class _AuctionHeaderCard extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: auction.isEnded ? AppTheme.grey600 : AppTheme.primaryGreen,
+                    color: auction.isEnded
+                        ? AppTheme.grey600
+                        : AppTheme.primaryGreen,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -321,7 +434,10 @@ class _AuctionHeaderCard extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.65),
                     borderRadius: BorderRadius.circular(12),
@@ -329,7 +445,11 @@ class _AuctionHeaderCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.timer_outlined, color: Colors.white, size: 14),
+                      const Icon(
+                        Icons.timer_outlined,
+                        color: Colors.white,
+                        size: 14,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         countdown,
@@ -356,7 +476,10 @@ class _AuctionHeaderCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   auction.title,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 if ((auction.description ?? '').isNotEmpty)
@@ -402,17 +525,34 @@ class _AuctionMetaCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Thông tin phiên đấu giá',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const Text(
+              'Thông tin phiên đấu giá',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 12),
-            _MetaRow(label: 'Bước giá', value: AppUtils.formatCurrency(auction.bidStep)),
+            _MetaRow(
+              label: 'Bước giá',
+              value: AppUtils.formatCurrency(auction.bidStep),
+            ),
             _MetaRow(label: 'Số lượng', value: '${auction.lotQuantity}'),
             _MetaRow(label: 'Địa điểm', value: auction.location ?? 'Không có'),
-            _MetaRow(label: 'Liên hệ', value: auction.contactPhone ?? 'Không có'),
-            _MetaRow(label: 'Bắt đầu', value: AppUtils.formatDateTime(auction.startTime)),
-            _MetaRow(label: 'Kết thúc', value: AppUtils.formatDateTime(auction.endTime)),
+            _MetaRow(
+              label: 'Liên hệ',
+              value: auction.contactPhone ?? 'Không có',
+            ),
+            _MetaRow(
+              label: 'Bắt đầu',
+              value: AppUtils.formatDateTime(auction.startTime),
+            ),
+            _MetaRow(
+              label: 'Kết thúc',
+              value: AppUtils.formatDateTime(auction.endTime),
+            ),
             _MetaRow(label: 'Số lượt bid', value: '${auction.bidCount ?? 0}'),
-            _MetaRow(label: 'Người bán', value: auction.seller?.fullName ?? 'Không rõ'),
+            _MetaRow(
+              label: 'Người bán',
+              value: auction.seller?.fullName ?? 'Không rõ',
+            ),
           ],
         ),
       ),
@@ -434,10 +574,7 @@ class _MetaRow extends StatelessWidget {
         children: [
           Expanded(
             flex: 4,
-            child: Text(
-              label,
-              style: const TextStyle(color: AppTheme.grey600),
-            ),
+            child: Text(label, style: const TextStyle(color: AppTheme.grey600)),
           ),
           Expanded(
             flex: 6,
@@ -472,10 +609,7 @@ class _PriceBlock extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: valueColor,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w700, color: valueColor),
         ),
       ],
     );

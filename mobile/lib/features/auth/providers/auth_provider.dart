@@ -138,15 +138,16 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncValue.loading();
     try {
       final webClientId = AppConstants.googleWebClientId;
-      if (kIsWeb && webClientId.isEmpty) {
+      if (webClientId.isEmpty) {
         throw StateError(
-          'Google đăng nhập trên Web chưa cấu hình GOOGLE_WEB_CLIENT_ID',
+          'Google đăng nhập chưa cấu hình GOOGLE_WEB_CLIENT_ID',
         );
       }
 
       final googleSignIn = GoogleSignIn(
         scopes: ['email', 'profile'],
         clientId: kIsWeb ? webClientId : null,
+        serverClientId: kIsWeb ? null : webClientId,
       );
       final account = await googleSignIn.signIn();
       if (account == null) {

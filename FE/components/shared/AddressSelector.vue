@@ -15,7 +15,7 @@
     </div>
 
     <!-- CHẾ ĐỘ CHỌN TỰ ĐỘNG QUA API -->
-    <div v-if="!isManualMode" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div v-if="!isManualMode" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <!-- Tỉnh / Thành phố -->
       <div>
         <label class="block text-xs font-medium text-muted-foreground mb-1">Tỉnh / Thành phố</label>
@@ -46,38 +46,7 @@
         </p>
       </div>
 
-      <!-- Quận / Huyện -->
-      <div>
-        <label class="block text-xs font-medium text-muted-foreground mb-1">Quận / Huyện</label>
-        <div class="relative">
-          <select
-            :value="selectedDistrictCode"
-            class="w-full rounded-lg border border-border bg-background text-foreground p-3 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/60 appearance-none transition-all duration-200"
-            :class="{
-              'border-red-500 focus:ring-red-500/60': errors.district,
-              'bg-muted/40 cursor-not-allowed opacity-60': !selectedProvinceCode || isLoadingDistricts
-            }"
-            :disabled="!selectedProvinceCode || isLoadingDistricts"
-            @change="onDistrictChange"
-          >
-            <option value="">-- Chọn Quận / Huyện --</option>
-            <option
-              v-for="dist in districts"
-              :key="dist.code"
-              :value="dist.code"
-            >
-              {{ dist.name }}
-            </option>
-          </select>
-          <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-muted-foreground">
-            <span v-if="isLoadingDistricts" class="animate-spin text-xs">🌀</span>
-            <span v-else class="text-[10px]">▼</span>
-          </div>
-        </div>
-        <p v-if="errors.district && !modelValue.district" class="mt-1 text-xs text-red-500">
-          {{ errors.district }}
-        </p>
-      </div>
+
 
       <!-- Phường / Xã -->
       <div>
@@ -88,9 +57,9 @@
             class="w-full rounded-lg border border-border bg-background text-foreground p-3 pr-8 focus:outline-none focus:ring-2 focus:ring-primary/60 appearance-none transition-all duration-200"
             :class="{
               'border-red-500 focus:ring-red-500/60': errors.ward,
-              'bg-muted/40 cursor-not-allowed opacity-60': !selectedDistrictCode || isLoadingWards
+              'bg-muted/40 cursor-not-allowed opacity-60': !selectedProvinceCode || isLoadingWards
             }"
-            :disabled="!selectedDistrictCode || isLoadingWards"
+            :disabled="!selectedProvinceCode || isLoadingWards"
             @change="onWardChange"
           >
             <option value="">-- Chọn Phường / Xã --</option>
@@ -252,7 +221,7 @@ const loadProvinces = async () => {
       const match = provinces.value.find(p => p.name.toLowerCase() === props.modelValue.province.toLowerCase());
       if (match) {
         selectedProvinceCode.value = match.code;
-        await loadDistricts(match.code);
+        await loadWards(match.code);
       }
     }
   } catch (err) {
@@ -288,10 +257,10 @@ const loadDistricts = async (provinceCode) => {
 };
 
 // Load Wards (Level 3)
-const loadWards = async (districtCode) => {
+const loadWards = async (provinceCode) => {
   isLoadingWards.value = true;
   try {
-    wards.value = await addressApi.getWards(districtCode);
+    wards.value = await addressApi.getWards(provinceCode);
     
     if (props.modelValue.ward) {
       const match = wards.value.find(w => w.name.toLowerCase() === props.modelValue.ward.toLowerCase());
@@ -334,7 +303,7 @@ const onProvinceChange = async (event) => {
     ward: "",
   });
 
-  await loadDistricts(code);
+  await loadWards(code);
 };
 
 const onDistrictChange = async (event) => {
@@ -399,7 +368,7 @@ watch(
       const match = provinces.value.find(p => p.name.toLowerCase() === newVal.province.toLowerCase());
       if (match) {
         selectedProvinceCode.value = match.code;
-        await loadDistricts(match.code);
+        await loadWards(match.code);
       }
     }
   },

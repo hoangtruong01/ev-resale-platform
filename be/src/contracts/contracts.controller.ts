@@ -19,6 +19,10 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 
+function resolveUserId(user: { id?: string; sub?: string }): string {
+  return (user.id ?? user.sub) as string;
+}
+
 @ApiTags('Contracts')
 @Controller('contracts')
 export class ContractsController {
@@ -40,7 +44,7 @@ export class ContractsController {
   @ApiOperation({ summary: 'Get contract status by contractId' })
   @ApiParam({ name: 'contractId', description: 'Contract ID' })
   getContractStatus(@Param('contractId') contractId: string, @Req() req: any) {
-    const userId = req.user?.id ?? req.user?.sub;
+    const userId = resolveUserId(req.user);
     return this.contractsService.getContractStatus(contractId, userId);
   }
 
@@ -50,7 +54,7 @@ export class ContractsController {
   getContract(@Param('transactionId') transactionId: string, @Req() req: any) {
     return this.contractsService.getContractForUser(
       transactionId,
-      req.user.id,
+      resolveUserId(req.user),
       req.user.role,
     );
   }
@@ -68,7 +72,7 @@ export class ContractsController {
     @Req() req: any,
     @Body(new ValidationPipe({ whitelist: true })) dto: SignContractDto,
   ) {
-    const userId = req.user?.id ?? req.user?.sub;
+    const userId = resolveUserId(req.user);
     return this.contractsService.signContractById(contractId, userId, dto);
   }
 
@@ -84,7 +88,7 @@ export class ContractsController {
   ) {
     return this.contractsService.signContract(
       transactionId,
-      req.user.id,
+      resolveUserId(req.user),
       req.user.role,
       dto,
     );

@@ -123,15 +123,15 @@ export const useAddressApi = () => {
   };
 
   /**
-   * Tải danh sách Phường / Xã (Cấp 3) dựa theo mã Quận/Huyện
+   * Tải danh sách Phường / Xã trực thuộc Tỉnh/Thành phố
    * Tích hợp Memory Cache
    */
-  const getWards = async (districtCode: number): Promise<Ward[]> => {
-    if (wardsCache[districtCode]) {
-      return wardsCache[districtCode];
+  const getWards = async (provinceCode: number): Promise<Ward[]> => {
+    if (wardsCache[provinceCode]) {
+      return wardsCache[provinceCode];
     }
 
-    const url = `${BASE_URL}/d/${districtCode}?depth=2`;
+    const url = `${BASE_URL}/p/${provinceCode}?depth=2`;
     try {
       const result = await fetchWithTimeout(url);
       const wards = result.wards || [];
@@ -139,10 +139,10 @@ export const useAddressApi = () => {
       // Sắp xếp theo tên tiếng Việt
       wards.sort((a: Ward, b: Ward) => a.name.localeCompare(b.name, "vi"));
 
-      wardsCache[districtCode] = wards;
+      wardsCache[provinceCode] = wards;
       return wards;
     } catch (error) {
-      console.error(`Không thể tải danh sách Phường/Xã cho huyện ${districtCode}:`, error);
+      console.error(`Không thể tải danh sách Phường/Xã cho tỉnh ${provinceCode}:`, error);
       throw error;
     }
   };
