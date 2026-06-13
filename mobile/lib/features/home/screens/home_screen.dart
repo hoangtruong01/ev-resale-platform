@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,11 +16,11 @@ import '../../../models/vehicle_model.dart';
 
 import '../widgets/home_widgets.dart';
 
-final homeBatteriesProvider = FutureProvider<BatteryListResponse>((ref) {
+final homeBatteriesProvider = FutureProvider.autoDispose<BatteryListResponse>((ref) {
   return ref.read(batteryServiceProvider).getBatteries(limit: 10);
 });
 
-final homeVehiclesProvider = FutureProvider<VehicleListResponse>((ref) {
+final homeVehiclesProvider = FutureProvider.autoDispose<VehicleListResponse>((ref) {
   return ref.read(vehicleServiceProvider).getVehicles(limit: 10);
 });
 
@@ -42,40 +43,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final batteries = ref.watch(homeBatteriesProvider);
-    final vehicles = ref.watch(homeVehiclesProvider);
+    try {
+      final batteries = ref.watch(homeBatteriesProvider);
+      final vehicles = ref.watch(homeVehiclesProvider);
 
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-      ),
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: RefreshIndicator(
-          color: AppTheme.primaryGreen,
-          onRefresh: () async {
-            ref.invalidate(homeBatteriesProvider);
-            ref.invalidate(homeVehiclesProvider);
-          },
-          child: batteries.when(
-            loading: () => _buildLoadingContent(context),
-            error: (err, stack) =>
-                _buildErrorContent(context, parseApiError(err)),
-            data: (batteryData) {
-              return vehicles.when(
-                loading: () => _buildLoadingContent(context),
-                error: (err, stack) =>
-                    _buildErrorContent(context, parseApiError(err)),
-                data: (vehicleData) {
-                  return _buildMainContent(context, batteryData, vehicleData);
-                },
-              );
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+        ),
+        child: Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: RefreshIndicator(
+            color: AppTheme.primaryGreen,
+            onRefresh: () async {
+              ref.invalidate(homeBatteriesProvider);
+              ref.invalidate(homeVehiclesProvider);
             },
+            child: batteries.when(
+              loading: () => _buildLoadingContent(context),
+              error: (err, stack) {
+                if (kDebugMode) {
+                  debugPrint('[HomeScreen] batteries error: $err');
+                  debugPrint('[HomeScreen] stack: $stack');
+                }
+                return _buildErrorContent(context, parseApiError(err));
+              },
+              data: (batteryData) {
+                return vehicles.when(
+                  loading: () => _buildLoadingContent(context),
+                  error: (err, stack) {
+                    if (kDebugMode) {
+                      debugPrint('[HomeScreen] vehicles error: $err');
+                      debugPrint('[HomeScreen] stack: $stack');
+                    }
+                    return _buildErrorContent(context, parseApiError(err));
+                  },
+                  data: (vehicleData) {
+                    return _buildMainContent(context, batteryData, vehicleData);
+                  },
+                );
+              },
+            ),
           ),
         ),
-      ),
-    );
+      );
+    } catch (e, stack) {
+      // Prevent white screen by catching any unexpected build errors
+      if (kDebugMode) {
+        debugPrint('[HomeScreen] CRITICAL BUILD ERROR: $e');
+        debugPrint('[HomeScreen] stack: $stack');
+      }
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'Đã xảy ra lỗi khi tải trang chủ',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppTheme.grey900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  kDebugMode ? e.toString() : 'Vui lòng thử lại sau',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white70
+                        : AppTheme.grey500,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ref.invalidate(homeBatteriesProvider);
+                    ref.invalidate(homeVehiclesProvider);
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Thử lại'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 44),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildLoadingContent(BuildContext context) {
@@ -290,6 +361,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 backgroundColor: AppTheme.primaryGreen,
                 foregroundColor: Colors.white,
                 elevation: 0,
+                minimumSize: const Size(0, 44),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,
@@ -607,6 +679,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               backgroundColor: Colors.white,
               foregroundColor: AppTheme.primaryGreen,
               elevation: 0,
+              minimumSize: const Size(0, 40),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

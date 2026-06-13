@@ -11,6 +11,41 @@ import 'widgets/app_toast.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
+
+  // Prevent white screen on widget build errors
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Đã xảy ra lỗi hiển thị',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  details.exceptionAsString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
   runApp(
     const ProviderScope(
       child: EVNBatteryApp(),

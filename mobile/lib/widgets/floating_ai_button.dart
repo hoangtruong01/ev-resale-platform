@@ -39,49 +39,53 @@ class _FloatingAiButtonState extends State<FloatingAiButton> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _scaleAnimation.value,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryGreen.withValues(alpha: 0.4),
-                  blurRadius: _glowAnimation.value,
-                  spreadRadius: _glowAnimation.value / 3,
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => context.push('/ai-chat'),
-                customBorder: const CircleBorder(),
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+    try {
+      return AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.4),
+                    blurRadius: _glowAnimation.value,
+                    spreadRadius: _glowAnimation.value / 3,
                   ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 26,
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => context.push('/ai-chat'),
+                  customBorder: const CircleBorder(),
+                  child: Container(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primaryGreen, Color(0xFF10B981)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
   }
 }
