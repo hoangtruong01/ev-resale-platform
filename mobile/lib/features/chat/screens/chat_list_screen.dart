@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
@@ -54,12 +55,13 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final chatRoomsAsync = ref.watch(chatRoomsProvider);
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tin nhắn'),
+        title: Text(l10n.chatTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -71,7 +73,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AppTheme.primaryGreen),
         ),
-        error: (e, _) => Center(child: Text('Lỗi: $e')),
+        error: (e, _) => Center(child: Text('${l10n.errorPrefix}$e')),
         data: (rooms) {
           if (rooms.isEmpty) {
             return Center(
@@ -91,20 +93,20 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Chưa có tin nhắn nào',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  Text(
+                    l10n.chatNoMessages,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Hãy liên hệ người bán để bắt đầu\ncuộc trò chuyện',
+                  Text(
+                    l10n.chatContactSellerToStart,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: AppTheme.grey600),
+                    style: const TextStyle(color: AppTheme.grey600),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => context.go('/batteries'),
-                    child: const Text('Xem tin đăng'),
+                    child: Text(l10n.chatBtnViewListings),
                   ),
                 ],
               ),
@@ -143,13 +145,13 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                       : const Icon(Icons.person, color: AppTheme.primaryGreen),
                 ),
                 title: Text(
-                  otherUser?.displayName ?? 'Người dùng',
+                  otherUser?.displayName ?? l10n.profileUserDefault,
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
                   lastMessage?.content.isNotEmpty == true
                       ? lastMessage!.content
-                      : 'Chưa có tin nhắn',
+                      : l10n.chatNoMessageSnippet,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: AppTheme.grey600, fontSize: 13),

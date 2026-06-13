@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import 'floating_ai_button.dart';
 
@@ -19,7 +20,7 @@ class MainShell extends ConsumerWidget {
     return 0; // home
   }
 
-  void _showSellSheet(BuildContext context) {
+  void _showSellSheet(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -39,15 +40,15 @@ class MainShell extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Đăng bán sản phẩm',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Text(
+              l10n.sellProductTitle,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             _SellOption(
               icon: Icons.battery_charging_full_rounded,
-              title: 'Đăng bán Pin điện',
-              subtitle: 'Pin Lithium, NiMH, ...',
+              title: l10n.sellBatteryOption,
+              subtitle: l10n.sellBatterySubtitle,
               color: AppTheme.primaryGreen,
               onTap: () {
                 Navigator.pop(context);
@@ -57,8 +58,8 @@ class MainShell extends ConsumerWidget {
             const SizedBox(height: 12),
             _SellOption(
               icon: Icons.electric_car_rounded,
-              title: 'Đăng bán Xe điện',
-              subtitle: 'Xe đạp điện, xe máy điện, ô tô điện',
+              title: l10n.sellVehicleOption,
+              subtitle: l10n.sellVehicleSubtitle,
               color: AppTheme.accentOrange,
               onTap: () {
                 Navigator.pop(context);
@@ -68,8 +69,8 @@ class MainShell extends ConsumerWidget {
             const SizedBox(height: 12),
             _SellOption(
               icon: Icons.extension_outlined,
-              title: 'Đăng bán Phụ kiện',
-              subtitle: 'Sạc, lốp, nội thất, điện tử',
+              title: l10n.sellAccessoryOption,
+              subtitle: l10n.sellAccessorySubtitle,
               color: AppTheme.info,
               onTap: () {
                 Navigator.pop(context);
@@ -85,6 +86,7 @@ class MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final activeLocation = location ?? GoRouterState.of(context).matchedLocation;
     final selectedIndex = _getSelectedIndex(activeLocation);
 
@@ -129,7 +131,7 @@ class MainShell extends ConsumerWidget {
                 _NavItem(
                   icon: Icons.home_outlined,
                   activeIcon: Icons.home_rounded,
-                  label: 'Trang chủ',
+                  label: l10n.navHome,
                   isSelected: selectedIndex == 0,
                   badgeCount: 0,
                   onTap: () => context.go('/'),
@@ -137,14 +139,14 @@ class MainShell extends ConsumerWidget {
                 _NavItem(
                   icon: Icons.gavel_outlined,
                   activeIcon: Icons.gavel_rounded,
-                  label: 'Đấu giá',
+                  label: l10n.navAuctions,
                   isSelected: selectedIndex == 1,
                   badgeCount: 0,
                   onTap: () => context.go('/auctions'),
                 ),
                 // Custom Elevated Center Button for "Đăng tin"
                 GestureDetector(
-                  onTap: () => _showSellSheet(context),
+                  onTap: () => _showSellSheet(context, l10n),
                   behavior: HitTestBehavior.opaque,
                   child: SizedBox(
                     width: 72,
@@ -180,7 +182,7 @@ class MainShell extends ConsumerWidget {
                         ),
                         const SizedBox(height: 0),
                         Text(
-                          'Đăng tin',
+                          l10n.navSell,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: selectedIndex == 2 ? FontWeight.w700 : FontWeight.w500,
@@ -194,7 +196,7 @@ class MainShell extends ConsumerWidget {
                 _NavItem(
                   icon: Icons.chat_bubble_outline_rounded,
                   activeIcon: Icons.chat_bubble_rounded,
-                  label: 'Chat',
+                  label: l10n.navChat,
                   isSelected: selectedIndex == 3,
                   badgeCount: 0,
                   onTap: () => context.go('/chat'),
@@ -202,7 +204,7 @@ class MainShell extends ConsumerWidget {
                 _NavItem(
                   icon: Icons.person_outline,
                   activeIcon: Icons.person_rounded,
-                  label: 'Tài khoản',
+                  label: l10n.navProfile,
                   isSelected: selectedIndex == 4,
                   badgeCount: 0,
                   onTap: () => context.go('/profile'),

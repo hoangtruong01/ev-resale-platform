@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/network/dio_client.dart';
@@ -31,7 +32,13 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _activeTab = 0;
-  final List<String> _tabs = ['Dành cho bạn', 'Gần bạn', 'Mới nhất', 'Video'];
+
+  List<String> _getTabs(AppLocalizations l10n) => [
+        l10n.homeTabForYou,
+        l10n.homeTabNearYou,
+        l10n.homeTabLatest,
+        l10n.homeTabVideo,
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -104,6 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BatteryListResponse batteryData,
     VehicleListResponse vehicleData,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     // Merge and sort products
     final List<_ProductItem> allProducts = [];
 
@@ -160,15 +168,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.inventory_2_outlined,
                       size: 48,
                       color: AppTheme.grey300,
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Chưa có sản phẩm nào',
-                      style: TextStyle(color: AppTheme.grey400, fontSize: 14),
+                      l10n.homeNoProducts,
+                      style: const TextStyle(color: AppTheme.grey400, fontSize: 14),
                     ),
                   ],
                 ),
@@ -183,6 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildErrorState(String message) {
+    final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverToBoxAdapter(
       child: Container(
@@ -215,7 +224,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Không thể kết nối máy chủ',
+              l10n.errorServerConnection,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -273,9 +282,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ref.invalidate(homeVehiclesProvider);
               },
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text(
-                'Thử lại',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.btnRetry,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryGreen,
@@ -298,6 +307,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── HEADER ───
   Widget _buildHeader(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final topPadding = MediaQuery.of(context).padding.top;
     return Container(
       padding: EdgeInsets.fromLTRB(12, topPadding + 8, 12, 12),
@@ -339,18 +349,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.search_rounded,
                       color: AppTheme.grey400,
                       size: 20,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Tìm sản phẩm...',
-                        style: TextStyle(color: AppTheme.grey400, fontSize: 14),
+                        l10n.searchPlaceholder,
+                        style: const TextStyle(color: AppTheme.grey400, fontSize: 14),
                       ),
                     ),
                   ],
@@ -418,6 +428,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── CATEGORIES ───
   Widget _buildCategories(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: Theme.of(context).brightness == Brightness.dark
           ? AppTheme.darkSurface
@@ -428,25 +439,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           HomeCategoryItem(
             icon: Icons.battery_charging_full_rounded,
-            label: 'Pin xe điện',
+            label: l10n.categoryBattery,
             color: AppTheme.primaryGreen,
             onTap: () => context.go('/batteries'),
           ),
           HomeCategoryItem(
             icon: Icons.electric_moped_rounded,
-            label: 'Xe điện',
+            label: l10n.categoryVehicle,
             color: AppTheme.accentOrange,
             onTap: () => context.go('/vehicles'),
           ),
           HomeCategoryItem(
             icon: Icons.extension_rounded,
-            label: 'Phụ kiện',
+            label: l10n.categoryAccessory,
             color: AppTheme.info,
             onTap: () => context.go('/accessories'),
           ),
           HomeCategoryItem(
             icon: Icons.gavel_rounded,
-            label: 'Đấu giá',
+            label: l10n.categoryAuction,
             color: const Color(0xFF8B5CF6),
             onTap: () => context.go('/auctions'),
           ),
@@ -457,6 +468,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── FILTER TABS ───
   Widget _buildFilterTabs() {
+    final l10n = AppLocalizations.of(context)!;
+    final tabs = _getTabs(l10n);
     return Container(
       color: Theme.of(context).brightness == Brightness.dark
           ? AppTheme.darkSurface
@@ -468,9 +481,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Row(
-              children: List.generate(_tabs.length, (index) {
+              children: List.generate(tabs.length, (index) {
                 return FilterTab(
-                  label: _tabs[index],
+                  label: tabs[index],
                   isActive: _activeTab == index,
                   onTap: () => setState(() => _activeTab = index),
                 );
@@ -543,6 +556,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   // ─── SELL BANNER ───
   Widget _buildSellBanner(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       padding: const EdgeInsets.all(16),
@@ -567,9 +581,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Bạn muốn bán sản phẩm?',
-                  style: TextStyle(
+                Text(
+                  l10n.homeSellBannerTitle,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -577,7 +591,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Đăng bán pin, xe điện hoặc phụ kiện của bạn dễ dàng với sự hỗ trợ của AI!',
+                  l10n.homeSellBannerSubtitle,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 12,
@@ -588,7 +602,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
           const SizedBox(width: 12),
           ElevatedButton(
-            onPressed: () => _showSellSheet(context),
+            onPressed: () => _showSellSheet(context, l10n),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppTheme.primaryGreen,
@@ -598,14 +612,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.add_circle_outline, size: 16),
-                SizedBox(width: 4),
+                const Icon(Icons.add_circle_outline, size: 16),
+                const SizedBox(width: 4),
                 Text(
-                  'Đăng bán',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  l10n.btnPostSell,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ],
             ),
@@ -615,7 +629,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _showSellSheet(BuildContext context) {
+  void _showSellSheet(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -635,15 +649,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Đăng bán sản phẩm',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            Text(
+              l10n.sellProductTitle,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 20),
             _SellOption(
               icon: Icons.battery_charging_full_rounded,
-              title: 'Đăng bán Pin điện',
-              subtitle: 'Pin Lithium, NiMH, ...',
+              title: l10n.sellBatteryOption,
+              subtitle: l10n.sellBatterySubtitle,
               color: AppTheme.primaryGreen,
               onTap: () {
                 Navigator.pop(context);
@@ -653,8 +667,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 12),
             _SellOption(
               icon: Icons.electric_car_rounded,
-              title: 'Đăng bán Xe điện',
-              subtitle: 'Xe đạp điện, xe máy điện, ô tô điện',
+              title: l10n.sellVehicleOption,
+              subtitle: l10n.sellVehicleSubtitle,
               color: AppTheme.accentOrange,
               onTap: () {
                 Navigator.pop(context);
@@ -664,8 +678,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 12),
             _SellOption(
               icon: Icons.extension_outlined,
-              title: 'Đăng bán Phụ kiện',
-              subtitle: 'Sạc, lốp, nội thất, điện tử',
+              title: l10n.sellAccessoryOption,
+              subtitle: l10n.sellAccessorySubtitle,
               color: AppTheme.info,
               onTap: () {
                 Navigator.pop(context);
