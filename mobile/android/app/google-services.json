@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "19946571003",
+    "project_id": "evresale-cf3a0",
+    "storage_bucket": "evresale-cf3a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19946571003:android:ceef15000f8f01d39d1c5e",
+        "android_client_info": {
+          "package_name": "com.evn.battery"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "19946571003-c1ab5ihkskd3hu7dkohfd64mmtu43uks.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHaJjm1Y_xgW069GuDAsQup2u6kJV1hr4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "19946571003-c1ab5ihkskd3hu7dkohfd64mmtu43uks.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -22,33 +22,26 @@ class AuctionDetailScreen extends ConsumerStatefulWidget {
 class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
   final _bidController = TextEditingController();
   Timer? _pollingTimer;
-  Timer? _countdownTimer;
-  String _countdown = 'Đang tải...';
   bool _isBidding = false;
 
   @override
   void initState() {
     super.initState();
     _startPolling();
-    _startCountdownTimer();
   }
 
   @override
   void dispose() {
     _pollingTimer?.cancel();
-    _countdownTimer?.cancel();
     _bidController.dispose();
     super.dispose();
   }
 
-  void _startCountdownTimer() {
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (!mounted) return;
-      final auction = ref.read(auctionDetailProvider(widget.id)).value;
-      if (auction == null) return;
-      setState(() {
-        _countdown = AppUtils.formatCountdown(auction.endDateTime);
-      });
+      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
+      notifier.state = notifier.state + 1;
     });
   }
 
@@ -84,9 +77,8 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Đặt giá thành công.')),
       );
-      await ref
-          .read(auctionDetailProvider(widget.id).notifier)
-          .refreshAfterBid();
+      final notifier = ref.read(auctionRealtimeTickProvider(widget.id).notifier);
+      notifier.state = notifier.state + 1;
     } on DioException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -104,12 +96,20 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
     final auctionAsync = ref.watch(auctionDetailProvider(widget.id));
     final bidsAsync = ref.watch(auctionBidsProvider(widget.id));
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Chi tiết đấu giá')),
-      body: auctionAsync.when(
-        skipLoadingOnReload: true,
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
+    // Show full loading screen only on the very first load (no data yet).
+    // During background refreshes (isLoading=true but value != null) we keep
+    // the existing UI visible to avoid flicker.
+    if (auctionAsync.isLoading && !auctionAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (auctionAsync.hasError && !auctionAsync.hasValue) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đấu giá')),
+        body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -282,69 +282,16 @@ class _AuctionDetailScreenState extends ConsumerState<AuctionDetailScreen> {
                   color: AppTheme.primaryGreen,
                 ),
               ),
-              const SizedBox(height: 16),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Lịch sử đặt giá',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 12),
-                      bidsAsync.when(
-                        skipLoadingOnReload: true,
-                        loading: () => const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: CircularProgressIndicator(),
-                          ),
-                        ),
-                        error: (error, _) => Text(
-                          'Không tải được lịch sử bid: $error',
-                          style: const TextStyle(color: AppTheme.error),
-                        ),
-                        data: (bids) {
-                          if (bids.isEmpty) {
-                            return const Text(
-                              'Chưa có lượt bid nào.',
-                              style: TextStyle(color: AppTheme.grey600),
-                            );
-                          }
-                          return Column(
-                            children: bids
-                                .map(
-                                  (bid) => ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: CircleAvatar(
-                                      backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: AppTheme.primaryGreen,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      bid.bidder?.fullName ?? 'Người dùng',
-                                      style: const TextStyle(fontWeight: FontWeight.w600),
-                                    ),
-                                    subtitle: Text(AppUtils.timeAgo(bid.createdAt)),
-                                    trailing: Text(
-                                      AppUtils.formatCurrency(bid.amount),
-                                      style: const TextStyle(
-                                        color: AppTheme.primaryGreen,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+              title: Text(
+                bid.bidder?.fullName ?? 'Người dùng',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(AppUtils.timeAgo(bid.createdAt)),
+              trailing: Text(
+                AppUtils.formatCurrency(bid.amount),
+                style: const TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

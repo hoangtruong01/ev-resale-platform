@@ -44,13 +44,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     batteries.whenData((data) {
       for (final b in data.data) {
         allProducts.add(_ProductItem(
-          id: b.id,
-          title: b.name,
-          price: b.price,
+          id: b.id ?? '',
+          title: b.name ?? 'Unknown',
+          price: b.price ?? 0,
           imageUrl: b.thumbnailUrl,
-          sellerName: b.seller?.displayName,
-          location: b.location,
-          createdAt: b.createdAt,
+          sellerName: b.seller?.displayName ?? 'Unknown',
+          location: b.location ?? 'Unknown',
+          createdAt: b.createdAt ?? DateTime.now().toIso8601String(),
           type: 'battery',
           icon: Icons.battery_charging_full_rounded,
         ));
@@ -60,13 +60,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     vehicles.whenData((data) {
       for (final v in data.data) {
         allProducts.add(_ProductItem(
-          id: v.id,
-          title: v.name,
-          price: v.price,
+          id: v.id ?? '',
+          title: v.name ?? 'Unknown',
+          price: v.price ?? 0,
           imageUrl: v.thumbnailUrl,
-          sellerName: v.seller?.displayName,
-          location: v.location,
-          createdAt: v.createdAt,
+          sellerName: v.seller?.displayName ?? 'Unknown',
+          location: v.location ?? 'Unknown',
+          createdAt: v.createdAt ?? DateTime.now().toIso8601String(),
           type: 'vehicle',
           icon: Icons.electric_car_rounded,
         ));

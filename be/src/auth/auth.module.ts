@@ -11,12 +11,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PasswordResetService } from './password-reset.service';
 import { MailModule } from '../mail/mail.module';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { FirebaseModule } from '../firebase/firebase.module';
 
 @Module({
   imports: [
     ConfigModule,
     PassportModule,
     MailModule,
+    FirebaseModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

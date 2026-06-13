@@ -20,7 +20,9 @@ model User {
   avatar             String?
   googleId           String?   @unique
   facebookId         String?   @unique
-  provider           String?   @default("local") // "local", "google", "facebook", etc.
+  firebaseUid        String?   @unique // Firebase user ID
+  provider           String?   @default("local") // "local", "google", "facebook", "firebase", etc.
+  emailVerified      Boolean   @default(false) // Email verification status
   isActive           Boolean   @default(true)
   isProfileComplete  Boolean   @default(false) // Track if user completed profile
   profileCompletedAt DateTime? // When profile was completed

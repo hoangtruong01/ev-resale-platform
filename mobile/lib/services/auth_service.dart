@@ -84,8 +84,8 @@ class AuthService {
   }
 
   Future<AuthResponse> googleLogin(String idToken) async {
-    final response = await _dio.post('/auth/google/verify', data: {
-      'credential': idToken,
+    final response = await _dio.post('/auth/firebase/google', data: {
+      'idToken': idToken,
     });
     return AuthResponse.fromJson(response.data);
   }

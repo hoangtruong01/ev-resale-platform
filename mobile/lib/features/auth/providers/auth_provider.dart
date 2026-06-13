@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../models/user_model.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/firebase_service.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/auth/session_state_provider.dart';
@@ -137,32 +139,24 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> loginWithGoogle() async {
     state = const AsyncValue.loading();
     try {
-      final webClientId = AppConstants.googleWebClientId;
-      if (webClientId.isEmpty) {
-        throw StateError(
-          'Google đăng nhập chưa cấu hình GOOGLE_WEB_CLIENT_ID',
-        );
-      }
-
-      final googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-        clientId: kIsWeb ? webClientId : null,
-        serverClientId: kIsWeb ? null : webClientId,
-      );
-      final account = await googleSignIn.signIn();
-      if (account == null) {
+      final firebaseService = FirebaseService();
+      
+      // Sign in with Google using Firebase
+      final userCredential = await firebaseService.signInWithGoogle();
+      if (userCredential == null) {
         state = const AsyncValue.data(AuthState());
         return;
       }
 
-      final auth = await account.authentication;
-      final idToken = auth.idToken;
-      if (idToken == null || idToken.isEmpty) {
-        throw StateError('Missing Google ID token');
+      // Get Firebase ID Token
+      final firebaseIdToken = await firebaseService.getFirebaseIdToken();
+      if (firebaseIdToken == null || firebaseIdToken.isEmpty) {
+        throw StateError('Missing Firebase ID token');
       }
 
+      // Send Firebase ID Token to backend
       final authService = ref.read(authServiceProvider);
-      final response = await authService.googleLogin(idToken);
+      final response = await authService.googleLogin(firebaseIdToken);
       await _saveAuth(response);
       ref.read(sessionExpiredTickProvider.notifier).state = 0;
       state = AsyncValue.data(AuthState(user: response.user));

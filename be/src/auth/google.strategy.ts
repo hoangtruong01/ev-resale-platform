@@ -49,7 +49,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       done(null, validatedUser);
     } catch (error) {
       this.logger.error('Error validating Google OAuth user:', error.stack || error.message || error);
-      done(error, undefined);
+      done(error, false);
     }
   }
 }
