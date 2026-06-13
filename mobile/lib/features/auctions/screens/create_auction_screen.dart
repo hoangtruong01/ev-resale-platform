@@ -81,7 +81,9 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
     final now = DateTime.now();
     final initial = isStart
         ? (_startTime ?? now.add(const Duration(minutes: 10)))
-        : (_endTime ?? (_startTime?.add(const Duration(hours: 2)) ?? now.add(const Duration(hours: 2))));
+        : (_endTime ??
+              (_startTime?.add(const Duration(hours: 2)) ??
+                  now.add(const Duration(hours: 2))));
 
     final date = await showDatePicker(
       context: context,
@@ -131,14 +133,18 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
 
     if (_startTime == null || _endTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng chọn thời gian bắt đầu và kết thúc.')),
+        const SnackBar(
+          content: Text('Vui lòng chọn thời gian bắt đầu và kết thúc.'),
+        ),
       );
       return;
     }
 
     if (!_endTime!.isAfter(_startTime!)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thời gian kết thúc phải sau thời gian bắt đầu.')),
+        const SnackBar(
+          content: Text('Thời gian kết thúc phải sau thời gian bắt đầu.'),
+        ),
       );
       return;
     }
@@ -148,7 +154,9 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
     final lotQuantity = _parseInt(_lotQuantityController.text);
     if (startingPrice == null || bidStep == null || lotQuantity == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Giá khởi điểm, bước giá và số lượng phải hợp lệ.')),
+        const SnackBar(
+          content: Text('Giá khởi điểm, bước giá và số lượng phải hợp lệ.'),
+        ),
       );
       return;
     }
@@ -157,7 +165,7 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
 
     try {
       final auctionService = ref.read(auctionServiceProvider);
-      
+
       // Upload images first
       List<String> imageUrls = [];
       if (_images.isNotEmpty) {
@@ -196,22 +204,47 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
       payload.removeWhere((key, value) => value == null);
 
       await auctionService.createAuction(payload);
-      
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tạo đấu giá thành công, đang chờ duyệt.')),
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Tạo đấu giá thành công! Vui lòng đợi Admin duyệt để phiên đấu giá được bắt đầu.',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
+            ), 
+          ),
+          duration: Duration(seconds: 4),
+        ),
       );
       context.go('/auctions');
     } on DioException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(parseApiError(e))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(parseApiError(e))));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Có lỗi xảy ra: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $e')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -240,10 +273,7 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-      ),
+      decoration: InputDecoration(labelText: label, hintText: hint),
       validator: required
           ? (value) {
               if (value == null || value.trim().isEmpty) {
@@ -404,25 +434,27 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
                       initialWard: _ward,
                       initialDistrict: _district,
                       initialProvince: _province,
-                      onAddressChanged: ({
-                        required streetAddress,
-                        required ward,
-                        required district,
-                        required province,
-                      }) {
-                        _streetAddress = streetAddress;
-                        _ward = ward;
-                        _district = district;
-                        _province = province;
+                      onAddressChanged:
+                          ({
+                            required streetAddress,
+                            required ward,
+                            required district,
+                            required province,
+                          }) {
+                            _streetAddress = streetAddress;
+                            _ward = ward;
+                            _district = district;
+                            _province = province;
 
-                        final parts = [streetAddress, ward, district, province]
-                            .map((e) => e.trim())
-                            .where((e) => e.isNotEmpty)
-                            .toList();
-                        final composed = parts.join(', ');
-                        _locationController.text = composed;
-                        formState.didChange(composed);
-                      },
+                            final parts =
+                                [streetAddress, ward, district, province]
+                                    .map((e) => e.trim())
+                                    .where((e) => e.isNotEmpty)
+                                    .toList();
+                            final composed = parts.join(', ');
+                            _locationController.text = composed;
+                            formState.didChange(composed);
+                          },
                     ),
                     if (formState.hasError) ...[
                       const SizedBox(height: 6),
@@ -430,7 +462,10 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
                         padding: const EdgeInsets.only(left: 8.0),
                         child: Text(
                           formState.errorText ?? '',
-                          style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppTheme.error,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
@@ -506,7 +541,10 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
                       border: Border.all(color: AppTheme.grey300),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.add_a_photo_outlined, color: AppTheme.grey500),
+                    child: const Icon(
+                      Icons.add_a_photo_outlined,
+                      color: AppTheme.grey500,
+                    ),
                   ),
                 ),
               ],
@@ -518,7 +556,10 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : const Icon(Icons.gavel_rounded),
               style: ElevatedButton.styleFrom(
