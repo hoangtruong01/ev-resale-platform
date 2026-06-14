@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_ja.dart';
 import 'app_localizations_vi.dart';
 
 // ignore_for_file: type=lint
@@ -95,6 +96,7 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
+    Locale('ja'),
     Locale('vi'),
   ];
 
@@ -395,25 +397,25 @@ abstract class AppLocalizations {
   /// No description provided for @categoryBattery.
   ///
   /// In en, this message translates to:
-  /// **'Batteries'**
+  /// **'EV Battery'**
   String get categoryBattery;
 
   /// No description provided for @categoryVehicle.
   ///
   /// In en, this message translates to:
-  /// **'Vehicles'**
+  /// **'Electric Vehicle'**
   String get categoryVehicle;
 
   /// No description provided for @categoryAccessory.
   ///
   /// In en, this message translates to:
-  /// **'Accessories'**
+  /// **'Accessory'**
   String get categoryAccessory;
 
   /// No description provided for @categoryAuction.
   ///
   /// In en, this message translates to:
-  /// **'Auctions'**
+  /// **'Auction'**
   String get categoryAuction;
 
   /// No description provided for @categoryInspection.
@@ -620,6 +622,12 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEn;
 
+  /// No description provided for @languageJa.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get languageJa;
+
   /// No description provided for @notifications.
   ///
   /// In en, this message translates to:
@@ -631,6 +639,438 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile'**
   String get profile;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navAuctions.
+  ///
+  /// In en, this message translates to:
+  /// **'Auctions'**
+  String get navAuctions;
+
+  /// No description provided for @navSell.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get navSell;
+
+  /// No description provided for @navChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get navChat;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get navProfile;
+
+  /// No description provided for @menuPersonalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Info'**
+  String get menuPersonalInfo;
+
+  /// No description provided for @menuKyc.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity Verification (eKYC)'**
+  String get menuKyc;
+
+  /// No description provided for @menuChangePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get menuChangePassword;
+
+  /// No description provided for @menuNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get menuNotifications;
+
+  /// No description provided for @menuPaymentMethods.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Methods'**
+  String get menuPaymentMethods;
+
+  /// No description provided for @menuMyListings.
+  ///
+  /// In en, this message translates to:
+  /// **'My Listings'**
+  String get menuMyListings;
+
+  /// No description provided for @menuTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get menuTransactions;
+
+  /// No description provided for @menuSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get menuSaved;
+
+  /// No description provided for @menuBidHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Bid History'**
+  String get menuBidHistory;
+
+  /// No description provided for @menuHelpCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Help Center'**
+  String get menuHelpCenter;
+
+  /// No description provided for @menuTermsPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Policies'**
+  String get menuTermsPolicy;
+
+  /// No description provided for @menuAboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About App'**
+  String get menuAboutApp;
+
+  /// No description provided for @menuLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get menuLogout;
+
+  /// No description provided for @menuLogoutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to log out?'**
+  String get menuLogoutConfirm;
+
+  /// No description provided for @menuCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get menuCancel;
+
+  /// No description provided for @menuClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get menuClose;
+
+  /// No description provided for @menuNotUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not updated'**
+  String get menuNotUpdated;
+
+  /// No description provided for @menuFeatureUpdating.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is currently being updated.'**
+  String get menuFeatureUpdating;
+
+  /// No description provided for @infoFullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get infoFullName;
+
+  /// No description provided for @infoEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get infoEmail;
+
+  /// No description provided for @infoPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get infoPhone;
+
+  /// No description provided for @infoAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get infoAddress;
+
+  /// No description provided for @sellProductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Product'**
+  String get sellProductTitle;
+
+  /// No description provided for @sellBatteryOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Battery'**
+  String get sellBatteryOption;
+
+  /// No description provided for @sellVehicleOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Vehicle'**
+  String get sellVehicleOption;
+
+  /// No description provided for @sellAccessoryOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Accessory'**
+  String get sellAccessoryOption;
+
+  /// No description provided for @sectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get sectionAccount;
+
+  /// No description provided for @sectionTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get sectionTransactions;
+
+  /// No description provided for @sectionSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get sectionSupport;
+
+  /// No description provided for @sectionAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'System Admin'**
+  String get sectionAdmin;
+
+  /// No description provided for @statsSelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Selling'**
+  String get statsSelling;
+
+  /// No description provided for @statsBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought'**
+  String get statsBought;
+
+  /// No description provided for @statsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get statsSaved;
+
+  /// No description provided for @profileUserDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get profileUserDefault;
+
+  /// No description provided for @kycStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get kycStatusApproved;
+
+  /// No description provided for @kycStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Review'**
+  String get kycStatusPending;
+
+  /// No description provided for @kycStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get kycStatusRejected;
+
+  /// No description provided for @kycStatusUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Unverified'**
+  String get kycStatusUnverified;
+
+  /// No description provided for @adminModeSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Admin Mode'**
+  String get adminModeSwitch;
+
+  /// No description provided for @adminKycApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve User eKYC'**
+  String get adminKycApprove;
+
+  /// No description provided for @adminSystemStats.
+  ///
+  /// In en, this message translates to:
+  /// **'System Statistics'**
+  String get adminSystemStats;
+
+  /// No description provided for @homeTabForYou.
+  ///
+  /// In en, this message translates to:
+  /// **'For You'**
+  String get homeTabForYou;
+
+  /// No description provided for @homeTabNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Near You'**
+  String get homeTabNearYou;
+
+  /// No description provided for @homeTabLatest.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get homeTabLatest;
+
+  /// No description provided for @homeTabVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get homeTabVideo;
+
+  /// No description provided for @homeNoProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'No products available'**
+  String get homeNoProducts;
+
+  /// No description provided for @errorServerConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot connect to server'**
+  String get errorServerConnection;
+
+  /// No description provided for @btnRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get btnRetry;
+
+  /// No description provided for @searchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search products...'**
+  String get searchPlaceholder;
+
+  /// No description provided for @homeSellBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Want to sell a product?'**
+  String get homeSellBannerTitle;
+
+  /// No description provided for @homeSellBannerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Easily list your batteries, EVs, or accessories with AI support!'**
+  String get homeSellBannerSubtitle;
+
+  /// No description provided for @btnPostSell.
+  ///
+  /// In en, this message translates to:
+  /// **'Post Sell'**
+  String get btnPostSell;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get chatTitle;
+
+  /// No description provided for @chatNoMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get chatNoMessages;
+
+  /// No description provided for @chatContactSellerToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact a seller to start\na conversation'**
+  String get chatContactSellerToStart;
+
+  /// No description provided for @chatBtnViewListings.
+  ///
+  /// In en, this message translates to:
+  /// **'View Listings'**
+  String get chatBtnViewListings;
+
+  /// No description provided for @chatNoMessageSnippet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages'**
+  String get chatNoMessageSnippet;
+
+  /// No description provided for @auctionTabOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get auctionTabOngoing;
+
+  /// No description provided for @auctionTabUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get auctionTabUpcoming;
+
+  /// No description provided for @auctionTabEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get auctionTabEnded;
+
+  /// No description provided for @auctionNoOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'No ongoing auctions'**
+  String get auctionNoOngoing;
+
+  /// No description provided for @auctionNoUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming auctions'**
+  String get auctionNoUpcoming;
+
+  /// No description provided for @auctionNoEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'No ended auctions'**
+  String get auctionNoEnded;
+
+  /// No description provided for @btnCreateAuction.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Auction'**
+  String get btnCreateAuction;
+
+  /// No description provided for @auctionCurrentPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Price'**
+  String get auctionCurrentPrice;
+
+  /// No description provided for @errorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: '**
+  String get errorPrefix;
+
+  /// No description provided for @auctionBidCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} bids'**
+  String auctionBidCount(int count);
 }
 
 class _AppLocalizationsDelegate
@@ -644,7 +1084,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'vi'].contains(locale.languageCode);
+      <String>['en', 'ja', 'vi'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -655,6 +1095,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'ja':
+      return AppLocalizationsJa();
     case 'vi':
       return AppLocalizationsVi();
   }

@@ -161,16 +161,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updating => 'Updating';
 
   @override
-  String get categoryBattery => 'Batteries';
+  String get categoryBattery => 'EV Battery';
 
   @override
-  String get categoryVehicle => 'Vehicles';
+  String get categoryVehicle => 'Electric Vehicle';
 
   @override
-  String get categoryAccessory => 'Accessories';
+  String get categoryAccessory => 'Accessory';
 
   @override
-  String get categoryAuction => 'Auctions';
+  String get categoryAuction => 'Auction';
 
   @override
   String get categoryInspection => 'Inspection';
@@ -278,8 +278,231 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEn => 'English';
 
   @override
+  String get languageJa => 'Japanese';
+
+  @override
   String get notifications => 'Notifications';
 
   @override
   String get profile => 'Profile';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navAuctions => 'Auctions';
+
+  @override
+  String get navSell => 'Post';
+
+  @override
+  String get navChat => 'Chat';
+
+  @override
+  String get navProfile => 'Account';
+
+  @override
+  String get menuPersonalInfo => 'Personal Info';
+
+  @override
+  String get menuKyc => 'Identity Verification (eKYC)';
+
+  @override
+  String get menuChangePassword => 'Change Password';
+
+  @override
+  String get menuNotifications => 'Notifications';
+
+  @override
+  String get menuPaymentMethods => 'Payment Methods';
+
+  @override
+  String get menuMyListings => 'My Listings';
+
+  @override
+  String get menuTransactions => 'Transactions';
+
+  @override
+  String get menuSaved => 'Saved';
+
+  @override
+  String get menuBidHistory => 'Bid History';
+
+  @override
+  String get menuHelpCenter => 'Help Center';
+
+  @override
+  String get menuTermsPolicy => 'Terms & Policies';
+
+  @override
+  String get menuAboutApp => 'About App';
+
+  @override
+  String get menuLogout => 'Logout';
+
+  @override
+  String get menuLogoutConfirm => 'Are you sure you want to log out?';
+
+  @override
+  String get menuCancel => 'Cancel';
+
+  @override
+  String get menuClose => 'Close';
+
+  @override
+  String get menuNotUpdated => 'Not updated';
+
+  @override
+  String get menuFeatureUpdating => 'This feature is currently being updated.';
+
+  @override
+  String get infoFullName => 'Full Name';
+
+  @override
+  String get infoEmail => 'Email';
+
+  @override
+  String get infoPhone => 'Phone Number';
+
+  @override
+  String get infoAddress => 'Address';
+
+  @override
+  String get sellProductTitle => 'Post Product';
+
+  @override
+  String get sellBatteryOption => 'Post Battery';
+
+  @override
+  String get sellVehicleOption => 'Post Vehicle';
+
+  @override
+  String get sellAccessoryOption => 'Post Accessory';
+
+  @override
+  String get sectionAccount => 'Account';
+
+  @override
+  String get sectionTransactions => 'Transactions';
+
+  @override
+  String get sectionSupport => 'Support';
+
+  @override
+  String get sectionAdmin => 'System Admin';
+
+  @override
+  String get statsSelling => 'Selling';
+
+  @override
+  String get statsBought => 'Bought';
+
+  @override
+  String get statsSaved => 'Saved';
+
+  @override
+  String get profileUserDefault => 'User';
+
+  @override
+  String get kycStatusApproved => 'Verified';
+
+  @override
+  String get kycStatusPending => 'Pending Review';
+
+  @override
+  String get kycStatusRejected => 'Rejected';
+
+  @override
+  String get kycStatusUnverified => 'Unverified';
+
+  @override
+  String get adminModeSwitch => 'Switch to Admin Mode';
+
+  @override
+  String get adminKycApprove => 'Approve User eKYC';
+
+  @override
+  String get adminSystemStats => 'System Statistics';
+
+  @override
+  String get homeTabForYou => 'For You';
+
+  @override
+  String get homeTabNearYou => 'Near You';
+
+  @override
+  String get homeTabLatest => 'Latest';
+
+  @override
+  String get homeTabVideo => 'Video';
+
+  @override
+  String get homeNoProducts => 'No products available';
+
+  @override
+  String get errorServerConnection => 'Cannot connect to server';
+
+  @override
+  String get btnRetry => 'Retry';
+
+  @override
+  String get searchPlaceholder => 'Search products...';
+
+  @override
+  String get homeSellBannerTitle => 'Want to sell a product?';
+
+  @override
+  String get homeSellBannerSubtitle =>
+      'Easily list your batteries, EVs, or accessories with AI support!';
+
+  @override
+  String get btnPostSell => 'Post Sell';
+
+  @override
+  String get chatTitle => 'Messages';
+
+  @override
+  String get chatNoMessages => 'No messages yet';
+
+  @override
+  String get chatContactSellerToStart =>
+      'Contact a seller to start\na conversation';
+
+  @override
+  String get chatBtnViewListings => 'View Listings';
+
+  @override
+  String get chatNoMessageSnippet => 'No messages';
+
+  @override
+  String get auctionTabOngoing => 'Ongoing';
+
+  @override
+  String get auctionTabUpcoming => 'Upcoming';
+
+  @override
+  String get auctionTabEnded => 'Ended';
+
+  @override
+  String get auctionNoOngoing => 'No ongoing auctions';
+
+  @override
+  String get auctionNoUpcoming => 'No upcoming auctions';
+
+  @override
+  String get auctionNoEnded => 'No ended auctions';
+
+  @override
+  String get btnCreateAuction => 'Create Auction';
+
+  @override
+  String get auctionCurrentPrice => 'Current Price';
+
+  @override
+  String get errorPrefix => 'Error: ';
+
+  @override
+  String auctionBidCount(int count) {
+    return '$count bids';
+  }
 }

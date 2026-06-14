@@ -12,273 +12,496 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appTitle => 'EVN Market';
 
   @override
-  String get hello => 'Xin chao';
+  String get hello => 'Xin chào';
 
   @override
-  String get welcome => 'Chao mung den EVN Market';
+  String get welcome => 'Chào mừng đến với EVN Market';
 
   @override
-  String get heroTitle => 'Mua ban pin xe dien cu minh bach, co kiem dinh';
+  String get heroTitle => 'Mua bán pin xe điện cũ minh bạch, có kiểm định';
 
   @override
   String get heroSubtitle =>
-      'Pin EV, xe dien cu va phu kien chinh hang - ro tinh trang, gia tot.';
+      'Pin EV, xe điện cũ và phụ kiện chính hãng - rõ tình trạng, giá tốt.';
 
   @override
-  String get searchHint => 'Tim kiem pin, xe dien, phu kien...';
+  String get searchHint => 'Tìm kiếm pin, xe điện, phụ kiện...';
 
   @override
-  String get ctaExplore => 'Kham pha san pham';
+  String get ctaExplore => 'Khám phá sản phẩm';
 
   @override
-  String get ctaVehicles => 'Kham pha xe dien';
+  String get ctaVehicles => 'Khám phá xe điện';
 
   @override
-  String get ctaAuctions => 'Tham gia dau gia';
+  String get ctaAuctions => 'Tham gia đấu giá';
 
   @override
-  String get ctaSell => 'Dang ban ngay';
+  String get ctaSell => 'Đăng bán ngay';
 
   @override
-  String get categories => 'Danh muc';
+  String get categories => 'Danh mục';
 
   @override
-  String get statsTitle => 'So lieu noi bat';
+  String get statsTitle => 'Số liệu nổi bật';
 
   @override
-  String get statBatteries => 'Pin dang ban';
+  String get statBatteries => 'Pin đang bán';
 
   @override
-  String get statVehicles => 'Xe dang ban';
+  String get statVehicles => 'Xe đang bán';
 
   @override
-  String get statTransactions => 'Giao dich';
+  String get statTransactions => 'Giao dịch';
 
   @override
-  String get statUsers => 'Khach hang';
+  String get statUsers => 'Khách hàng';
 
   @override
-  String get statProvinces => 'Tinh thanh';
+  String get statProvinces => 'Tỉnh thành';
 
   @override
   String get statProvincesValue => '63';
 
   @override
-  String get whyChoose => 'Vi sao chon EVN Market';
+  String get whyChoose => 'Vì sao chọn EVN Market';
 
   @override
-  String get featureInspection => 'Kiem dinh & xac thuc';
+  String get featureInspection => 'Kiểm định & xác thực';
 
   @override
   String get featureInspectionDesc =>
-      'Ho so ro rang, tinh trang duoc xac minh.';
+      'Hồ sơ rõ ràng, tình trạng được xác minh.';
 
   @override
-  String get featureAi => 'Dinh gia AI';
+  String get featureAi => 'Định giá AI';
 
   @override
   String get featureAiDesc =>
-      'Uoc tinh nhanh theo thi truong, giup ra gia hop ly.';
+      'Ước tính nhanh theo thị trường, giúp ra giá hợp lý.';
 
   @override
-  String get featureAuction => 'Dau gia truc tuyen';
+  String get featureAuction => 'Đấu giá trực tuyến';
 
   @override
   String get featureAuctionDesc =>
-      'Mua ban canh tranh, minh bach theo thoi gian thuc.';
+      'Mua bán cạnh tranh, minh bạch theo thời gian thực.';
 
   @override
-  String get featureWarranty => 'Bao hanh ro rang';
+  String get featureWarranty => 'Bảo hành rõ ràng';
 
   @override
-  String get featureWarrantyDesc => 'Chinh sach minh bach, ho tro sau mua.';
+  String get featureWarrantyDesc => 'Chính sách minh bạch, hỗ trợ sau mua.';
 
   @override
-  String get featureDelivery => 'Giao nhan toan quoc';
+  String get featureDelivery => 'Giao nhận toàn quốc';
 
   @override
-  String get featureDeliveryDesc => 'Van chuyen an toan, co theo doi.';
+  String get featureDeliveryDesc => 'Vận chuyển an toàn, có theo dõi.';
 
   @override
-  String get featureCondition => 'Doi chieu tinh trang';
+  String get featureCondition => 'Đối chiếu tình trạng';
 
   @override
-  String get featureConditionDesc => 'Tuong thich va tinh trang ro rang.';
+  String get featureConditionDesc => 'Tương thích và tình trạng rõ ràng.';
 
   @override
-  String get processTitle => 'Quy trinh giao dich';
+  String get processTitle => 'Quy trình giao dịch';
 
   @override
-  String get processStep1Title => 'Dang ky';
+  String get processStep1Title => 'Đăng ký';
 
   @override
-  String get processStep1Desc => 'Tao tai khoan trong vai phut.';
+  String get processStep1Desc => 'Tạo tài khoản trong vài phút.';
 
   @override
-  String get processStep2Title => 'Xac thuc';
+  String get processStep2Title => 'Xác thực';
 
   @override
-  String get processStep2Desc => 'Kiem dinh va duyet tin nhanh.';
+  String get processStep2Desc => 'Kiểm định và duyệt tin nhanh.';
 
   @override
-  String get processStep3Title => 'Chon / dau gia';
+  String get processStep3Title => 'Chọn / đấu giá';
 
   @override
-  String get processStep3Desc => 'Mua ngay hoac tham gia dau gia minh bach.';
+  String get processStep3Desc => 'Mua ngay hoặc tham gia đấu giá minh bạch.';
 
   @override
-  String get processStep4Title => 'Giao nhan & bao hanh';
+  String get processStep4Title => 'Giao nhận & bảo hành';
 
   @override
-  String get processStep4Desc => 'Thanh toan an toan, ho tro sau mua.';
+  String get processStep4Desc => 'Thanh toán an toàn, hỗ trợ sau mua.';
 
   @override
-  String get featuredBatteries => 'Pin EV da kiem dinh';
+  String get featuredBatteries => 'Pin EV đã kiểm định';
 
   @override
-  String get featuredVehicles => 'Xe dien cu noi bat';
+  String get featuredVehicles => 'Xe điện cũ nổi bật';
 
   @override
-  String get viewAll => 'Xem tat ca';
+  String get viewAll => 'Xem tất cả';
 
   @override
-  String get bannerTitle => 'Kiem dinh & bao hanh';
+  String get bannerTitle => 'Kiểm định & bảo hành';
 
   @override
-  String get bannerSubtitle => 'Ho so ro rang, giao dich an toan.';
+  String get bannerSubtitle => 'Hồ sơ rõ ràng, giao dịch an toàn.';
 
   @override
-  String get footerProducts => 'San pham';
+  String get footerProducts => 'Sản phẩm';
 
   @override
-  String get footerSupport => 'Ho tro';
+  String get footerSupport => 'Hỗ trợ';
 
   @override
-  String get footerRights => '© 2026 EVN Market. Bao luu moi quyen.';
+  String get footerRights => '© 2026 EVN Market. Bảo lưu mọi quyền.';
 
   @override
-  String get updating => 'Dang cap nhat';
+  String get updating => 'Đang cập nhật';
 
   @override
-  String get categoryBattery => 'Pin dien';
+  String get categoryBattery => 'Pin xe điện';
 
   @override
-  String get categoryVehicle => 'Xe dien cu';
+  String get categoryVehicle => 'Xe điện';
 
   @override
-  String get categoryAccessory => 'Phu kien';
+  String get categoryAccessory => 'Phụ kiện';
 
   @override
-  String get categoryAuction => 'Dau gia';
+  String get categoryAuction => 'Đấu giá';
 
   @override
-  String get categoryInspection => 'Kiem dinh';
+  String get categoryInspection => 'Kiểm định';
 
   @override
-  String get categoryNearby => 'Gan ban';
+  String get categoryNearby => 'Gần bạn';
 
   @override
-  String get categoryChat => 'Tin nhan';
+  String get categoryChat => 'Tin nhắn';
 
   @override
-  String get sellTitle => 'Dang ban';
+  String get sellTitle => 'Đăng bán';
 
   @override
-  String get sellBatteryTitle => 'Dang ban pin dien';
+  String get sellBatteryTitle => 'Đăng bán pin điện';
 
   @override
   String get sellBatterySubtitle => 'Lithium, NiMH, ...';
 
   @override
-  String get sellVehicleTitle => 'Dang ban xe dien';
+  String get sellVehicleTitle => 'Đăng bán xe điện';
 
   @override
-  String get sellVehicleSubtitle => 'Xe dap dien, xe may dien, o to dien';
+  String get sellVehicleSubtitle => 'Xe đạp điện, xe máy điện, ô tô điện';
 
   @override
-  String get sellAccessoryTitle => 'Dang ban phu kien';
+  String get sellAccessoryTitle => 'Đăng bán phụ kiện';
 
   @override
-  String get sellAccessorySubtitle => 'Sac, lop, dien tu';
+  String get sellAccessorySubtitle => 'Sạc, lốp, điện tử';
 
   @override
-  String get badgeNew => 'Moi';
+  String get badgeNew => 'Mới';
 
   @override
-  String get badgeVerified => 'Da kiem dinh';
+  String get badgeVerified => 'Đã kiểm định';
 
   @override
-  String get badgeWarranty => 'Bao hanh';
+  String get badgeWarranty => 'Bảo hành';
 
   @override
-  String get badgeTransparent => 'Minh bach';
+  String get badgeTransparent => 'Minh bạch';
 
   @override
-  String get badgeAvailable => 'Con hang';
+  String get badgeAvailable => 'Còn hàng';
 
   @override
-  String get badgeSold => 'Da ban';
+  String get badgeSold => 'Đã bán';
 
   @override
-  String get badgeAuction => 'Dau gia';
+  String get badgeAuction => 'Đấu giá';
 
   @override
-  String get badgeReserved => 'Da dat coc';
+  String get badgeReserved => 'Đã đặt cọc';
 
   @override
-  String get trustInspected => 'Da kiem dinh';
+  String get trustInspected => 'Đã kiểm định';
 
   @override
-  String get trustWarranty => 'Bao hanh ro rang';
+  String get trustWarranty => 'Bảo hành rõ ràng';
 
   @override
-  String get trustDelivery => 'Ho tro giao nhan';
+  String get trustDelivery => 'Hỗ trợ giao nhận';
 
   @override
-  String get trustAiPricing => 'Dinh gia AI';
+  String get trustAiPricing => 'Định giá AI';
 
   @override
   String get heroCardBattery => 'Pin EV';
 
   @override
-  String get heroCardBatteryDesc => 'SOH, dung luong, chu ky';
+  String get heroCardBatteryDesc => 'SOH, dung lượng, chu kỳ';
 
   @override
-  String get heroCardVehicle => 'Xe dien cu';
+  String get heroCardVehicle => 'Xe điện cũ';
 
   @override
-  String get heroCardVehicleDesc => 'So km, bao hanh, tinh trang';
+  String get heroCardVehicleDesc => 'Số km, bảo hành, tình trạng';
 
   @override
-  String get finalCtaTitle => 'Kham pha pin va xe dien cu da kiem dinh';
+  String get finalCtaTitle => 'Khám phá pin và xe điện cũ đã kiểm định';
 
   @override
   String get finalCtaSubtitle =>
-      'Minh bach tinh trang, gia tot, giao nhan toan quoc.';
+      'Minh bạch tình trạng, giá tốt, giao nhận toàn quốc.';
 
   @override
-  String get finalCtaPrimary => 'Xem san pham';
+  String get finalCtaPrimary => 'Xem sản phẩm';
 
   @override
-  String get finalCtaSecondary => 'Dang ban mien phi';
+  String get finalCtaSecondary => 'Đăng bán miễn phí';
 
   @override
   String errorLoad(Object message) {
-    return 'Loi: $message';
+    return 'Lỗi: $message';
   }
 
   @override
-  String get language => 'Ngon ngu';
+  String get language => 'Ngôn ngữ';
 
   @override
-  String get languageVi => 'Tieng Viet';
+  String get languageVi => 'Tiếng Việt';
 
   @override
-  String get languageEn => 'Tieng Anh';
+  String get languageEn => 'Tiếng Anh';
 
   @override
-  String get notifications => 'Thong bao';
+  String get languageJa => 'Tiếng Nhật';
 
   @override
-  String get profile => 'Ho so';
+  String get notifications => 'Thông báo';
+
+  @override
+  String get profile => 'Hồ sơ';
+
+  @override
+  String get navHome => 'Trang chủ';
+
+  @override
+  String get navAuctions => 'Đấu giá';
+
+  @override
+  String get navSell => 'Đăng tin';
+
+  @override
+  String get navChat => 'Chat';
+
+  @override
+  String get navProfile => 'Tài khoản';
+
+  @override
+  String get menuPersonalInfo => 'Thông tin cá nhân';
+
+  @override
+  String get menuKyc => 'Xác thực danh tính (eKYC)';
+
+  @override
+  String get menuChangePassword => 'Đổi mật khẩu';
+
+  @override
+  String get menuNotifications => 'Thông báo';
+
+  @override
+  String get menuPaymentMethods => 'Phương thức thanh toán';
+
+  @override
+  String get menuMyListings => 'Tin đăng của tôi';
+
+  @override
+  String get menuTransactions => 'Lịch sử giao dịch';
+
+  @override
+  String get menuSaved => 'Đã lưu';
+
+  @override
+  String get menuBidHistory => 'Lịch sử đấu giá';
+
+  @override
+  String get menuHelpCenter => 'Trung tâm hỗ trợ';
+
+  @override
+  String get menuTermsPolicy => 'Điều khoản & Chính sách';
+
+  @override
+  String get menuAboutApp => 'Về ứng dụng';
+
+  @override
+  String get menuLogout => 'Đăng xuất';
+
+  @override
+  String get menuLogoutConfirm => 'Bạn có chắc muốn đăng xuất khỏi tài khoản?';
+
+  @override
+  String get menuCancel => 'Hủy';
+
+  @override
+  String get menuClose => 'Đóng';
+
+  @override
+  String get menuNotUpdated => 'Chưa cập nhật';
+
+  @override
+  String get menuFeatureUpdating => 'Tính năng đang được cập nhật.';
+
+  @override
+  String get infoFullName => 'Họ tên';
+
+  @override
+  String get infoEmail => 'Email';
+
+  @override
+  String get infoPhone => 'Số điện thoại';
+
+  @override
+  String get infoAddress => 'Địa chỉ';
+
+  @override
+  String get sellProductTitle => 'Đăng bán sản phẩm';
+
+  @override
+  String get sellBatteryOption => 'Đăng bán Pin điện';
+
+  @override
+  String get sellVehicleOption => 'Đăng bán Xe điện';
+
+  @override
+  String get sellAccessoryOption => 'Đăng bán Phụ kiện';
+
+  @override
+  String get sectionAccount => 'Tài khoản';
+
+  @override
+  String get sectionTransactions => 'Giao dịch';
+
+  @override
+  String get sectionSupport => 'Hỗ trợ';
+
+  @override
+  String get sectionAdmin => 'Quản trị hệ thống';
+
+  @override
+  String get statsSelling => 'Đang bán';
+
+  @override
+  String get statsBought => 'Đã mua';
+
+  @override
+  String get statsSaved => 'Đã lưu';
+
+  @override
+  String get profileUserDefault => 'Người dùng';
+
+  @override
+  String get kycStatusApproved => 'Đã xác thực';
+
+  @override
+  String get kycStatusPending => 'Đang xét duyệt';
+
+  @override
+  String get kycStatusRejected => 'Bị từ chối';
+
+  @override
+  String get kycStatusUnverified => 'Chưa xác thực';
+
+  @override
+  String get adminModeSwitch => 'Chuyển sang Chế độ Admin';
+
+  @override
+  String get adminKycApprove => 'Duyệt eKYC người dùng';
+
+  @override
+  String get adminSystemStats => 'Thống kê hệ thống';
+
+  @override
+  String get homeTabForYou => 'Dành cho bạn';
+
+  @override
+  String get homeTabNearYou => 'Gần bạn';
+
+  @override
+  String get homeTabLatest => 'Mới nhất';
+
+  @override
+  String get homeTabVideo => 'Video';
+
+  @override
+  String get homeNoProducts => 'Chua co san pham nao';
+
+  @override
+  String get errorServerConnection => 'Không thể kết nối máy chủ';
+
+  @override
+  String get btnRetry => 'Thử lại';
+
+  @override
+  String get searchPlaceholder => 'Tìm sản phẩm...';
+
+  @override
+  String get homeSellBannerTitle => 'Bạn muốn bán sản phẩm?';
+
+  @override
+  String get homeSellBannerSubtitle =>
+      'Đăng bán pin, xe điện hoặc phụ kiện của bạn dễ dàng với sự hỗ trợ của AI!';
+
+  @override
+  String get btnPostSell => 'Đăng bán';
+
+  @override
+  String get chatTitle => 'Tin nhắn';
+
+  @override
+  String get chatNoMessages => 'Chưa có tin nhắn nào';
+
+  @override
+  String get chatContactSellerToStart =>
+      'Hãy liên hệ người bán để bắt đầu\ncuộc trò chuyện';
+
+  @override
+  String get chatBtnViewListings => 'Xem tin đăng';
+
+  @override
+  String get chatNoMessageSnippet => 'Chưa có tin nhắn';
+
+  @override
+  String get auctionTabOngoing => 'Đang diễn ra';
+
+  @override
+  String get auctionTabUpcoming => 'Sắp diễn ra';
+
+  @override
+  String get auctionTabEnded => 'Đã kết thúc';
+
+  @override
+  String get auctionNoOngoing => 'Chua co phien dau gia nao dang dien ra';
+
+  @override
+  String get auctionNoUpcoming => 'Không có phiên sắp tới';
+
+  @override
+  String get auctionNoEnded => 'Chưa có phiên kết thúc';
+
+  @override
+  String get btnCreateAuction => 'Tạo đấu giá';
+
+  @override
+  String get auctionCurrentPrice => 'Giá hiện tại';
+
+  @override
+  String get errorPrefix => 'Lỗi: ';
+
+  @override
+  String auctionBidCount(int count) {
+    return '$count lượt bid';
+  }
 }

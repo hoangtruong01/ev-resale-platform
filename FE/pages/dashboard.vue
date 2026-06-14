@@ -641,6 +641,7 @@
                     <UiButton
                       variant="outline"
                       class="w-full border-border text-foreground hover:bg-muted/50"
+                      @click="navigateTo('/change-password')"
                     >
                       Đổi mật khẩu
                     </UiButton>

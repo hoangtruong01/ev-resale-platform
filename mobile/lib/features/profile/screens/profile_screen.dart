@@ -121,7 +121,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        user?.displayName ?? 'Người dùng',
+                        user?.displayName ?? l10n.profileUserDefault,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -189,21 +189,21 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: _StatItem(
-                            label: 'Đang bán',
+                            label: l10n.statsSelling,
                             value: '${overview.activeListings}',
                           ),
                         ),
                         const _VertDivider(),
                         Expanded(
                           child: _StatItem(
-                            label: 'Đã mua',
+                            label: l10n.statsBought,
                             value: '${overview.totalOrders}',
                           ),
                         ),
                         const _VertDivider(),
                         Expanded(
                           child: _StatItem(
-                            label: 'Đã lưu',
+                            label: l10n.statsSaved,
                             value: '${overview.favoriteCount}',
                           ),
                         ),
@@ -215,16 +215,16 @@ class ProfileScreen extends ConsumerWidget {
 
                   // Menu sections
                   _MenuSection(
-                    title: 'Tài khoản',
+                    title: l10n.sectionAccount,
                     items: [
                       _MenuItem(
                         icon: Icons.person_outline,
-                        label: 'Thông tin cá nhân',
-                        onTap: () => _showProfileInfoDialog(context, user),
+                        label: l10n.menuPersonalInfo,
+                        onTap: () => _showProfileInfoDialog(context, user, l10n),
                       ),
                       _MenuItem(
                         icon: Icons.verified_user_outlined,
-                        label: 'Xác thực danh tính (eKYC)',
+                        label: l10n.menuKyc,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -249,15 +249,15 @@ class ProfileScreen extends ConsumerWidget {
                                     'UNVERIFIED';
                                 final (label, color) = switch (status) {
                                   'APPROVED' => (
-                                    'Đã xác thực',
+                                    l10n.kycStatusApproved,
                                     AppTheme.success,
                                   ),
                                   'PENDING' => (
-                                    'Đang xét duyệt',
+                                    l10n.kycStatusPending,
                                     AppTheme.warning,
                                   ),
-                                  'REJECTED' => ('Bị từ chối', AppTheme.error),
-                                  _ => ('Chưa xác thực', AppTheme.grey400),
+                                  'REJECTED' => (l10n.kycStatusRejected, AppTheme.error),
+                                  _ => (l10n.kycStatusUnverified, AppTheme.grey400),
                                 };
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
@@ -284,7 +284,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       _MenuItem(
                         icon: Icons.lock_outline,
-                        label: 'Đổi mật khẩu',
+                        label: l10n.menuChangePassword,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -294,15 +294,15 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       _MenuItem(
                         icon: Icons.notifications_outlined,
-                        label: 'Thông báo',
+                        label: l10n.menuNotifications,
                         onTap: () => context.push('/notifications'),
                       ),
                       _MenuItem(
                         icon: Icons.credit_card_outlined,
-                        label: 'Phương thức thanh toán',
+                        label: l10n.menuPaymentMethods,
                         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tính năng đang được cập nhật.'),
+                          SnackBar(
+                            content: Text(l10n.menuFeatureUpdating),
                           ),
                         ),
                       ),
@@ -317,21 +317,21 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
 
                   _MenuSection(
-                    title: 'Giao dịch',
+                    title: l10n.sectionTransactions,
                     items: [
                       _MenuItem(
                         icon: Icons.list_alt_outlined,
-                        label: 'Tin đăng của tôi',
-                        onTap: () => context.push('/profile/listings'),
+                        label: l10n.menuMyListings,
+                        onTap: () => _showMyListingActions(context, l10n),
                       ),
                       _MenuItem(
                         icon: Icons.receipt_long_outlined,
-                        label: 'Lịch sử giao dịch',
+                        label: l10n.menuTransactions,
                         onTap: () => context.push('/transactions'),
                       ),
                       _MenuItem(
                         icon: Icons.favorite_outline,
-                        label: 'Đã lưu',
+                        label: l10n.menuSaved,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -343,12 +343,12 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       _MenuItem(
                         icon: Icons.gavel_outlined,
-                        label: 'Lịch sử đấu giá',
+                        label: l10n.menuBidHistory,
                         onTap: () => context.go('/auctions'),
                       ),
                       _MenuItem(
                         icon: Icons.payment_outlined,
-                        label: 'Phương thức thanh toán',
+                        label: l10n.menuPaymentMethods,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -362,16 +362,16 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
 
                   _MenuSection(
-                    title: 'Hỗ trợ',
+                    title: l10n.sectionSupport,
                     items: [
                       _MenuItem(
                         icon: Icons.help_outline,
-                        label: 'Trung tâm hỗ trợ',
+                        label: l10n.menuHelpCenter,
                         onTap: () => context.push('/support'),
                       ),
                       _MenuItem(
                         icon: Icons.policy_outlined,
-                        label: 'Điều khoản & Chính sách',
+                        label: l10n.menuTermsPolicy,
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -381,7 +381,7 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                       _MenuItem(
                         icon: Icons.info_outline,
-                        label: 'Về ứng dụng',
+                        label: l10n.menuAboutApp,
                         onTap: () => showAboutDialog(
                           context: context,
                           applicationName: 'EVN Pin Điện',
@@ -396,11 +396,11 @@ class ProfileScreen extends ConsumerWidget {
 
                   if (user?.role == 'ADMIN' || user?.role == 'MODERATOR') ...[
                     _MenuSection(
-                      title: 'Quản trị hệ thống',
+                      title: l10n.sectionAdmin,
                       items: [
                         _MenuItem(
                           icon: Icons.dashboard_customize_outlined,
-                          label: 'Chuyển sang Chế độ Admin',
+                          label: l10n.adminModeSwitch,
                           color: AppTheme.primaryGreen,
                           onTap: () {
                             ref.read(adminModeProvider.notifier).state = true;
@@ -409,7 +409,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         _MenuItem(
                           icon: Icons.admin_panel_settings_outlined,
-                          label: 'Duyệt eKYC người dùng',
+                          label: l10n.adminKycApprove,
                           color: AppTheme.primaryGreen,
                           onTap: () => Navigator.push(
                             context,
@@ -420,7 +420,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                         _MenuItem(
                           icon: Icons.analytics_outlined,
-                          label: 'Thống kê hệ thống',
+                          label: l10n.adminSystemStats,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -435,7 +435,7 @@ class ProfileScreen extends ConsumerWidget {
 
                   // Logout
                   InkWell(
-                    onTap: () => _showLogoutDialog(context, ref),
+                    onTap: () => _showLogoutDialog(context, ref, l10n),
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       padding: const EdgeInsets.all(16),
@@ -446,17 +446,17 @@ class ProfileScreen extends ConsumerWidget {
                           color: AppTheme.error.withValues(alpha: 0.2),
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.logout_rounded,
                             color: AppTheme.error,
                             size: 20,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Text(
-                            'Đăng xuất',
-                            style: TextStyle(
+                            l10n.menuLogout,
+                            style: const TextStyle(
                               color: AppTheme.error,
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -477,17 +477,17 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref) {
+  void _showLogoutDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Đăng xuất'),
-        content: const Text('Bạn có chắc muốn đăng xuất khỏi tài khoản?'),
+        title: Text(l10n.menuLogout),
+        content: Text(l10n.menuLogoutConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Huỷ', style: TextStyle(color: AppTheme.grey600)),
+            child: Text(l10n.menuCancel, style: const TextStyle(color: AppTheme.grey600)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -496,14 +496,14 @@ class ProfileScreen extends ConsumerWidget {
               if (context.mounted) context.go('/auth/login');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Đăng xuất'),
+            child: Text(l10n.menuLogout),
           ),
         ],
       ),
     );
   }
 
-  void _showMyListingActions(BuildContext context) {
+  void _showMyListingActions(BuildContext context, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -514,15 +514,15 @@ class ProfileScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const ListTile(
+            ListTile(
               title: Text(
-                'Quản lý tin đăng',
-                style: TextStyle(fontWeight: FontWeight.w700),
+                l10n.menuMyListings,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
             ListTile(
               leading: const Icon(Icons.battery_charging_full_rounded),
-              title: const Text('Đăng bán pin điện'),
+              title: Text(l10n.sellBatteryOption),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/sell/battery');
@@ -530,7 +530,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.electric_car_rounded),
-              title: const Text('Đăng bán xe điện'),
+              title: Text(l10n.sellVehicleOption),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/sell/vehicle');
@@ -538,7 +538,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             ListTile(
               leading: const Icon(Icons.extension_outlined),
-              title: const Text('Đăng bán phụ kiện'),
+              title: Text(l10n.sellAccessoryOption),
               onTap: () {
                 Navigator.pop(ctx);
                 context.push('/sell/accessory');
@@ -550,28 +550,28 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showProfileInfoDialog(BuildContext context, UserModel? user) {
+  void _showProfileInfoDialog(BuildContext context, UserModel? user, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Thông tin cá nhân'),
+        title: Text(l10n.menuPersonalInfo),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Họ tên: ${user?.displayName ?? 'Chưa cập nhật'}'),
+            Text('${l10n.infoFullName}: ${user?.displayName ?? l10n.menuNotUpdated}'),
             const SizedBox(height: 8),
-            Text('Email: ${user?.email ?? 'Chưa cập nhật'}'),
+            Text('${l10n.infoEmail}: ${user?.email ?? l10n.menuNotUpdated}'),
             const SizedBox(height: 8),
-            Text('Số điện thoại: ${user?.phone ?? 'Chưa cập nhật'}'),
+            Text('${l10n.infoPhone}: ${user?.phone ?? l10n.menuNotUpdated}'),
             const SizedBox(height: 8),
-            Text('Địa chỉ: ${user?.address ?? 'Chưa cập nhật'}'),
+            Text('${l10n.infoAddress}: ${user?.address ?? l10n.menuNotUpdated}'),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Đóng'),
+            child: Text(l10n.menuClose),
           ),
         ],
       ),
@@ -712,6 +712,14 @@ void _showLanguageSheet(
             label: l10n.languageEn,
             onTap: () {
               ref.read(localeProvider.notifier).state = const Locale('en');
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(height: 12),
+          _LanguageOption(
+            label: l10n.languageJa,
+            onTap: () {
+              ref.read(localeProvider.notifier).state = const Locale('ja');
               Navigator.pop(context);
             },
           ),

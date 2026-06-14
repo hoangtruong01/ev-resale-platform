@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../models/auction_model.dart';
 import '../../../core/utils/app_utils.dart';
@@ -13,21 +14,22 @@ class AuctionListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final auctionsAsync = ref.watch(auctionListProvider);
 
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Đấu giá'),
-          bottom: const TabBar(
+          title: Text(l10n.navAuctions),
+          bottom: TabBar(
             labelColor: AppTheme.primaryGreen,
             unselectedLabelColor: AppTheme.grey400,
             indicatorColor: AppTheme.primaryGreen,
             tabs: [
-              Tab(text: 'Đang diễn ra'),
-              Tab(text: 'Sắp diễn ra'),
-              Tab(text: 'Đã kết thúc'),
+              Tab(text: l10n.auctionTabOngoing),
+              Tab(text: l10n.auctionTabUpcoming),
+              Tab(text: l10n.auctionTabEnded),
             ],
           ),
         ),
@@ -35,7 +37,7 @@ class AuctionListScreen extends ConsumerWidget {
           loading: () => const Center(
             child: CircularProgressIndicator(color: AppTheme.primaryGreen),
           ),
-          error: (e, _) => Center(child: Text('Lỗi: $e')),
+          error: (e, _) => Center(child: Text('${l10n.errorPrefix}$e')),
           data: (auctions) {
             final active = auctions.where((a) => a.status == 'ACTIVE').toList();
             final pending = auctions
@@ -47,15 +49,15 @@ class AuctionListScreen extends ConsumerWidget {
               children: [
                 _AuctionTabContent(
                   auctions: active,
-                  emptyMsg: 'Chưa có phiên đấu giá nào đang diễn ra',
+                  emptyMsg: l10n.auctionNoOngoing,
                 ),
                 _AuctionTabContent(
                   auctions: pending,
-                  emptyMsg: 'Không có phiên sắp tới',
+                  emptyMsg: l10n.auctionNoUpcoming,
                 ),
                 _AuctionTabContent(
                   auctions: ended,
-                  emptyMsg: 'Chưa có phiên kết thúc',
+                  emptyMsg: l10n.auctionNoEnded,
                 ),
               ],
             );
@@ -67,7 +69,7 @@ class AuctionListScreen extends ConsumerWidget {
             onPressed: () => context.push('/auctions/create'),
             backgroundColor: AppTheme.primaryGreen,
             icon: const Icon(Icons.add),
-            label: const Text('Tạo đấu giá'),
+            label: Text(l10n.btnCreateAuction),
           ),
         ),
       ),
@@ -265,9 +267,9 @@ class _AuctionCardState extends State<AuctionCard> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Giá hiện tại',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.auctionCurrentPrice,
+                            style: const TextStyle(
                               color: AppTheme.grey400,
                               fontSize: 12,
                             ),
@@ -292,7 +294,7 @@ class _AuctionCardState extends State<AuctionCard> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '${auction.bidCount} lượt bid',
+                              AppLocalizations.of(context)!.auctionBidCount(auction.bidCount!),
                               style: const TextStyle(
                                 color: AppTheme.grey600,
                                 fontSize: 13,
