@@ -91,7 +91,33 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đăng bán phụ kiện thành công!')),
+        const SnackBar(
+          // Đặt const ở đây để sửa triệt để cảnh báo
+          content: Row(
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Gửi yêu cầu thành công! Vui lòng đợi Admin duyệt để tin được hiển thị.',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
+            ), // Hàm này mới hợp lệ với const
+          ),
+          duration: Duration(seconds: 4),
+        ),
       );
       Navigator.pop(context);
     } catch (error) {
@@ -165,19 +191,19 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                   ..._images.map(
                     (file) => ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: kIsWeb 
-                        ? Image.network(
-                            file.path,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            File(file.path),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
+                      child: kIsWeb
+                          ? Image.network(
+                              file.path,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              File(file.path),
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   InkWell(
@@ -278,25 +304,27 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                         initialWard: _ward,
                         initialDistrict: _district,
                         initialProvince: _province,
-                        onAddressChanged: ({
-                          required streetAddress,
-                          required ward,
-                          required district,
-                          required province,
-                        }) {
-                          _streetAddress = streetAddress;
-                          _ward = ward;
-                          _district = district;
-                          _province = province;
+                        onAddressChanged:
+                            ({
+                              required streetAddress,
+                              required ward,
+                              required district,
+                              required province,
+                            }) {
+                              _streetAddress = streetAddress;
+                              _ward = ward;
+                              _district = district;
+                              _province = province;
 
-                          final parts = [streetAddress, ward, district, province]
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
-                          final composed = parts.join(', ');
-                          _locationCtrl.text = composed;
-                          formState.didChange(composed);
-                        },
+                              final parts =
+                                  [streetAddress, ward, district, province]
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList();
+                              final composed = parts.join(', ');
+                              _locationCtrl.text = composed;
+                              formState.didChange(composed);
+                            },
                       ),
                       if (formState.hasError) ...[
                         const SizedBox(height: 6),
@@ -304,7 +332,10 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Text(
                             formState.errorText ?? '',
-                            style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                            style: const TextStyle(
+                              color: AppTheme.error,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -316,7 +347,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
               TextFormField(
                 controller: _descriptionCtrl,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Mô tả chi tiết *'),
+                decoration: const InputDecoration(
+                  labelText: 'Mô tả chi tiết *',
+                ),
                 validator: (value) =>
                     value == null || value.trim().isEmpty ? 'Bắt buộc' : null,
               ),
@@ -351,7 +384,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submit,
-                  child: Text(_isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay'),
+                  child: Text(
+                    _isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay',
+                  ),
                 ),
               ),
               const SizedBox(height: 120), // Spacing for bottom navigation bar
