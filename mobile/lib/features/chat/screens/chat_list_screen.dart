@@ -149,10 +149,8 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
-                  lastMessage?.content.isNotEmpty == true
-                      ? lastMessage!.content
-                      : l10n.chatNoMessageSnippet,
-                  maxLines: 1,
+                  '${room.productTypeLabel}: ${room.productName} - ${lastMessage?.content.isNotEmpty == true ? lastMessage!.content : l10n.chatNoMessageSnippet}',
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: AppTheme.grey600, fontSize: 13),
                 ),

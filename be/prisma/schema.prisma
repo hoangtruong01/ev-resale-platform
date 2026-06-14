@@ -253,6 +253,8 @@ model Accessory {
   sellerId   String
   seller     User   @relation("AccessorySeller", fields: [sellerId], references: [id])
   approvedBy User?  @relation("AccessoryApprovedBy", fields: [approvedById], references: [id])
+  chatRooms  ChatRoom[]
+  transactions Transaction[]
 
   @@map("accessories")
 }
@@ -506,6 +508,8 @@ model Transaction {
   vehicle   Vehicle?  @relation(fields: [vehicleId], references: [id])
   batteryId String?
   battery   Battery?  @relation(fields: [batteryId], references: [id])
+  accessoryId String?
+  accessory   Accessory? @relation(fields: [accessoryId], references: [id])
   auctionId String?
   auction   Auction?  @relation(fields: [auctionId], references: [id])
   chatRoom  ChatRoom? @relation(fields: [chatRoomId], references: [id])
@@ -519,6 +523,7 @@ model Transaction {
   @@index([chatRoomId])
   @@index([vehicleId])
   @@index([batteryId])
+  @@index([accessoryId])
   @@index([auctionId])
   @@map("transactions")
 }
@@ -838,6 +843,7 @@ model Favorite {
   itemType  FavoriteItemType
   vehicleId String?
   batteryId String?
+  accessoryId String?
   auctionId String?
   createdAt DateTime         @default(now())
 
@@ -886,6 +892,7 @@ model ChatRoom {
   sellerId  String
   vehicleId String?
   batteryId String?
+  accessoryId String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -893,10 +900,11 @@ model ChatRoom {
   seller       User          @relation("ChatRoomSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   vehicle      Vehicle?      @relation(fields: [vehicleId], references: [id])
   battery      Battery?      @relation(fields: [batteryId], references: [id])
+  accessory    Accessory?    @relation(fields: [accessoryId], references: [id])
   messages     ChatMessage[]
   transactions Transaction[]
 
-  @@unique([buyerId, sellerId, vehicleId, batteryId])
+  @@unique([buyerId, sellerId, vehicleId, batteryId, accessoryId])
   @@map("chat_rooms")
 }
 

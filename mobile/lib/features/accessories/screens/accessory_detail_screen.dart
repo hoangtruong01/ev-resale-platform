@@ -85,17 +85,18 @@ class AccessoryDetailScreen extends ConsumerWidget {
                                     final response = await dio.post('/chat/rooms', data: {
                                       'buyerId': currentUser.id,
                                       'sellerId': accessory.sellerId,
-                                    });
-                                    Navigator.pop(context); // close loading indicator
+                                      'accessoryId': accessory.id,
+                                    }).timeout(const Duration(seconds: 15));
+                                    if (context.mounted) Navigator.pop(context); // close loading indicator
 
                                     final roomId = response.data['id'];
                                     if (roomId != null) {
                                       context.push('/chat/$roomId');
                                     }
                                   } catch (e) {
-                                    Navigator.pop(context); // close loading indicator
+                                    if (context.mounted) Navigator.pop(context); // close loading indicator
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Không thể bắt đầu trò chuyện: $e')),
+                                      SnackBar(content: Text(parseApiError(e))),
                                     );
                                   }
                                 },

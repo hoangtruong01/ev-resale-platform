@@ -6,6 +6,10 @@ class ChatRoomModel {
   final String sellerId;
   final String? vehicleId;
   final String? batteryId;
+  final String? accessoryId;
+  final Map<String, dynamic>? vehicle;
+  final Map<String, dynamic>? battery;
+  final Map<String, dynamic>? accessory;
   final UserModel? buyer;
   final UserModel? seller;
   final ChatMessageModel? lastMessage;
@@ -19,6 +23,10 @@ class ChatRoomModel {
     required this.sellerId,
     this.vehicleId,
     this.batteryId,
+    this.accessoryId,
+    this.vehicle,
+    this.battery,
+    this.accessory,
     this.buyer,
     this.seller,
     this.lastMessage,
@@ -33,6 +41,10 @@ class ChatRoomModel {
         sellerId: json['sellerId'] ?? '',
         vehicleId: json['vehicleId'],
         batteryId: json['batteryId'],
+        accessoryId: json['accessoryId'],
+        vehicle: _mapValue(json['vehicle']),
+        battery: _mapValue(json['battery']),
+        accessory: _mapValue(json['accessory']),
         buyer: json['buyer'] != null ? UserModel.fromJson(json['buyer']) : null,
         seller: json['seller'] != null
             ? UserModel.fromJson(json['seller'])
@@ -48,6 +60,26 @@ class ChatRoomModel {
   UserModel? getOtherUser(String currentUserId) {
     if (buyerId == currentUserId) return seller;
     return buyer;
+  }
+
+  Map<String, dynamic>? get product => vehicle ?? battery ?? accessory;
+
+  String get productName {
+    final name = product?['name']?.toString();
+    return name == null || name.isEmpty ? 'San pham' : name;
+  }
+
+  String get productTypeLabel {
+    if (vehicle != null) return 'Xe';
+    if (battery != null) return 'Pin';
+    if (accessory != null) return 'Phu kien';
+    return 'San pham';
+  }
+
+  static Map<String, dynamic>? _mapValue(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return Map<String, dynamic>.from(value);
+    return null;
   }
 }
 
@@ -78,7 +110,9 @@ class ChatMessageModel {
         roomId: json['roomId'] ?? '',
         senderId: json['senderId'] ?? '',
         content: json['content'] ?? '',
-        metadata: json['metadata'],
+        metadata: json['metadata'] is Map
+            ? Map<String, dynamic>.from(json['metadata'] as Map)
+            : null,
         readAt: json['readAt'],
         createdAt: json['createdAt'] ?? '',
         sender: json['sender'] != null

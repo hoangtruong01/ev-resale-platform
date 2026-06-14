@@ -50,11 +50,15 @@ class BatteryService {
     int page = 1,
     int limit = 10,
   }) async {
+    debugPrint('[MY_LISTINGS] fetch batteries');
     final response = await _dio.get('/batteries/my-batteries', queryParameters: {
       'page': page,
       'limit': limit,
     });
-    return BatteryListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] batteries response: ${response.data}');
+    final parsed = BatteryListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] batteries count: ${parsed.data.length}');
+    return parsed;
   }
 
   Future<BatteryModel> createBattery(Map<String, dynamic> data) async {

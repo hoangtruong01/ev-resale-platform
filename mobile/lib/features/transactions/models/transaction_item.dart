@@ -14,6 +14,11 @@ class TransactionItem {
   final String statusLabel;
   final Color statusColor;
   final String createdAt;
+  final String productType;
+  final String? buyerName;
+  final String? sellerName;
+  final bool hasContract;
+  final String? contractStatus;
 
   const TransactionItem({
     required this.id,
@@ -26,6 +31,11 @@ class TransactionItem {
     required this.statusLabel,
     required this.statusColor,
     required this.createdAt,
+    required this.productType,
+    this.buyerName,
+    this.sellerName,
+    this.hasContract = false,
+    this.contractStatus,
   });
 
   factory TransactionItem.fromJson(
@@ -46,6 +56,11 @@ class TransactionItem {
     final rawStatus = _stringValue(json['status']);
     final status = rawStatus.isEmpty ? 'PENDING' : rawStatus.toUpperCase();
 
+    final contract = _mapValue(json['contract']);
+    final buyer = purchaseBuyer ?? chatBuyer;
+    final sellerName = _displayName(seller);
+    final buyerName = buyer != null ? _displayName(buyer) : null;
+
     return TransactionItem(
       id: id,
       title: _title(json, id),
@@ -57,6 +72,11 @@ class TransactionItem {
       statusLabel: _statusLabel(status),
       statusColor: _statusColor(status),
       createdAt: _stringValue(json['createdAt']),
+      productType: _productType(json),
+      buyerName: buyerName,
+      sellerName: sellerName,
+      hasContract: contract != null,
+      contractStatus: contract != null ? _stringValue(contract['status']) : null,
     );
   }
 
@@ -75,17 +95,28 @@ class TransactionItem {
   static String _title(Map<String, dynamic> json, String id) {
     final vehicle = _mapValue(json['vehicle']);
     final battery = _mapValue(json['battery']);
+    final accessory = _mapValue(json['accessory']);
     final auction = _mapValue(json['auction']);
     final vehicleName = _stringValue(vehicle?['name']);
     final batteryName = _stringValue(battery?['name']);
+    final accessoryName = _stringValue(accessory?['name']);
     final auctionTitle = _stringValue(auction?['title']);
     final auctionName = _stringValue(auction?['name']);
 
     if (vehicleName.isNotEmpty) return vehicleName;
     if (batteryName.isNotEmpty) return batteryName;
+    if (accessoryName.isNotEmpty) return accessoryName;
     if (auctionTitle.isNotEmpty) return auctionTitle;
     if (auctionName.isNotEmpty) return auctionName;
     return 'Giao dịch #${_shortId(id)}';
+  }
+
+  static String _productType(Map<String, dynamic> json) {
+    if (json['vehicle'] != null) return 'Xe';
+    if (json['battery'] != null) return 'Pin';
+    if (json['accessory'] != null) return 'Phụ kiện';
+    if (json['auction'] != null) return 'Đấu giá';
+    return 'Khác';
   }
 
   static String _shortId(String id) {

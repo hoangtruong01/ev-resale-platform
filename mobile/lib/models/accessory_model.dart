@@ -79,8 +79,8 @@ class AccessoryListResponse {
         data: (json['data'] as List? ?? [])
             .map((e) => AccessoryModel.fromJson(e))
             .toList(),
-        total: json['total'] ?? 0,
-        page: json['page'] ?? 1,
-        limit: json['limit'] ?? 10,
+        total: json['pagination']?['total'] ?? json['total'] ?? 0,
+        page: json['pagination']?['page'] ?? json['page'] ?? 1,
+        limit: json['pagination']?['limit'] ?? json['limit'] ?? 10,
       );
 }

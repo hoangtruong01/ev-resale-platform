@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../widgets/contract_message_card.dart';
 
@@ -42,7 +43,7 @@ class ChatMessage {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
           : DateTime.now(),
-      metadata: json['metadata'] as Map<String, dynamic>?,
+      metadata: json['metadata'] is Map ? Map<String, dynamic>.from(json['metadata'] as Map) : null,
     );
   }
 
@@ -133,6 +134,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     _socket!.on('chat:message', (data) {
       if (data is Map) {
         final msg = ChatMessage.fromJson(data as Map<String, dynamic>);
+        if (_messages.any((existing) => existing.id == msg.id)) return;
         setState(() => _messages.add(msg));
         _scrollToBottom();
       }
@@ -142,22 +144,77 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
       setState(() => _socketConnected = false);
     });
 
+    _socket!.on('chat:error', (data) {
+      if (mounted) {
+        setState(() => _loadingHistory = false);
+        final message = data is Map ? data['message']?.toString() : null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message ?? 'Khong the ket noi chat.')),
+        );
+      }
+    });
+
     _socket!.connect();
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _loadingHistory) _loadHistoryFallback();
+    });
   }
 
-  void _sendMessage() {
+  Future<void> _loadHistoryFallback() async {
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio
+          .get('/chat/rooms/$widget.roomId/messages')
+          .timeout(const Duration(seconds: 15));
+      final raw = res.data is List ? res.data as List : const [];
+      final msgs = raw
+          .whereType<Map>()
+          .map((m) => ChatMessage.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _messages.clear();
+        _messages.addAll(msgs);
+        _loadingHistory = false;
+      });
+      _scrollToBottom();
+    } catch (_) {
+      if (mounted) setState(() => _loadingHistory = false);
+    }
+  }
+
+  Future<void> _sendMessage() async {
     final text = _messageCtrl.text.trim();
-    if (text.isEmpty || !_socketConnected) return;
+    if (text.isEmpty) return;
 
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
-    _socket!.emit('sendMessage', {
-      'roomId': widget.roomId,
-      'content': text,
-    });
-
     _messageCtrl.clear();
+    if (_socketConnected) {
+      _socket!.emit('sendMessage', {
+        'roomId': widget.roomId,
+        'content': text,
+      });
+      return;
+    }
+
+    try {
+      final dio = ref.read(dioProvider);
+      final res = await dio.post('/chat/rooms/$widget.roomId/messages', data: {
+        'content': text,
+      }).timeout(const Duration(seconds: 15));
+      final msg = ChatMessage.fromJson(Map<String, dynamic>.from(res.data as Map));
+      if (!mounted) return;
+      if (_messages.any((existing) => existing.id == msg.id)) return;
+      setState(() => _messages.add(msg));
+      _scrollToBottom();
+    } on DioException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(parseApiError(e))),
+      );
+    }
   }
 
   void _scrollToBottom() {

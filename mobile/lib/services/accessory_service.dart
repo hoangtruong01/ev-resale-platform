@@ -48,11 +48,15 @@ class AccessoryService {
     int page = 1,
     int limit = 10,
   }) async {
+    debugPrint('[MY_LISTINGS] fetch accessories');
     final response = await _dio.get('/accessories/my-accessories', queryParameters: {
       'page': page,
       'limit': limit,
     });
-    return AccessoryListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] accessories response: ${response.data}');
+    final parsed = AccessoryListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] accessories count: ${parsed.data.length}');
+    return parsed;
   }
 
   Future<AccessoryModel> createAccessory(Map<String, dynamic> data) async {

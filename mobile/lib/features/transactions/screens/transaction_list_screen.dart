@@ -69,6 +69,42 @@ class _TransactionCard extends StatelessWidget {
 
   const _TransactionCard({required this.item});
 
+  Widget _buildInfoRow(BuildContext context, String label, String value, {Color? valueColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : AppTheme.grey500),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: valueColor ?? (isDark ? Colors.white : AppTheme.grey800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _shortId(String id) {
+    if (id.isEmpty) return '';
+    return id.length <= 8 ? id : id.substring(0, 8);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -106,31 +142,44 @@ class _TransactionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(
-                          item.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${item.productType} • #${_shortId(item.id)}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white54 : AppTheme.grey600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       _StatusChip(item: item),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    item.partnerLine,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppTheme.grey600,
-                      fontSize: 13,
+                  const SizedBox(height: 12),
+                  _buildInfoRow(context, 'Người bán:', item.sellerName ?? '---'),
+                  _buildInfoRow(context, 'Người mua:', item.buyerName ?? '---'),
+                  if (item.hasContract)
+                    _buildInfoRow(
+                      context,
+                      'Hợp đồng:',
+                      item.contractStatus ?? 'Có hợp đồng',
+                      valueColor: AppTheme.primaryGreen,
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Expanded(
@@ -139,14 +188,15 @@ class _TransactionCard extends StatelessWidget {
                           style: const TextStyle(
                             color: AppTheme.primaryGreen,
                             fontWeight: FontWeight.w700,
+                            fontSize: 15,
                           ),
                         ),
                       ),
                       if (item.createdAtLabel.isNotEmpty)
                         Text(
                           item.createdAtLabel,
-                          style: const TextStyle(
-                            color: AppTheme.grey400,
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : AppTheme.grey500,
                             fontSize: 12,
                           ),
                         ),

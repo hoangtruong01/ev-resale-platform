@@ -53,11 +53,15 @@ class VehicleService {
   }
 
   Future<VehicleListResponse> getMyVehicles({int page = 1, int limit = 10}) async {
+    debugPrint('[MY_LISTINGS] fetch vehicles');
     final response = await _dio.get('/vehicles/my-vehicles', queryParameters: {
       'page': page,
       'limit': limit,
     });
-    return VehicleListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] vehicles response: ${response.data}');
+    final parsed = VehicleListResponse.fromJson(response.data);
+    debugPrint('[MY_LISTINGS] vehicles count: ${parsed.data.length}');
+    return parsed;
   }
 
   Future<VehicleModel> createVehicle(Map<String, dynamic> data) async {

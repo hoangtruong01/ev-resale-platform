@@ -115,6 +115,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  broadcastMessage(roomId: string, message: unknown) {
+    this.server.to(roomId).emit('chat:message', message);
+  }
+
   @SubscribeMessage('markAsRead')
   async handleMarkAsRead(
     @ConnectedSocket() client: Socket,
