@@ -10,6 +10,7 @@ import '../../../core/utils/app_utils.dart';
 import 'package:go_router/go_router.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/network/dio_client.dart';
+import 'sell_accessory_screen.dart';
 
 final accessoryDetailProvider = FutureProvider.family<AccessoryModel, String>((
   ref,
@@ -56,7 +57,19 @@ class AccessoryDetailScreen extends ConsumerWidget {
                   ),
                   child: isMine
                       ? ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () async {
+                            final updated = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SellAccessoryScreen(
+                                  initialAccessory: accessory,
+                                ),
+                              ),
+                            );
+                            if (updated == true) {
+                              ref.invalidate(accessoryDetailProvider(id));
+                            }
+                          },
                           icon: const Icon(Icons.edit_outlined),
                           label: const Text('Chỉnh sửa tin đăng'),
                         )

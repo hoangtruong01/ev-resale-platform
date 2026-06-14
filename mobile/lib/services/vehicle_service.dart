@@ -70,7 +70,7 @@ class VehicleService {
   }
 
   Future<VehicleModel> updateVehicle(String id, Map<String, dynamic> data) async {
-    final response = await _dio.put('/vehicles/$id', data: data);
+    final response = await _dio.patch('/vehicles/$id', data: data);
     return VehicleModel.fromJson(response.data);
   }
 

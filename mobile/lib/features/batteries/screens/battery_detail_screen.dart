@@ -10,6 +10,7 @@ import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../../core/network/dio_client.dart';
+import 'sell_battery_screen.dart';
 
 final batteryDetailProvider = FutureProvider.family<BatteryModel, String>((
   ref,
@@ -412,7 +413,19 @@ class _BottomBar extends ConsumerWidget {
       ),
       child: isMine
           ? ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () async {
+                final updated = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SellBatteryScreen(
+                      initialBattery: battery,
+                    ),
+                  ),
+                );
+                if (updated == true) {
+                  ref.invalidate(batteryDetailProvider(battery.id));
+                }
+              },
               icon: const Icon(Icons.edit_outlined),
               label: const Text('Chỉnh sửa tin đăng'),
             )

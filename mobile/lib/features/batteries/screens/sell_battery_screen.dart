@@ -8,10 +8,12 @@ import '../../../core/theme/app_theme.dart';
 import '../../../services/battery_service.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/user_model.dart';
+import '../../../models/battery_model.dart';
 import '../../../widgets/address_selector.dart';
 
 class SellBatteryScreen extends ConsumerStatefulWidget {
-  const SellBatteryScreen({super.key});
+  final BatteryModel? initialBattery;
+  const SellBatteryScreen({super.key, this.initialBattery});
 
   @override
   ConsumerState<SellBatteryScreen> createState() => _SellBatteryScreenState();
@@ -36,7 +38,26 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
   bool _isSuggestingPrice = false;
   double? _lastSuggestedPrice;
   final List<XFile> _images = [];
+  List<String> _existingImageUrls = [];
   final _picker = ImagePicker();
+
+  bool get _isEditing => widget.initialBattery != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final b = widget.initialBattery;
+    if (b != null) {
+      _nameCtrl.text = b.name;
+      _priceCtrl.text = b.price.toStringAsFixed(0);
+      _capacityCtrl.text = b.capacity.toString();
+      _conditionCtrl.text = b.condition.toString();
+      _locationCtrl.text = b.location;
+      _descriptionCtrl.text = b.description ?? '';
+      _type = b.type;
+      _existingImageUrls = List<String>.from(b.images);
+    }
+  }
 
   @override
   void dispose() {
@@ -67,9 +88,11 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
 
     try {
       final service = ref.read(batteryServiceProvider);
-      final imageUrls = _images.isNotEmpty
+      final newImageUrls = _images.isNotEmpty
           ? await service.uploadListingImages(_images)
           : <String>[];
+
+      final allImages = [..._existingImageUrls, ...newImageUrls];
 
       final user = ref.read(currentUserProvider);
       final description = _buildDescription(user);
@@ -82,26 +105,46 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
         'price': double.tryParse(_priceCtrl.text.trim()) ?? 0,
         'description': description,
         'location': _locationCtrl.text.trim(),
-        if (imageUrls.isNotEmpty) 'images': imageUrls,
+        if (allImages.isNotEmpty) 'images': allImages,
       };
 
-      await service.createBattery(payload);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Đăng bán pin thành công!')));
-      Navigator.pop(context);
+      if (_isEditing) {
+        await service.updateBattery(widget.initialBattery!.id, payload);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cập nhật tin đăng thành công!')),
+        );
+      } else {
+        await service.createBattery(payload);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng bán pin thành công!')),
+        );
+      }
+      Navigator.pop(context, _isEditing);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $error')));
+      final msg = _parseError(error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg)),
+      );
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  String _parseError(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map && data['message'] != null) {
+        final msg = data['message'];
+        if (msg is List) return msg.join('\n');
+        if (msg is String) return msg;
+      }
+    }
+    return 'Có lỗi xảy ra: $error';
   }
 
   Future<void> _suggestPrice() async {
@@ -259,7 +302,9 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng bán pin điện')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Chỉnh sửa tin đăng' : 'Đăng bán pin điện'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -514,7 +559,11 @@ class _SellBatteryScreenState extends ConsumerState<SellBatteryScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submit,
-                  child: Text(_isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay'),
+                  child: Text(
+                    _isSubmitting
+                        ? (_isEditing ? 'Đang cập nhật...' : 'Đang đăng tin...')
+                        : (_isEditing ? 'Cập nhật tin đăng' : 'Đăng bán ngay'),
+                  ),
                 ),
               ),
               const SizedBox(height: 120), // Spacing for bottom navigation bar

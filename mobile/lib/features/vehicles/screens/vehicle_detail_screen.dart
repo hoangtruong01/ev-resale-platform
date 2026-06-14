@@ -9,6 +9,7 @@ import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/network/dio_client.dart';
+import 'sell_vehicle_screen.dart';
 
 final vehicleDetailProvider = FutureProvider.family<VehicleModel, String>((
   ref,
@@ -384,7 +385,19 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                   ),
                   child: isMine
                       ? ElevatedButton.icon(
-                          onPressed: () {},
+                          onPressed: () async {
+                            final updated = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SellVehicleScreen(
+                                  initialVehicle: vehicle,
+                                ),
+                              ),
+                            );
+                            if (updated == true) {
+                              ref.invalidate(vehicleDetailProvider(widget.id));
+                            }
+                          },
                           icon: const Icon(Icons.edit_outlined),
                           label: const Text('Chỉnh sửa tin đăng'),
                         )
