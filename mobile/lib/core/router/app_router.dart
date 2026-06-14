@@ -25,6 +25,7 @@ import '../../features/chat/screens/chat_room_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
 import '../../features/profile/screens/my_listings_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
+import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../../widgets/main_shell.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/batteries/screens/battery_monitor_screen.dart';
@@ -287,6 +288,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/notifications',
             builder: (context, state) => const NotificationsScreen(),
+          ),
+          GoRoute(
+            path: '/notifications/settings',
+            builder: (context, state) => const NotificationSettingsScreen(),
           ),
           GoRoute(
             path: '/battery-monitor/:id',

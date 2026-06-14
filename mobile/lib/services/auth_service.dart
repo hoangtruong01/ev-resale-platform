@@ -83,6 +83,18 @@ class AuthService {
     });
   }
 
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await _dio.post('/auth/password/change', data: {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+      'confirmPassword': confirmPassword,
+    });
+  }
+
   Future<AuthResponse> googleLogin(String idToken) async {
     final response = await _dio.post('/auth/google/verify', data: {
       'credential': idToken,
@@ -96,4 +108,5 @@ class AuthService {
     });
     return AuthResponse.fromJson(response.data);
   }
+
 }

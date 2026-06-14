@@ -23,13 +23,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<any> {
     try {
-      this.logger.log(`Validating Google OAuth profile for user: ${profile?.id}`);
-      
+      this.logger.log(
+        `Validating Google OAuth profile for user: ${profile?.id}`,
+      );
+
       const { id, name, emails, photos } = profile;
 
       const email = emails && emails.length > 0 ? emails[0].value : '';
-      const firstName = name ? (name.givenName || '') : '';
-      const lastName = name ? (name.familyName || '') : '';
+      const firstName = name ? name.givenName || '' : '';
+      const lastName = name ? name.familyName || '' : '';
       const picture = photos && photos.length > 0 ? photos[0].value : '';
 
       if (!email) {
@@ -48,8 +50,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       const validatedUser = await this.authService.validateGoogleUser(user);
       done(null, validatedUser);
     } catch (error) {
-      this.logger.error('Error validating Google OAuth user:', error.stack || error.message || error);
-      done(error, false);
+      this.logger.error(
+        'Error validating Google OAuth user:',
+        error.stack || error.message || error,
+      );
+      done(error, undefined);
     }
   }
 }

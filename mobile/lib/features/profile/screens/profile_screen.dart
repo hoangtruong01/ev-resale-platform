@@ -14,6 +14,7 @@ import '../../admin/screens/kyc_management_screen.dart';
 import '../../admin/screens/admin_analytics_screen.dart';
 import 'payment_methods_screen.dart';
 import 'terms_policy_screen.dart';
+import 'change_password_screen.dart';
 import '../../../core/auth/session_state_provider.dart';
 
 final dashboardOverviewProvider = FutureProvider<DashboardOverviewData>((ref) {
@@ -284,11 +285,16 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.lock_outline,
                         label: 'Đổi mật khẩu',
-                        onTap: () => context.push('/auth/forgot-password'),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChangePasswordScreen(),
+                          ),
+                        ),
                       ),
                       _MenuItem(
                         icon: Icons.notifications_outlined,
-                        label: 'Cài đặt thông báo',
+                        label: 'Thông báo',
                         onTap: () => context.push('/notifications'),
                       ),
                       _MenuItem(

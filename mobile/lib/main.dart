@@ -6,6 +6,7 @@ import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/locale/locale_provider.dart';
+import 'widgets/app_toast.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,7 @@ class EVNBatteryApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'EVN Market',
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: AppToastController.instance.messengerKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
