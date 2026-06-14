@@ -95,6 +95,7 @@ type TransactionWithRelations = Prisma.TransactionGetPayload<{
     };
     vehicle: true;
     battery: true;
+    accessory: true;
     purchase: {
       include: {
         buyer: {
@@ -165,6 +166,12 @@ type TransactionWithRelations = Prisma.TransactionGetPayload<{
             email: true;
           };
         };
+      };
+    };
+    contract: {
+      select: {
+        id: true;
+        status: true;
       };
     };
   };
@@ -191,6 +198,7 @@ export class TransactionsService {
     },
     vehicle: true,
     battery: true,
+    accessory: true,
     purchase: {
       include: {
         buyer: {
@@ -263,12 +271,19 @@ export class TransactionsService {
         },
       },
     },
+    contract: {
+      select: {
+        id: true,
+        status: true,
+      },
+    },
   } as const;
 
   async create(createTransactionDto: CreateTransactionDto) {
     const {
       vehicleId,
       batteryId,
+      accessoryId,
       sellerId,
       roomId,
       amount,
@@ -281,6 +296,7 @@ export class TransactionsService {
 
     let resolvedVehicleId = vehicleId ?? null;
     let resolvedBatteryId = batteryId ?? null;
+    let resolvedAccessoryId = accessoryId ?? null;
 
     let chatRoom: {
       id: string;
@@ -288,6 +304,7 @@ export class TransactionsService {
       sellerId: string;
       vehicleId: string | null;
       batteryId: string | null;
+      accessoryId: string | null;
     } | null = null;
 
     if (roomId) {
@@ -299,6 +316,7 @@ export class TransactionsService {
           sellerId: true,
           vehicleId: true,
           batteryId: true,
+          accessoryId: true,
         },
       });
 
@@ -318,6 +336,10 @@ export class TransactionsService {
         resolvedBatteryId = chatRoom.batteryId;
       }
 
+      if (!resolvedAccessoryId && chatRoom.accessoryId) {
+        resolvedAccessoryId = chatRoom.accessoryId;
+      }
+
       if (
         resolvedVehicleId &&
         chatRoom.vehicleId &&
@@ -332,6 +354,14 @@ export class TransactionsService {
         chatRoom.batteryId !== resolvedBatteryId
       ) {
         throw new BadRequestException('Phòng chat không liên quan tới pin này');
+      }
+
+      if (
+        resolvedAccessoryId &&
+        chatRoom.accessoryId &&
+        chatRoom.accessoryId !== resolvedAccessoryId
+      ) {
+        throw new BadRequestException('Phòng chat không liên quan tới phụ kiện này');
       }
 
       const pendingTransaction = await this.prisma.transaction.findFirst({
@@ -365,12 +395,14 @@ export class TransactionsService {
       }
     }
 
-    if (
-      (resolvedVehicleId && resolvedBatteryId) ||
-      (!resolvedVehicleId && !resolvedBatteryId)
-    ) {
+    const itemsCount =
+      (resolvedVehicleId ? 1 : 0) +
+      (resolvedBatteryId ? 1 : 0) +
+      (resolvedAccessoryId ? 1 : 0);
+
+    if (itemsCount !== 1) {
       throw new BadRequestException(
-        'Một giao dịch cần có duy nhất một xe hoặc một pin',
+        'Một giao dịch cần có duy nhất một xe, pin hoặc phụ kiện',
       );
     }
 
@@ -402,6 +434,20 @@ export class TransactionsService {
       }
     }
 
+    if (resolvedAccessoryId) {
+      const accessory = await this.prisma.accessory.findUnique({
+        where: { id: resolvedAccessoryId },
+      });
+
+      if (!accessory) {
+        throw new NotFoundException('Không tìm thấy phụ kiện');
+      }
+
+      if (accessory.sellerId !== sellerId) {
+        throw new BadRequestException('Phụ kiện này không thuộc về người bán');
+      }
+    }
+
     const resolvedFeeValue =
       fee ?? (await this.calculatePlatformFee(Number(amount)));
 
@@ -416,6 +462,7 @@ export class TransactionsService {
         notes: notes ?? null,
         vehicleId: resolvedVehicleId,
         batteryId: resolvedBatteryId,
+        accessoryId: resolvedAccessoryId,
         chatRoomId: roomId ?? null,
         buyerAccepted: null,
         buyerRespondedAt: null,

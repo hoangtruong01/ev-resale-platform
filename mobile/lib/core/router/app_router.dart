@@ -23,6 +23,7 @@ import '../../features/auctions/screens/create_auction_screen.dart';
 import '../../features/chat/screens/chat_list_screen.dart';
 import '../../features/chat/screens/chat_room_screen.dart';
 import '../../features/profile/screens/profile_screen.dart';
+import '../../features/profile/screens/my_listings_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../../widgets/main_shell.dart';
@@ -279,6 +280,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
+          ),
+          GoRoute(
+            path: '/profile/listings',
+            builder: (context, state) => const MyListingsScreen(),
           ),
           GoRoute(
             path: '/notifications',

@@ -414,17 +414,17 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                                       'buyerId': currentUser.id,
                                       'sellerId': vehicle.sellerId,
                                       'vehicleId': vehicle.id,
-                                    });
-                                    Navigator.pop(context); // close loading indicator
+                                    }).timeout(const Duration(seconds: 15));
+                                    if (context.mounted) Navigator.pop(context); // close loading indicator
 
                                     final roomId = response.data['id'];
                                     if (roomId != null) {
                                       context.push('/chat/$roomId');
                                     }
                                   } catch (e) {
-                                    Navigator.pop(context); // close loading indicator
+                                    if (context.mounted) Navigator.pop(context); // close loading indicator
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Không thể bắt đầu trò chuyện: $e')),
+                                      SnackBar(content: Text(parseApiError(e))),
                                     );
                                   }
                                 },

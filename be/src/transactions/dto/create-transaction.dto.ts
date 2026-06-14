@@ -69,6 +69,13 @@ export class CreateTransactionDto {
   batteryId?: string;
 
   @ApiPropertyOptional({
+    description: 'Accessory ID (if transaction involves an accessory)',
+  })
+  @IsOptional()
+  @IsUUID()
+  accessoryId?: string;
+
+  @ApiPropertyOptional({
     description: 'Chat room ID linked to this transaction',
   })
   @IsOptional()

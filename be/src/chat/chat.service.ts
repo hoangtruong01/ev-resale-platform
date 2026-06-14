@@ -15,13 +15,33 @@ export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getOrCreateRoom(payload: CreateRoomDto) {
-    if (payload.buyerId === payload.sellerId) {
+    const buyerId = payload.buyerId?.trim();
+    const sellerId = payload.sellerId?.trim();
+
+    if (!buyerId || !sellerId) {
+      throw new BadRequestException('Buyer and seller are required.');
+    }
+
+    if (buyerId === sellerId) {
       throw new BadRequestException(
         'Buyer and seller must be different users.',
       );
     }
 
-    const roomFilter = this.buildRoomFilter(payload);
+    const asset = await this.resolveRoomAsset({
+      ...payload,
+      buyerId,
+      sellerId,
+    });
+
+    const normalizedPayload: CreateRoomDto = {
+      buyerId,
+      sellerId,
+      vehicleId: asset.type === 'vehicle' ? asset.id : undefined,
+      batteryId: asset.type === 'battery' ? asset.id : undefined,
+      accessoryId: asset.type === 'accessory' ? asset.id : undefined,
+    };
+    const roomFilter = this.buildRoomFilter(normalizedPayload);
 
     const existingRoom = await this.prisma.chatRoom.findFirst({
       where: roomFilter,
@@ -35,21 +55,16 @@ export class ChatService {
     try {
       return await this.prisma.chatRoom.create({
         data: {
-          buyerId: payload.buyerId,
-          sellerId: payload.sellerId,
-          vehicleId: payload.vehicleId ?? null,
-          batteryId: payload.batteryId ?? null,
+          buyerId,
+          sellerId,
+          vehicleId: normalizedPayload.vehicleId ?? null,
+          batteryId: normalizedPayload.batteryId ?? null,
+          accessoryId: normalizedPayload.accessoryId ?? null,
         },
         include: this.roomInclude,
       });
     } catch (error: unknown) {
-      const isUniqueConstraintError =
-        error !== null &&
-        typeof error === 'object' &&
-        'code' in error &&
-        (error as { code?: unknown }).code === 'P2002';
-
-      if (isUniqueConstraintError) {
+      if (this.isPrismaError(error, 'P2002')) {
         const room = await this.prisma.chatRoom.findFirst({
           where: roomFilter,
           include: this.roomInclude,
@@ -60,10 +75,15 @@ export class ChatService {
         }
       }
 
+      if (this.isPrismaError(error, 'P2003')) {
+        throw new BadRequestException(
+          'Invalid chat room participant or product reference.',
+        );
+      }
+
       throw error;
     }
   }
-
   async findRoomsForUser(userId: string) {
     const rooms = await this.prisma.chatRoom.findMany({
       where: {
@@ -211,6 +231,7 @@ export class ChatService {
         },
         vehicle: { select: { id: true, name: true } },
         battery: { select: { id: true, name: true } },
+        accessory: { select: { id: true, name: true } },
       },
     });
 
@@ -259,6 +280,7 @@ export class ChatService {
           sellerId: room.sellerId,
           vehicleId: room.vehicleId ?? undefined,
           batteryId: room.batteryId ?? undefined,
+          accessoryId: room.accessoryId ?? undefined,
           notes: dto.notes ?? null,
         },
       });
@@ -283,7 +305,8 @@ export class ChatService {
       });
 
       // Post a system message in the chat
-      const assetName = room.vehicle?.name ?? room.battery?.name ?? 'Sản phẩm';
+      const assetName =
+        room.vehicle?.name ?? room.battery?.name ?? room.accessory?.name ?? 'San pham';
       const systemMessage = await tx.chatMessage.create({
         data: {
           roomId,
@@ -342,12 +365,86 @@ export class ChatService {
     }
   }
 
+  private isPrismaError(error: unknown, code: string) {
+    return (
+      error !== null &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error as { code?: unknown }).code === code
+    );
+  }
+
+  private async resolveRoomAsset(payload: CreateRoomDto): Promise<{
+    type: 'vehicle' | 'battery' | 'accessory';
+    id: string;
+  }> {
+    await Promise.all([
+      this.ensureUserExists(payload.buyerId, 'Buyer'),
+      this.ensureUserExists(payload.sellerId, 'Seller'),
+    ]);
+
+    const selected = [
+      payload.vehicleId ? { type: 'vehicle' as const, id: payload.vehicleId } : null,
+      payload.batteryId ? { type: 'battery' as const, id: payload.batteryId } : null,
+      payload.accessoryId ? { type: 'accessory' as const, id: payload.accessoryId } : null,
+    ].filter(Boolean) as Array<{
+      type: 'vehicle' | 'battery' | 'accessory';
+      id: string;
+    }>;
+
+    if (selected.length !== 1) {
+      throw new BadRequestException(
+        'Exactly one product must be linked to a chat room.',
+      );
+    }
+
+    const asset = selected[0];
+    const record = await this.findAssetOwner(asset.type, asset.id);
+
+    if (!record) {
+      throw new NotFoundException('Product not found.');
+    }
+
+    if (record.sellerId !== payload.sellerId) {
+      throw new BadRequestException(
+        'Seller does not match the selected product owner.',
+      );
+    }
+
+    return asset;
+  }
+
+  private async ensureUserExists(userId: string, label: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`${label} not found.`);
+    }
+  }
+
+  private findAssetOwner(
+    type: 'vehicle' | 'battery' | 'accessory',
+    id: string,
+  ): Promise<{ sellerId: string } | null> {
+    const select = { sellerId: true };
+    if (type === 'vehicle') {
+      return this.prisma.vehicle.findUnique({ where: { id }, select });
+    }
+    if (type === 'battery') {
+      return this.prisma.battery.findUnique({ where: { id }, select });
+    }
+    return this.prisma.accessory.findUnique({ where: { id }, select });
+  }
   private buildRoomFilter(payload: CreateRoomDto) {
     return {
       buyerId: payload.buyerId,
       sellerId: payload.sellerId,
       vehicleId: payload.vehicleId ?? null,
       batteryId: payload.batteryId ?? null,
+      accessoryId: payload.accessoryId ?? null,
     };
   }
 
@@ -359,7 +456,15 @@ export class ChatService {
       select: { id: true, fullName: true, avatar: true },
     },
     vehicle: {
-      select: { id: true, name: true, brand: true, model: true, images: true },
+      select: {
+        id: true,
+        name: true,
+        brand: true,
+        model: true,
+        price: true,
+        status: true,
+        images: true,
+      },
     },
     battery: {
       select: {
@@ -367,6 +472,19 @@ export class ChatService {
         name: true,
         type: true,
         capacity: true,
+        price: true,
+        status: true,
+        images: true,
+      },
+    },
+    accessory: {
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        brand: true,
+        price: true,
+        status: true,
         images: true,
       },
     },

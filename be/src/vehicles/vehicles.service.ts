@@ -243,8 +243,6 @@ export class VehiclesService {
 
     const baseWhere: Prisma.VehicleWhereInput = {
       sellerId: userId,
-      isActive: true,
-      approvalStatus: APPROVAL_STATUS.APPROVED,
     };
 
     const [vehicles, total] = await Promise.all([

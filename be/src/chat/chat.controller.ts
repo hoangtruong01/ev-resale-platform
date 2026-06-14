@@ -13,6 +13,7 @@ import {
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChatService } from './chat.service';
+import { ChatGateway } from './chat.gateway';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { ProposeContractDto } from './dto/propose-contract.dto';
@@ -43,13 +44,16 @@ function resolveUserId(user?: {
 @ApiTags('Chat')
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly chatGateway: ChatGateway,
+  ) {}
 
   @Post('rooms')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get or create a chat room' })
-  createRoom(@Req() req: AuthenticatedRequest, @Body() dto: CreateRoomDto) {
+  createRoom(@Req() req: AuthenticatedRequest, @Body(new ValidationPipe({ whitelist: true })) dto: CreateRoomDto) {
     const buyerId = resolveUserId(req.user);
     if (!buyerId) {
       throw new BadRequestException('User identity is required.');
@@ -143,6 +147,8 @@ export class ChatController {
     if (!proposerId) {
       throw new BadRequestException('User identity is required.');
     }
-    return this.chatService.proposeContract(roomId, proposerId, dto);
+    const result = await this.chatService.proposeContract(roomId, proposerId, dto);
+    this.chatGateway.broadcastMessage(roomId, result.systemMessage);
+    return result;
   }
 }

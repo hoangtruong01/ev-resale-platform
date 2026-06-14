@@ -322,7 +322,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.list_alt_outlined,
                         label: l10n.menuMyListings,
-                        onTap: () => _showMyListingActions(context, l10n),
+                        onTap: () => context.push('/profile/listings'),
                       ),
                       _MenuItem(
                         icon: Icons.receipt_long_outlined,
@@ -503,52 +503,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showMyListingActions(BuildContext context, AppLocalizations l10n) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(
-                l10n.menuMyListings,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.battery_charging_full_rounded),
-              title: Text(l10n.sellBatteryOption),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/sell/battery');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.electric_car_rounded),
-              title: Text(l10n.sellVehicleOption),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/sell/vehicle');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.extension_outlined),
-              title: Text(l10n.sellAccessoryOption),
-              onTap: () {
-                Navigator.pop(ctx);
-                context.push('/sell/accessory');
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 
   void _showProfileInfoDialog(BuildContext context, UserModel? user, AppLocalizations l10n) {
     showDialog(

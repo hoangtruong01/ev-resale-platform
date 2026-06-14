@@ -381,30 +381,48 @@ export class AccessoriesService {
       sortOrder = 'desc',
     } = query;
 
-    const skip = (page - 1) * limit;
+    const toNumber = (value: unknown) => {
+      if (value === undefined || value === null || value === '') {
+        return undefined;
+      }
+
+      const numeric = Number(value);
+      return Number.isFinite(numeric) ? numeric : undefined;
+    };
+
+    const allowedSortFields = ['createdAt', 'price'];
+    const safePage = Math.max(1, Math.floor(toNumber(page) ?? 1));
+    const safeLimit = Math.min(
+      100,
+      Math.max(1, Math.floor(toNumber(limit) ?? 10)),
+    );
+    const safeSortBy = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : 'createdAt';
+    const safeSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
+    const where = { sellerId: userId };
+    const skip = (safePage - 1) * safeLimit;
     const orderBy = {
-      [sortBy]: sortOrder,
+      [safeSortBy]: safeSortOrder,
     } as Prisma.AccessoryOrderByWithRelationInput;
 
     const [accessories, total] = await Promise.all([
       this.prisma.accessory.findMany({
-        where: { sellerId: userId, isActive: true },
+        where,
         skip,
-        take: limit,
+        take: safeLimit,
         orderBy,
       }),
-      this.prisma.accessory.count({
-        where: { sellerId: userId, isActive: true },
-      }),
+      this.prisma.accessory.count({ where }),
     ]);
 
     return {
       data: accessories,
       pagination: {
         total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: safePage,
+        limit: safeLimit,
+        totalPages: Math.ceil(total / safeLimit),
       },
     };
   }

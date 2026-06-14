@@ -14,4 +14,8 @@ export class CreateRoomDto {
   @IsOptional()
   @IsString()
   batteryId?: string;
+
+  @IsOptional()
+  @IsString()
+  accessoryId?: string;
 }

@@ -142,10 +142,7 @@ export class VehiclesController {
   @Get('my-vehicles')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({
-    summary: 'Get my vehicle listings',
-    description: 'Retrieve the authenticated user vehicle listings',
-  })
+  @ApiOperation({ summary: 'Get my vehicles listings' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'sortBy', required: false, type: String })
@@ -159,25 +156,25 @@ export class VehiclesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortBy') sortBy?: string,
-    @Query('sortOrder') sortOrder?: string,
+    @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
-    const parseNumber = (value?: string) => {
-      if (!value) {
-        return undefined;
-      }
-
-      const numeric = Number(value);
-      return Number.isFinite(numeric) ? numeric : undefined;
+    const userId = requireSellerId(req);
+    console.log('[DEBUG MY-VEHICLES] extracted userId:', userId, 'from user:', req.user);
+    
+    const parseNumber = (value?: string | null) => {
+      if (!value) return undefined;
+      const num = Number(value);
+      return Number.isFinite(num) ? num : undefined;
     };
 
-    const normalizedSortOrder = sortOrder === 'asc' ? 'asc' : 'desc';
-
-    return this.vehiclesService.findByUser(requireSellerId(req), {
+    const result = await this.vehiclesService.findByUser(userId, {
       page: parseNumber(page),
       limit: parseNumber(limit),
       sortBy,
-      sortOrder: normalizedSortOrder,
+      sortOrder,
     });
+    console.log('[DEBUG MY-VEHICLES] query result:', result);
+    return result;
   }
 
   @Get(':id')
