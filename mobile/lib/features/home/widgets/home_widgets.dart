@@ -267,7 +267,6 @@ class FilterTab extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-        constraints: const BoxConstraints(minWidth: 80),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(

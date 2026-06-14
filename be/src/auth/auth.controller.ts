@@ -239,27 +239,6 @@ export class AuthController {
     return result;
   }
 
-  @Post('firebase/google')
-  @ApiOperation({
-    summary: 'Authenticate with Firebase Google Sign-In',
-    description: 'Verify Firebase ID token from Google Sign-In and return JWT',
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        idToken: { type: 'string', description: 'Firebase ID token' },
-      },
-      required: ['idToken'],
-    },
-  })
-  async authenticateWithFirebase(@Body('idToken') idToken: string) {
-    if (!idToken) {
-      throw new BadRequestException('Missing idToken');
-    }
-    return await this.authService.authenticateWithFirebase(idToken);
-  }
-
   @Get('google')
   @ApiOperation({
     summary: 'Google OAuth login',

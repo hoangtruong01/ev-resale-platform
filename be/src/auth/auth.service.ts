@@ -5,7 +5,6 @@ import {
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
-  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,14 +17,12 @@ import {
   UpdateAuthDto,
 } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
-import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-    private firebaseService: FirebaseService,
   ) {}
 
   private getRefreshSecret() {
@@ -269,78 +266,6 @@ export class AuthService {
     }
 
     return user;
-  }
-
-  // Firebase Authentication - Verify Firebase ID Token and create/update user
-  async authenticateWithFirebase(firebaseIdToken: string) {
-    try {
-      // Verify Firebase ID Token
-      const decodedToken = await this.firebaseService.verifyIdToken(firebaseIdToken);
-      
-      const firebaseUid = decodedToken.uid;
-      const email = decodedToken.email;
-      const name = decodedToken.name || '';
-      const picture = decodedToken.picture || '';
-      const emailVerified = decodedToken.email_verified || false;
-
-      if (!email) {
-        throw new BadRequestException('Email is required from Firebase token');
-      }
-
-      // Find user by Firebase UID or email
-      let user = await this.prisma.user.findFirst({
-        where: {
-          OR: [{ firebaseUid: firebaseUid }, { email: email }],
-        },
-        include: { profile: true },
-      });
-
-      if (user) {
-        // Update user if Firebase UID is not set
-        if (!user.firebaseUid) {
-          user = await this.prisma.user.update({
-            where: { id: user.id },
-            data: {
-              firebaseUid: firebaseUid,
-              avatar: picture || user.avatar,
-              name: name || user.name,
-              fullName: name || user.fullName,
-              provider: 'firebase',
-              emailVerified: emailVerified,
-            },
-            include: { profile: true },
-          });
-        }
-      } else {
-        // Create new user with Firebase
-        const fullName = name || email.split('@')[0];
-        user = await this.prisma.user.create({
-          data: {
-            firebaseUid: firebaseUid,
-            email: email,
-            fullName: fullName,
-            name: fullName,
-            avatar: picture,
-            provider: 'firebase',
-            isProfileComplete: false,
-            emailVerified: emailVerified,
-          },
-          include: { profile: true },
-        });
-      }
-
-      if (!user.isActive) {
-        throw new UnauthorizedException('Tài khoản của bạn đã bị khóa');
-      }
-
-      return this.generateAuthResponse(user);
-    } catch (error) {
-      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
-        throw error;
-      }
-      console.error('Firebase authentication error:', error);
-      throw new UnauthorizedException('Firebase authentication failed');
-    }
   }
 
   async validateFacebookUser(facebookUser: FacebookUser) {
