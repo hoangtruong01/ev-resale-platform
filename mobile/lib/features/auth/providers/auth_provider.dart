@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -185,6 +186,14 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
           key: 'user_data', value: jsonEncode(user.toJson()));
       state = AsyncValue.data(AuthState(user: user));
     } catch (_) {}
+  }
+
+  Future<void> updateAvatar(File imageFile) async {
+    final authService = ref.read(authServiceProvider);
+    final user = await authService.updateAvatar(imageFile);
+    await _storage.write(
+        key: 'user_data', value: jsonEncode(user.toJson()));
+    state = AsyncValue.data(AuthState(user: user));
   }
 
   Future<void> _saveAuth(AuthResponse response) async {
