@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,7 +27,9 @@ final dashboardOrdersProvider = FutureProvider<List<DashboardOrderData>>((ref) {
   return ref.read(dashboardServiceProvider).getOrders();
 });
 
-final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((ref) {
+final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((
+  ref,
+) {
   return ref.read(dashboardServiceProvider).getFavorites();
 });
 
@@ -38,6 +42,46 @@ class ProfileScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final overviewAsync = ref.watch(dashboardOverviewProvider);
     final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+
+    Future<void> pickAndUploadAvatar() async {
+      try {
+        final picker = ImagePicker();
+        final pickedFile = await picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
+
+        if (pickedFile == null) return;
+
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+            ),
+          );
+        }
+
+        await ref
+            .read(authStateProvider.notifier)
+            .updateAvatar(File(pickedFile.path));
+
+        if (context.mounted) {
+          Navigator.pop(context); // Dismiss loading dialog
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cập nhật ảnh đại diện thành công!')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          Navigator.pop(context); // Dismiss loading dialog
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Lỗi khi cập nhật ảnh: $e')));
+        }
+      }
+    }
 
     final overview = overviewAsync.maybeWhen(
       data: (data) => data,
@@ -70,54 +114,57 @@ class ProfileScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Avatar
-                      Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 44,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.2,
+                      GestureDetector(
+                        onTap: pickAndUploadAvatar,
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 44,
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.2,
+                              ),
+                              child: user?.avatar != null
+                                  ? ClipOval(
+                                      child: AppNetworkImage(
+                                        url: user!.avatar!,
+                                        width: 88,
+                                        height: 88,
+                                      ),
+                                    )
+                                  : Text(
+                                      user?.displayName.isNotEmpty == true
+                                          ? user!.displayName[0].toUpperCase()
+                                          : 'U',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                             ),
-                            child: user?.avatar != null
-                                ? ClipOval(
-                                    child: AppNetworkImage(
-                                      url: user!.avatar!,
-                                      width: 88,
-                                      height: 88,
-                                    ),
-                                  )
-                                : Text(
-                                    user?.displayName.isNotEmpty == true
-                                        ? user!.displayName[0].toUpperCase()
-                                        : 'U',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppTheme.primaryGreen,
+                                    width: 2,
                                   ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                border: Border.all(
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  size: 14,
                                   color: AppTheme.primaryGreen,
-                                  width: 2,
                                 ),
                               ),
-                              child: const Icon(
-                                Icons.camera_alt_rounded,
-                                size: 14,
-                                color: AppTheme.primaryGreen,
-                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -220,7 +267,8 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.person_outline,
                         label: l10n.menuPersonalInfo,
-                        onTap: () => _showProfileInfoDialog(context, user, l10n),
+                        onTap: () =>
+                            _showProfileInfoDialog(context, user, l10n),
                       ),
                       _MenuItem(
                         icon: Icons.verified_user_outlined,
@@ -256,8 +304,14 @@ class ProfileScreen extends ConsumerWidget {
                                     l10n.kycStatusPending,
                                     AppTheme.warning,
                                   ),
-                                  'REJECTED' => (l10n.kycStatusRejected, AppTheme.error),
-                                  _ => (l10n.kycStatusUnverified, AppTheme.grey400),
+                                  'REJECTED' => (
+                                    l10n.kycStatusRejected,
+                                    AppTheme.error,
+                                  ),
+                                  _ => (
+                                    l10n.kycStatusUnverified,
+                                    AppTheme.grey400,
+                                  ),
                                 };
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
@@ -301,9 +355,7 @@ class ProfileScreen extends ConsumerWidget {
                         icon: Icons.credit_card_outlined,
                         label: l10n.menuPaymentMethods,
                         onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(l10n.menuFeatureUpdating),
-                          ),
+                          SnackBar(content: Text(l10n.menuFeatureUpdating)),
                         ),
                       ),
                       _MenuItem(
@@ -386,7 +438,8 @@ class ProfileScreen extends ConsumerWidget {
                           context: context,
                           applicationName: 'EVN Pin Điện',
                           applicationVersion: '1.0.0',
-                          applicationLegalese: 'Nền tảng mua bán pin xe điện cũ EVN',
+                          applicationLegalese:
+                              'Nền tảng mua bán pin xe điện cũ EVN',
                         ),
                       ),
                     ],
@@ -477,7 +530,11 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
+  void _showLogoutDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -487,7 +544,10 @@ class ProfileScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.menuCancel, style: const TextStyle(color: AppTheme.grey600)),
+            child: Text(
+              l10n.menuCancel,
+              style: const TextStyle(color: AppTheme.grey600),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -503,9 +563,11 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-
-
-  void _showProfileInfoDialog(BuildContext context, UserModel? user, AppLocalizations l10n) {
+  void _showProfileInfoDialog(
+    BuildContext context,
+    UserModel? user,
+    AppLocalizations l10n,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -514,13 +576,17 @@ class ProfileScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${l10n.infoFullName}: ${user?.displayName ?? l10n.menuNotUpdated}'),
+            Text(
+              '${l10n.infoFullName}: ${user?.displayName ?? l10n.menuNotUpdated}',
+            ),
             const SizedBox(height: 8),
             Text('${l10n.infoEmail}: ${user?.email ?? l10n.menuNotUpdated}'),
             const SizedBox(height: 8),
             Text('${l10n.infoPhone}: ${user?.phone ?? l10n.menuNotUpdated}'),
             const SizedBox(height: 8),
-            Text('${l10n.infoAddress}: ${user?.address ?? l10n.menuNotUpdated}'),
+            Text(
+              '${l10n.infoAddress}: ${user?.address ?? l10n.menuNotUpdated}',
+            ),
           ],
         ),
         actions: [
@@ -563,7 +629,9 @@ class DashboardOrdersScreen extends StatelessWidget {
               final order = orders[i];
               return ListTile(
                 title: Text(order.itemName),
-                subtitle: Text('${order.status} • ${AppUtils.timeAgo(order.createdAt)}'),
+                subtitle: Text(
+                  '${order.status} • ${AppUtils.timeAgo(order.createdAt)}',
+                ),
                 trailing: Text(
                   AppUtils.formatCurrency(order.amount),
                   style: const TextStyle(
@@ -762,9 +830,7 @@ class _MenuSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? Colors.white10 : AppTheme.grey200,
-        ),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),

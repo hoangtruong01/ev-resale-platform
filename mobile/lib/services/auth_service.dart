@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/network/dio_client.dart';
@@ -10,6 +11,25 @@ final authServiceProvider = Provider<AuthService>((ref) {
 class AuthService {
   final Dio _dio;
   AuthService(this._dio);
+
+  Future<UserModel> updateAvatar(File imageFile) async {
+    final fileName = imageFile.path.split('/').last;
+    final formData = FormData.fromMap({
+      'avatar': await MultipartFile.fromFile(
+        imageFile.path,
+        filename: fileName,
+      ),
+    });
+
+    final response = await _dio.patch(
+      '/users/profile/avatar',
+      data: formData,
+      options: Options(
+        contentType: 'multipart/form-data',
+      ),
+    );
+    return UserModel.fromJson(response.data['user']);
+  }
 
   Future<AuthResponse> login({
     required String email,
