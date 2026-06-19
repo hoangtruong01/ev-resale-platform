@@ -10,6 +10,7 @@ import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../services/dashboard_service.dart';
 import '../../home/widgets/home_widgets.dart';
 
 final batteryDetailProvider = FutureProvider.family<BatteryModel, String>((
@@ -63,6 +64,11 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
   Widget build(BuildContext context) {
     final batteryAsync = ref.watch(batteryDetailProvider(widget.id));
     final currentUser = ref.watch(currentUserProvider);
+    final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+    final isFavorite = favoritesAsync.maybeWhen(
+      data: (list) => list.any((fav) => fav.sourceId == widget.id),
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: batteryAsync.when(
@@ -93,11 +99,45 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          if (isFavorite) {
+                            final favItem = favoritesAsync.value?.firstWhere(
+                              (fav) => fav.sourceId == widget.id,
+                            );
+                            if (favItem != null) {
+                              await ref
+                                  .read(dashboardServiceProvider)
+                                  .removeFavorite(favItem.id);
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                              );
+                            }
+                          } else {
+                            await ref
+                                .read(dashboardServiceProvider)
+                                .addFavorite(batteryId: widget.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
+                              );
+                            }
+                          }
+                          ref.invalidate(dashboardFavoritesProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi: $e')),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ),

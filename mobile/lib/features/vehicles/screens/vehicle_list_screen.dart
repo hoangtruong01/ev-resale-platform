@@ -50,6 +50,16 @@ class _VehicleListScreenState extends ConsumerState<VehicleListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Xe điện'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
         actions: [
           IconButton(icon: const Icon(Icons.tune_rounded), onPressed: () {}),
         ],

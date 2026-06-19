@@ -11,6 +11,8 @@ import '../../../core/network/dio_client.dart';
 
 import '../../../services/battery_service.dart';
 import '../../../services/vehicle_service.dart';
+import '../../../services/dashboard_service.dart';
+import '../../profile/screens/profile_screen.dart';
 import '../../../models/battery_model.dart';
 import '../../../models/vehicle_model.dart';
 
@@ -413,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // Search bar
           Expanded(
             child: GestureDetector(
-              onTap: () => context.push('/batteries'),
+              onTap: () => context.push('/search'),
               child: Container(
                 height: 40,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -443,7 +445,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const SizedBox(width: 10),
           // Favorite icon
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Consumer(
+                    builder: (context, ref, _) {
+                      final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+                      return DashboardFavoritesScreen(
+                        favoritesAsync: favoritesAsync,
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
             child: Container(
               width: 38,
               height: 38,
@@ -513,19 +529,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icons.battery_charging_full_rounded,
             label: l10n.categoryBattery,
             color: AppTheme.primaryGreen,
-            onTap: () => context.go('/batteries'),
+            onTap: () => context.push('/batteries'),
           ),
           HomeCategoryItem(
             icon: Icons.electric_moped_rounded,
             label: l10n.categoryVehicle,
             color: AppTheme.accentOrange,
-            onTap: () => context.go('/vehicles'),
+            onTap: () => context.push('/vehicles'),
           ),
           HomeCategoryItem(
             icon: Icons.extension_rounded,
             label: l10n.categoryAccessory,
             color: AppTheme.info,
-            onTap: () => context.go('/accessories'),
+            onTap: () => context.push('/accessories'),
           ),
           HomeCategoryItem(
             icon: Icons.gavel_rounded,

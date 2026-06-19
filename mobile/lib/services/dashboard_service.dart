@@ -58,12 +58,18 @@ class DashboardFavoriteData {
   final String title;
   final double price;
   final String? thumbnail;
+  final String? itemType;
+  final String? sourceId;
+  final String? location;
 
   const DashboardFavoriteData({
     required this.id,
     required this.title,
     required this.price,
     this.thumbnail,
+    this.itemType,
+    this.sourceId,
+    this.location,
   });
 
   factory DashboardFavoriteData.fromJson(Map<String, dynamic> json) {
@@ -72,9 +78,16 @@ class DashboardFavoriteData {
       title: json['title'] as String? ?? 'Sản phẩm',
       price: (json['price'] as num?)?.toDouble() ?? 0,
       thumbnail: json['thumbnail'] as String?,
+      itemType: json['itemType'] as String?,
+      sourceId: json['sourceId'] as String?,
+      location: json['location'] as String?,
     );
   }
 }
+
+final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((ref) {
+  return ref.watch(dashboardServiceProvider).getFavorites();
+});
 
 class DashboardService {
   final Dio _dio;
@@ -109,5 +122,21 @@ class DashboardService {
         .whereType<Map>()
         .map((item) => DashboardFavoriteData.fromJson(Map<String, dynamic>.from(item)))
         .toList();
+  }
+
+  Future<void> addFavorite({
+    String? vehicleId,
+    String? batteryId,
+    String? auctionId,
+  }) async {
+    await _dio.post('/dashboard/favorites', data: {
+      if (vehicleId != null) 'vehicleId': vehicleId,
+      if (batteryId != null) 'batteryId': batteryId,
+      if (auctionId != null) 'auctionId': auctionId,
+    });
+  }
+
+  Future<void> removeFavorite(String favoriteId) async {
+    await _dio.delete('/dashboard/favorites/$favoriteId');
   }
 }
