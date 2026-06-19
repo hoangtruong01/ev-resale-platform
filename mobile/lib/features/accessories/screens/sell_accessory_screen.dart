@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,10 +8,12 @@ import '../../../core/theme/app_theme.dart';
 import '../../../services/accessory_service.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../models/user_model.dart';
+import '../../../models/accessory_model.dart';
 import '../../../widgets/address_selector.dart';
 
 class SellAccessoryScreen extends ConsumerStatefulWidget {
-  const SellAccessoryScreen({super.key});
+  final AccessoryModel? initialAccessory;
+  const SellAccessoryScreen({super.key, this.initialAccessory});
 
   @override
   ConsumerState<SellAccessoryScreen> createState() =>
@@ -35,8 +38,28 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
   String? _condition;
   bool _isSubmitting = false;
   final List<XFile> _images = [];
+  List<String> _existingImageUrls = [];
 
   final _picker = ImagePicker();
+
+  bool get _isEditing => widget.initialAccessory != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final a = widget.initialAccessory;
+    if (a != null) {
+      _nameCtrl.text = a.name;
+      _priceCtrl.text = a.price.toStringAsFixed(0);
+      _brandCtrl.text = a.brand ?? '';
+      _modelCtrl.text = a.compatibleModel ?? '';
+      _locationCtrl.text = a.location;
+      _descriptionCtrl.text = a.description ?? '';
+      _category = a.category;
+      _condition = a.condition;
+      _existingImageUrls = List<String>.from(a.images);
+    }
+  }
 
   @override
   void dispose() {
@@ -67,9 +90,11 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
 
     try {
       final service = ref.read(accessoryServiceProvider);
-      final imageUrls = _images.isNotEmpty
+      final newImageUrls = _images.isNotEmpty
           ? await service.uploadListingImages(_images)
           : <String>[];
+
+      final allImages = [..._existingImageUrls, ...newImageUrls];
 
       final user = ref.read(currentUserProvider);
       final description = _buildDescription(user);
@@ -84,12 +109,26 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
         if (_brandCtrl.text.trim().isNotEmpty) 'brand': _brandCtrl.text.trim(),
         if (_modelCtrl.text.trim().isNotEmpty)
           'compatibleModel': _modelCtrl.text.trim(),
-        if (imageUrls.isNotEmpty) 'images': imageUrls,
+        if (allImages.isNotEmpty) 'images': allImages,
       };
 
-      await service.createAccessory(payload);
-
+      if (_isEditing) {
+        await service.updateAccessory(widget.initialAccessory!.id, payload);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cập nhật tin đăng thành công!')),
+        );
+      } else {
+        await service.createAccessory(payload);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng bán phụ kiện thành công!')),
+        );
+      }
+      Navigator.pop(context, _isEditing);
+    } catch (error) {
       if (!mounted) return;
+      final msg = _parseError(error);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           // Đặt const ở đây để sửa triệt để cảnh báo
@@ -119,17 +158,23 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
           duration: Duration(seconds: 4),
         ),
       );
-      Navigator.pop(context);
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Có lỗi xảy ra: $error')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  String _parseError(Object error) {
+    if (error is DioException) {
+      final data = error.response?.data;
+      if (data is Map && data['message'] != null) {
+        final msg = data['message'];
+        if (msg is List) return msg.join('\n');
+        if (msg is String) return msg;
+      }
+    }
+    return 'Có lỗi xảy ra: $error';
   }
 
   String _buildDescription(UserModel? user) {
@@ -152,7 +197,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Đăng bán phụ kiện')),
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Chỉnh sửa tin đăng' : 'Đăng bán phụ kiện'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -385,7 +432,9 @@ class _SellAccessoryScreenState extends ConsumerState<SellAccessoryScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : _submit,
                   child: Text(
-                    _isSubmitting ? 'Đang đăng tin...' : 'Đăng bán ngay',
+                    _isSubmitting
+                        ? (_isEditing ? 'Đang cập nhật...' : 'Đang đăng tin...')
+                        : (_isEditing ? 'Cập nhật tin đăng' : 'Đăng bán ngay'),
                   ),
                 ),
               ),
