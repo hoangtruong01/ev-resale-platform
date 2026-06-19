@@ -11,12 +11,34 @@ import 'package:go_router/go_router.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/network/dio_client.dart';
 import 'sell_accessory_screen.dart';
+import '../../home/widgets/home_widgets.dart';
 
 final accessoryDetailProvider = FutureProvider.family<AccessoryModel, String>((
   ref,
   id,
 ) {
   return ref.read(accessoryServiceProvider).getAccessoryById(id);
+});
+
+final relatedAccessoriesProvider = FutureProvider.family<List<AccessoryModel>, AccessoryModel>((
+  ref,
+  currentAccessory,
+) async {
+  try {
+    final response = await ref.read(accessoryServiceProvider).getAccessories(
+      category: currentAccessory.category,
+      limit: 10,
+    );
+    final list = response.data.where((a) => a.id != currentAccessory.id).toList();
+    if (list.isEmpty) {
+      final fallbackResponse = await ref.read(accessoryServiceProvider).getAccessories(limit: 10);
+      return fallbackResponse.data.where((a) => a.id != currentAccessory.id).toList();
+    }
+    return list;
+  } catch (e) {
+    debugPrint('Error fetching related accessories: $e');
+    return [];
+  }
 });
 
 class AccessoryDetailScreen extends ConsumerWidget {
@@ -249,6 +271,132 @@ class AccessoryDetailScreen extends ConsumerWidget {
                 accessory.description ?? 'Chưa có mô tả',
                 style: const TextStyle(color: AppTheme.grey600),
               ),
+
+              // Seller info
+              if (accessory.seller != null) ...[
+                const SizedBox(height: 20),
+                const Divider(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Người bán',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: AppTheme.primaryGreen.withValues(
+                        alpha: 0.1,
+                      ),
+                      child: Text(
+                        accessory.seller!.displayName.isNotEmpty
+                            ? accessory.seller!.displayName[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          color: AppTheme.primaryGreen,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            accessory.seller!.displayName,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                          if (accessory.seller!.rating != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star_rounded,
+                                  size: 16,
+                                  color: AppTheme.accentYellow,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${accessory.seller!.rating!.toStringAsFixed(1)} (${accessory.seller!.totalRatings} đánh giá)',
+                                  style: const TextStyle(
+                                    color: AppTheme.grey600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              // Related products
+              ref.watch(relatedAccessoriesProvider(accessory)).when(
+                data: (relatedList) {
+                  if (relatedList.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Sản phẩm liên quan',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.58,
+                        ),
+                        itemCount: relatedList.length,
+                        itemBuilder: (context, index) {
+                          final item = relatedList[index];
+                          return ProductGridCard(
+                            imageUrl: item.thumbnailUrl,
+                            title: item.name,
+                            price: item.price,
+                            sellerName: item.seller?.displayName,
+                            location: item.location,
+                            timeAgo: formatTimeAgo(item.createdAt),
+                            placeholderIcon: Icons.extension_outlined,
+                            onTap: () {
+                              context.push('/accessories/${item.id}');
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                  ),
+                ),
+                error: (err, _) => const SizedBox.shrink(),
+              ),
+
+              const SizedBox(height: 100),
             ],
           );
         },

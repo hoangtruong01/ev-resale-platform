@@ -154,7 +154,30 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
       if (!mounted) return;
       final msg = _parseError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.check_circle_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Gửi yêu cầu đăng bán thành công! Vui lòng đợi Admin duyệt để tin được hiển thị.',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppTheme.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          duration: Duration(seconds: 4),
+        ),
       );
     } finally {
       if (mounted) {
@@ -185,7 +208,9 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
     if (brand.isEmpty || model.isEmpty || year == null || condition.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui lòng nhập hãng, dòng xe, năm và tình trạng để gợi ý giá.'),
+          content: Text(
+            'Vui lòng nhập hãng, dòng xe, năm và tình trạng để gợi ý giá.',
+          ),
         ),
       );
       return;
@@ -213,7 +238,11 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
+                  const Icon(
+                    Icons.check_circle_outline_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -225,18 +254,26 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
               ),
               backgroundColor: AppTheme.primaryGreen,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
       } else {
-        final message = response['message'] as String? ?? 'Chưa đủ dữ liệu so sánh trên thị trường để gợi ý giá trị.';
+        final message =
+            response['message'] as String? ??
+            'Chưa đủ dữ liệu so sánh trên thị trường để gợi ý giá trị.';
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -248,7 +285,9 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
               ),
               backgroundColor: Colors.amber.shade800,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -269,22 +308,39 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
               }
             }
           } else if (error.type == DioExceptionType.connectionTimeout ||
-                     error.type == DioExceptionType.receiveTimeout) {
-            userFriendlyError = 'Kết nối mạng quá hạn. Vui lòng kiểm tra lại đường truyền.';
+              error.type == DioExceptionType.receiveTimeout) {
+            userFriendlyError =
+                'Kết nối mạng quá hạn. Vui lòng kiểm tra lại đường truyền.';
           }
         }
 
         userFriendlyError = userFriendlyError
-            .replaceAll('year must not be greater than', 'Năm sản xuất không được lớn hơn')
-            .replaceAll('year must not be less than 2000', 'Năm sản xuất không được nhỏ hơn năm 2000')
-            .replaceAll('mileage must not be greater than', 'Số km đã đi không được lớn hơn')
-            .replaceAll('mileage must not be less than 0', 'Số km đã đi không được nhỏ hơn 0');
+            .replaceAll(
+              'year must not be greater than',
+              'Năm sản xuất không được lớn hơn',
+            )
+            .replaceAll(
+              'year must not be less than 2000',
+              'Năm sản xuất không được nhỏ hơn năm 2000',
+            )
+            .replaceAll(
+              'mileage must not be greater than',
+              'Số km đã đi không được lớn hơn',
+            )
+            .replaceAll(
+              'mileage must not be less than 0',
+              'Số km đã đi không được nhỏ hơn 0',
+            );
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -296,7 +352,9 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
             ),
             backgroundColor: Colors.redAccent.shade700,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -368,19 +426,19 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                   ..._images.map(
                     (file) => ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: kIsWeb 
-                        ? Image.network(
-                            file.path,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            File(file.path),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
+                      child: kIsWeb
+                          ? Image.network(
+                              file.path,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.file(
+                              File(file.path),
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   InkWell(
@@ -464,25 +522,27 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                         initialWard: _ward,
                         initialDistrict: _district,
                         initialProvince: _province,
-                        onAddressChanged: ({
-                          required streetAddress,
-                          required ward,
-                          required district,
-                          required province,
-                        }) {
-                          _streetAddress = streetAddress;
-                          _ward = ward;
-                          _district = district;
-                          _province = province;
+                        onAddressChanged:
+                            ({
+                              required streetAddress,
+                              required ward,
+                              required district,
+                              required province,
+                            }) {
+                              _streetAddress = streetAddress;
+                              _ward = ward;
+                              _district = district;
+                              _province = province;
 
-                          final parts = [streetAddress, ward, district, province]
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
-                          final composed = parts.join(', ');
-                          _locationCtrl.text = composed;
-                          formState.didChange(composed);
-                        },
+                              final parts =
+                                  [streetAddress, ward, district, province]
+                                      .map((e) => e.trim())
+                                      .where((e) => e.isNotEmpty)
+                                      .toList();
+                              final composed = parts.join(', ');
+                              _locationCtrl.text = composed;
+                              formState.didChange(composed);
+                            },
                       ),
                       if (formState.hasError) ...[
                         const SizedBox(height: 6),
@@ -490,7 +550,10 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Text(
                             formState.errorText ?? '',
-                            style: const TextStyle(color: AppTheme.error, fontSize: 12),
+                            style: const TextStyle(
+                              color: AppTheme.error,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
@@ -544,7 +607,9 @@ class _SellVehicleScreenState extends ConsumerState<SellVehicleScreen> {
               TextFormField(
                 controller: _descriptionCtrl,
                 maxLines: 4,
-                decoration: const InputDecoration(labelText: 'Mô tả chi tiết *'),
+                decoration: const InputDecoration(
+                  labelText: 'Mô tả chi tiết *',
+                ),
                 validator: (value) =>
                     value == null || value.trim().isEmpty ? 'Bắt buộc' : null,
               ),

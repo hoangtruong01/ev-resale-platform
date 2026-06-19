@@ -10,12 +10,35 @@ import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/network/dio_client.dart';
 import 'sell_vehicle_screen.dart';
+import '../../../services/dashboard_service.dart';
+import '../../home/widgets/home_widgets.dart';
 
 final vehicleDetailProvider = FutureProvider.family<VehicleModel, String>((
   ref,
   id,
 ) {
   return ref.read(vehicleServiceProvider).getVehicleById(id);
+});
+
+final relatedVehiclesProvider = FutureProvider.family<List<VehicleModel>, VehicleModel>((
+  ref,
+  currentVehicle,
+) async {
+  try {
+    final response = await ref.read(vehicleServiceProvider).getVehicles(
+      brand: currentVehicle.brand,
+      limit: 10,
+    );
+    final list = response.data.where((v) => v.id != currentVehicle.id).toList();
+    if (list.isEmpty) {
+      final fallbackResponse = await ref.read(vehicleServiceProvider).getVehicles(limit: 10);
+      return fallbackResponse.data.where((v) => v.id != currentVehicle.id).toList();
+    }
+    return list;
+  } catch (e) {
+    debugPrint('Error fetching related vehicles: $e');
+    return [];
+  }
 });
 
 class VehicleDetailScreen extends ConsumerStatefulWidget {
@@ -152,6 +175,11 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
   Widget build(BuildContext context) {
     final vehicleAsync = ref.watch(vehicleDetailProvider(widget.id));
     final currentUser = ref.watch(currentUserProvider);
+    final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+    final isFavorite = favoritesAsync.maybeWhen(
+      data: (list) => list.any((fav) => fav.sourceId == widget.id),
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: vehicleAsync.when(
@@ -181,11 +209,45 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          if (isFavorite) {
+                            final favItem = favoritesAsync.value?.firstWhere(
+                              (fav) => fav.sourceId == widget.id,
+                            );
+                            if (favItem != null) {
+                              await ref
+                                  .read(dashboardServiceProvider)
+                                  .removeFavorite(favItem.id);
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                              );
+                            }
+                          } else {
+                            await ref
+                                .read(dashboardServiceProvider)
+                                .addFavorite(vehicleId: widget.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
+                              );
+                            }
+                          }
+                          ref.invalidate(dashboardFavoritesProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi: $e')),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -345,6 +407,131 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                         ),
                       ),
                     ],
+
+                    // Seller info
+                    if (vehicle.seller != null) ...[
+                      const SizedBox(height: 20),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Người bán',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppTheme.primaryGreen.withValues(
+                              alpha: 0.1,
+                            ),
+                            child: Text(
+                              vehicle.seller!.displayName.isNotEmpty
+                                  ? vehicle.seller!.displayName[0].toUpperCase()
+                                  : 'U',
+                              style: const TextStyle(
+                                color: AppTheme.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  vehicle.seller!.displayName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                if (vehicle.seller!.rating != null)
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.star_rounded,
+                                        size: 16,
+                                        color: AppTheme.accentYellow,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${vehicle.seller!.rating!.toStringAsFixed(1)} (${vehicle.seller!.totalRatings} đánh giá)',
+                                        style: const TextStyle(
+                                          color: AppTheme.grey600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    // Related products
+                    ref.watch(relatedVehiclesProvider(vehicle)).when(
+                      data: (relatedList) {
+                        if (relatedList.isEmpty) return const SizedBox.shrink();
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Sản phẩm liên quan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 0.58,
+                              ),
+                              itemCount: relatedList.length,
+                              itemBuilder: (context, index) {
+                                final item = relatedList[index];
+                                return ProductGridCard(
+                                  imageUrl: item.thumbnailUrl,
+                                  title: item.name,
+                                  price: item.price,
+                                  sellerName: item.seller?.displayName,
+                                  location: item.location,
+                                  timeAgo: formatTimeAgo(item.createdAt),
+                                  placeholderIcon: Icons.electric_car_rounded,
+                                  onTap: () {
+                                    context.push('/vehicles/${item.id}');
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                        ),
+                      ),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
+
                     const SizedBox(height: 100),
                   ],
                 ),

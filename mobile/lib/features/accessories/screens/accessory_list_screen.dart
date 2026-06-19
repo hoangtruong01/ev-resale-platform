@@ -59,6 +59,16 @@ class _AccessoryListScreenState extends ConsumerState<AccessoryListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Phụ kiện'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.tune_rounded),

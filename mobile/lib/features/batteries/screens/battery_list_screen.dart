@@ -84,6 +84,16 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pin điện'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.tune_rounded),

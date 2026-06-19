@@ -11,12 +11,35 @@ import '../../../features/auth/providers/auth_provider.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import '../../../core/network/dio_client.dart';
 import 'sell_battery_screen.dart';
+import '../../../services/dashboard_service.dart';
+import '../../home/widgets/home_widgets.dart';
 
 final batteryDetailProvider = FutureProvider.family<BatteryModel, String>((
   ref,
   id,
 ) {
   return ref.read(batteryServiceProvider).getBatteryById(id);
+});
+
+final relatedBatteriesProvider = FutureProvider.family<List<BatteryModel>, BatteryModel>((
+  ref,
+  currentBattery,
+) async {
+  try {
+    final response = await ref.read(batteryServiceProvider).getBatteries(
+      type: currentBattery.type,
+      limit: 10,
+    );
+    final list = response.data.where((b) => b.id != currentBattery.id).toList();
+    if (list.isEmpty) {
+      final fallbackResponse = await ref.read(batteryServiceProvider).getBatteries(limit: 10);
+      return fallbackResponse.data.where((b) => b.id != currentBattery.id).toList();
+    }
+    return list;
+  } catch (e) {
+    debugPrint('Error fetching related batteries: $e');
+    return [];
+  }
 });
 
 class BatteryDetailScreen extends ConsumerStatefulWidget {
@@ -42,6 +65,11 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
   Widget build(BuildContext context) {
     final batteryAsync = ref.watch(batteryDetailProvider(widget.id));
     final currentUser = ref.watch(currentUserProvider);
+    final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+    final isFavorite = favoritesAsync.maybeWhen(
+      data: (list) => list.any((fav) => fav.sourceId == widget.id),
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: batteryAsync.when(
@@ -72,11 +100,45 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          if (isFavorite) {
+                            final favItem = favoritesAsync.value?.firstWhere(
+                              (fav) => fav.sourceId == widget.id,
+                            );
+                            if (favItem != null) {
+                              await ref
+                                  .read(dashboardServiceProvider)
+                                  .removeFavorite(favItem.id);
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                              );
+                            }
+                          } else {
+                            await ref
+                                .read(dashboardServiceProvider)
+                                .addFavorite(batteryId: widget.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
+                              );
+                            }
+                          }
+                          ref.invalidate(dashboardFavoritesProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi: $e')),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -353,6 +415,62 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                         ],
                       ),
                     ],
+
+                    // Related products
+                    ref.watch(relatedBatteriesProvider(battery)).when(
+                      data: (relatedList) {
+                        if (relatedList.isEmpty) return const SizedBox.shrink();
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            const Divider(),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Sản phẩm liên quan',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 0.58,
+                              ),
+                              itemCount: relatedList.length,
+                              itemBuilder: (context, index) {
+                                final item = relatedList[index];
+                                return ProductGridCard(
+                                  imageUrl: item.thumbnailUrl,
+                                  title: item.name,
+                                  price: item.price,
+                                  sellerName: item.seller?.displayName,
+                                  location: item.location,
+                                  timeAgo: formatTimeAgo(item.createdAt),
+                                  placeholderIcon: Icons.battery_charging_full_rounded,
+                                  onTap: () {
+                                    context.push('/batteries/${item.id}');
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                      loading: () => const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+                        ),
+                      ),
+                      error: (err, _) => const SizedBox.shrink(),
+                    ),
 
                     const SizedBox(height: 100),
                   ],

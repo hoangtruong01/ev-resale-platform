@@ -8,6 +8,7 @@ import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/home/screens/home_screen.dart';
+import '../../features/home/screens/global_search_screen.dart';
 import '../../features/batteries/screens/battery_list_screen.dart';
 import '../../features/batteries/screens/battery_detail_screen.dart';
 import '../../features/batteries/screens/sell_battery_screen.dart';
@@ -215,6 +216,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/',
             builder: (context, state) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: '/search',
+            builder: (context, state) => const GlobalSearchScreen(),
           ),
           GoRoute(
             path: '/batteries',
