@@ -9,6 +9,7 @@ import '../../../widgets/app_network_image.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../services/dashboard_service.dart';
 import '../../home/widgets/home_widgets.dart';
 
 final vehicleDetailProvider = FutureProvider.family<VehicleModel, String>((
@@ -173,6 +174,11 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
   Widget build(BuildContext context) {
     final vehicleAsync = ref.watch(vehicleDetailProvider(widget.id));
     final currentUser = ref.watch(currentUserProvider);
+    final favoritesAsync = ref.watch(dashboardFavoritesProvider);
+    final isFavorite = favoritesAsync.maybeWhen(
+      data: (list) => list.any((fav) => fav.sourceId == widget.id),
+      orElse: () => false,
+    );
 
     return Scaffold(
       body: vehicleAsync.when(
@@ -202,11 +208,45 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                   child: CircleAvatar(
                     backgroundColor: Colors.black54,
                     child: IconButton(
-                      icon: const Icon(
-                        Icons.favorite_border,
-                        color: Colors.white,
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
                       ),
-                      onPressed: () {},
+                      onPressed: () async {
+                        try {
+                          if (isFavorite) {
+                            final favItem = favoritesAsync.value?.firstWhere(
+                              (fav) => fav.sourceId == widget.id,
+                            );
+                            if (favItem != null) {
+                              await ref
+                                  .read(dashboardServiceProvider)
+                                  .removeFavorite(favItem.id);
+                            }
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                              );
+                            }
+                          } else {
+                            await ref
+                                .read(dashboardServiceProvider)
+                                .addFavorite(vehicleId: widget.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
+                              );
+                            }
+                          }
+                          ref.invalidate(dashboardFavoritesProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi: $e')),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ),

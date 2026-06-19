@@ -27,11 +27,7 @@ final dashboardOrdersProvider = FutureProvider<List<DashboardOrderData>>((ref) {
   return ref.read(dashboardServiceProvider).getOrders();
 });
 
-final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((
-  ref,
-) {
-  return ref.read(dashboardServiceProvider).getFavorites();
-});
+
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -648,12 +644,12 @@ class DashboardOrdersScreen extends StatelessWidget {
   }
 }
 
-class DashboardFavoritesScreen extends StatelessWidget {
+class DashboardFavoritesScreen extends ConsumerWidget {
   final AsyncValue<List<DashboardFavoriteData>> favoritesAsync;
   const DashboardFavoritesScreen({super.key, required this.favoritesAsync});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sản phẩm đã lưu')),
       body: favoritesAsync.when(
@@ -676,15 +672,78 @@ class DashboardFavoritesScreen extends StatelessWidget {
             itemBuilder: (_, i) {
               final favorite = favorites[i];
               return ListTile(
-                title: Text(favorite.title),
-                subtitle: const Text('Sản phẩm yêu thích'),
-                trailing: Text(
-                  AppUtils.formatCurrency(favorite.price),
-                  style: const TextStyle(
-                    color: AppTheme.primaryGreen,
-                    fontWeight: FontWeight.w700,
-                  ),
+                leading: favorite.thumbnail != null && favorite.thumbnail!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: AppNetworkImage(
+                          url: favorite.thumbnail!,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : const SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: Icon(Icons.image_outlined, color: AppTheme.grey400),
+                      ),
+                title: Text(
+                  favorite.title,
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                subtitle: Text(
+                  favorite.location ?? 'Chưa xác định',
+                  style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppUtils.formatCurrency(favorite.price),
+                      style: const TextStyle(
+                        color: AppTheme.primaryGreen,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 20),
+                      onPressed: () async {
+                        try {
+                          await ref.read(dashboardServiceProvider).removeFavorite(favorite.id);
+                          ref.invalidate(dashboardFavoritesProvider);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Lỗi: $e')),
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  final sourceId = favorite.sourceId;
+                  final itemType = favorite.itemType;
+                  if (sourceId == null || sourceId.isEmpty) return;
+
+                  if (itemType == 'VEHICLE') {
+                    context.push('/vehicles/$sourceId');
+                  } else if (itemType == 'BATTERY') {
+                    context.push('/batteries/$sourceId');
+                  } else if (itemType == 'AUCTION') {
+                    context.push('/auctions/$sourceId');
+                  }
+                },
               );
             },
           );
