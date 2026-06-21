@@ -164,7 +164,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
     try {
       final dio = ref.read(dioProvider);
       final res = await dio
-          .get('/chat/rooms/$widget.roomId/messages')
+          .get('/chat/rooms/${widget.roomId}/messages')
           .timeout(const Duration(seconds: 15));
       final raw = res.data is List ? res.data as List : const [];
       final msgs = raw
@@ -201,7 +201,7 @@ class _ChatRoomScreenState extends ConsumerState<ChatRoomScreen> {
 
     try {
       final dio = ref.read(dioProvider);
-      final res = await dio.post('/chat/rooms/$widget.roomId/messages', data: {
+      final res = await dio.post('/chat/rooms/${widget.roomId}/messages', data: {
         'content': text,
       }).timeout(const Duration(seconds: 15));
       final msg = ChatMessage.fromJson(Map<String, dynamic>.from(res.data as Map));

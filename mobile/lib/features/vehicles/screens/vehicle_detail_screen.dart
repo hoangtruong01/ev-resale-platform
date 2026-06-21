@@ -615,14 +615,14 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                                       'sellerId': vehicle.sellerId,
                                       'vehicleId': vehicle.id,
                                     }).timeout(const Duration(seconds: 15));
-                                    if (context.mounted) Navigator.pop(context); // close loading indicator
+                                    if (context.mounted) Navigator.of(context, rootNavigator: true).pop(); // close loading indicator
 
                                     final roomId = response.data['id'];
                                     if (roomId != null) {
                                       context.push('/chat/$roomId');
                                     }
                                   } catch (e) {
-                                    if (context.mounted) Navigator.pop(context); // close loading indicator
+                                    if (context.mounted) Navigator.of(context, rootNavigator: true).pop(); // close loading indicator
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text(parseApiError(e))),
                                     );
