@@ -519,6 +519,7 @@
         >
           <p>&copy; 2026 EVN Market. {{ $t("all_rights_reserved") }}</p>
           <div class="flex gap-6">
+            <NuxtLink to="/about" class="hover:text-primary">{{ $t("about") }}</NuxtLink>
             <NuxtLink to="/terms" class="hover:text-primary">Terms</NuxtLink>
             <NuxtLink to="/privacy" class="hover:text-primary"
               >Privacy</NuxtLink
