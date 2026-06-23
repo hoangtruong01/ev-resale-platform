@@ -55,6 +55,12 @@
           >
             {{ $t("compare") }}
           </NuxtLink>
+          <NuxtLink
+            to="/about"
+            :class="navLinkClass($route.path === '/about')"
+          >
+            {{ $t("about") }}
+          </NuxtLink>
         </nav>
         <div class="flex items-center gap-3">
           <!-- Show login/register buttons when not authenticated -->

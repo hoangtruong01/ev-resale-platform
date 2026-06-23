@@ -431,5 +431,19 @@
     "step3Desc": "Contact sellers directly or join fair and transparent public auctions.",
     "step4Title": "Secure Completion",
     "step4Desc": "Complete the handover and documentation with EVN Market support."
-  }
+  },
+  "about": "About Us",
+  "aboutTitle": "About Us",
+  "aboutSubtitle": "Team 7 - EV Electric Vehicles & Batteries Resale Platform",
+  "aboutMissionTitle": "Our Mission",
+  "aboutMissionDesc": "We aim to accelerate the green transition in Vietnam by providing a trusted, transparent, and secure resale platform for electric vehicles and used batteries, supported by modern testing technologies and intelligent AI pricing support.",
+  "aboutTeamTitle": "Group 7 Members",
+  "aboutMember1": "Nguyen Hoai Anh",
+  "aboutMember1Role": "Lead Developer & System Auditor",
+  "aboutMember2": "Truong Nguyen Hoang",
+  "aboutMember2Role": "Backend Engineer & DevOps",
+  "aboutMember3": "Hoang Minh Duc",
+  "aboutMember3Role": "Frontend UI/UX Designer",
+  "aboutMember4": "Trinh Nguyen Bao Duy",
+  "aboutMember4Role": "Flutter App Developer"
 }

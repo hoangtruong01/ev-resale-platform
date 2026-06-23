@@ -413,5 +413,19 @@
   "unableToLoadVehicles": "車両リストを読み込めません。もう一度お試しください。",
   "noVehiclesFound": "現在のフィルターに一致する車両がありません。",
   "unableToLoadBatteries": "バッテリーリストを読み込めません。もう一度お試しください。",
-  "noBatteriesFound": "現在のフィルターに一致するバッテリーがありません。"
+  "noBatteriesFound": "現在のフィルターに一致するバッテリーがありません。",
+  "about": "会社概要",
+  "aboutTitle": "私たちについて",
+  "aboutSubtitle": "グループ7チーム - EV電気自動車＆中古バッテリー再販プラットフォーム",
+  "aboutMissionTitle": "私たちの使命",
+  "aboutMissionDesc": "私たちは、最新のテスト技術とインテリジェントAI価格設定サポートに支えられた、電気自動車と中古バッテリーの信頼でき、透明で安全な再販プラットフォームを提供することにより、ベトナムでのグリーン移行を加速することを目指しています。",
+  "aboutTeamTitle": "グループ7メンバー",
+  "aboutMember1": "グエン・ホアイ・アン",
+  "aboutMember1Role": "リード開発者＆システム監査人",
+  "aboutMember2": "チュオン・グエン・ホアン",
+  "aboutMember2Role": "バックエンドエンジニア＆DevOps",
+  "aboutMember3": "ホアン・ミン・ドゥック",
+  "aboutMember3Role": "フロントエンドUI/UXデザイナー",
+  "aboutMember4": "チン・グエン・バオ・ズイ",
+  "aboutMember4Role": "Flutterアプリ開発者"
 }

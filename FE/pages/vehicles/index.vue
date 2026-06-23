@@ -603,7 +603,7 @@ interface VehicleCardItem {
 }
 
 const MAX_PRICE = 2_000_000_000;
-const PAGE_LIMIT = 60;
+const PAGE_LIMIT = 1000;
 
 const router = useRouter();
 const { t, locale } = useI18n({ useScope: "global" });

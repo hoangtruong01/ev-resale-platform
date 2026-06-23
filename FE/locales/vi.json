@@ -431,5 +431,19 @@
     "step3Desc": "Liên hệ trực tiếp hoặc tham gia đấu giá công khai, minh bạch.",
     "step4Title": "Hoàn tất an toàn",
     "step4Desc": "Giao nhận xe và hoàn tất thủ tục dưới sự hỗ trợ của EVN Market."
-  }
+  },
+  "about": "Giới thiệu",
+  "aboutTitle": "Về Chúng Tôi",
+  "aboutSubtitle": "Đội ngũ Nhóm 7 - Đề tài Xây dựng Nền tảng Mua bán Xe điện & Pin Cũ EVN",
+  "aboutMissionTitle": "Sứ mệnh của chúng tôi",
+  "aboutMissionDesc": "Chúng tôi mong muốn thúc đẩy quá trình chuyển đổi giao thông xanh tại Việt Nam bằng cách cung cấp nền tảng giao dịch xe điện và pin cũ đáng tin cậy, minh bạch và an toàn nhờ sự trợ giúp của các công nghệ kiểm định hiện đại và AI tư vấn thông minh.",
+  "aboutTeamTitle": "Thành viên Nhóm 7",
+  "aboutMember1": "Nguyễn Hoài Anh",
+  "aboutMember1Role": "Lead Developer & System Auditor",
+  "aboutMember2": "Trương Nguyễn Hoàng",
+  "aboutMember2Role": "Backend Engineer & DevOps",
+  "aboutMember3": "Hoàng Minh Đức",
+  "aboutMember3Role": "Frontend UI/UX Designer",
+  "aboutMember4": "Trịnh Nguyễn Bảo Duy",
+  "aboutMember4Role": "Flutter App Developer"
 }
