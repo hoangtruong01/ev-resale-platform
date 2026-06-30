@@ -50,14 +50,23 @@ class AuctionListScreen extends ConsumerWidget {
                 _AuctionTabContent(
                   auctions: active,
                   emptyMsg: l10n.auctionNoOngoing,
+                  onRefresh: () async {
+                    ref.invalidate(auctionListProvider);
+                  },
                 ),
                 _AuctionTabContent(
                   auctions: pending,
                   emptyMsg: l10n.auctionNoUpcoming,
+                  onRefresh: () async {
+                    ref.invalidate(auctionListProvider);
+                  },
                 ),
                 _AuctionTabContent(
                   auctions: ended,
                   emptyMsg: l10n.auctionNoEnded,
+                  onRefresh: () async {
+                    ref.invalidate(auctionListProvider);
+                  },
                 ),
               ],
             );
@@ -80,28 +89,48 @@ class AuctionListScreen extends ConsumerWidget {
 class _AuctionTabContent extends StatelessWidget {
   final List<AuctionModel> auctions;
   final String emptyMsg;
+  final RefreshCallback onRefresh;
 
-  const _AuctionTabContent({required this.auctions, required this.emptyMsg});
+  const _AuctionTabContent({
+    required this.auctions,
+    required this.emptyMsg,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     if (auctions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        color: AppTheme.primaryGreen,
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            const Icon(Icons.gavel_rounded, size: 64, color: AppTheme.grey200),
-            const SizedBox(height: 16),
-            Text(emptyMsg, style: const TextStyle(color: AppTheme.grey600)),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.gavel_rounded, size: 64, color: AppTheme.grey200),
+                  const SizedBox(height: 16),
+                  Text(emptyMsg, style: const TextStyle(color: AppTheme.grey600)),
+                ],
+              ),
+            ),
           ],
         ),
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-      itemCount: auctions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => AuctionCard(auction: auctions[i]),
+    return RefreshIndicator(
+      color: AppTheme.primaryGreen,
+      onRefresh: onRefresh,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+        itemCount: auctions.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (_, i) => AuctionCard(auction: auctions[i]),
+      ),
     );
   }
 }

@@ -137,6 +137,9 @@ class ContractMessageCard extends ConsumerWidget {
                         (data['transactionStatus'] as String?) ?? status;
                     final resolvedTransactionId =
                         (data['transactionId'] as String?) ?? transactionId;
+                    
+                    final sellerId = data['sellerId'] as String?;
+                    final isSeller = sellerId == currentUserId;
 
                     if (txStatus == 'PENDING') {
                       if (isProposer) {
@@ -150,6 +153,11 @@ class ContractMessageCard extends ConsumerWidget {
                     }
 
                     if (txStatus == 'AWAITING_DEPOSIT') {
+                      if (isSeller) {
+                        return const _WaitingForPaymentBanner(
+                          label: 'Đang chờ người mua thanh toán đặt cọc (50%)...',
+                        );
+                      }
                       return _PaymentButton(
                         label: 'Thanh toán đặt cọc (50%)',
                         transactionId: resolvedTransactionId,
@@ -167,6 +175,11 @@ class ContractMessageCard extends ConsumerWidget {
                     }
 
                     if (txStatus == 'AWAITING_BALANCE') {
+                      if (isSeller) {
+                        return const _WaitingForPaymentBanner(
+                          label: 'Đang chờ người mua thanh toán nốt còn lại (50%)...',
+                        );
+                      }
                       return _PaymentButton(
                         label: 'Thanh toán nốt còn lại (50%)',
                         transactionId: resolvedTransactionId,
@@ -531,6 +544,35 @@ class _WaitingForResponseBanner extends StatelessWidget {
           Text(
             'Đang chờ đối phương phản hồi...',
             style: TextStyle(color: AppTheme.info, fontWeight: FontWeight.w600, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaitingForPaymentBanner extends StatelessWidget {
+  final String label;
+  const _WaitingForPaymentBanner({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.info.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.hourglass_empty_rounded, color: AppTheme.info, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppTheme.info, fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ),
         ],
       ),

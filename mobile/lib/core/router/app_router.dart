@@ -47,6 +47,7 @@ import '../../features/admin/screens/admin_fees_screen.dart';
 import '../../features/admin/screens/admin_contracts_screen.dart';
 import '../../features/admin/screens/admin_permissions_screen.dart';
 import '../../features/admin/screens/kyc_management_screen.dart';
+import '../../features/admin/screens/kyc_review_detail_screen.dart';
 import '../../widgets/admin_shell.dart';
 
 class RouterNotifier extends ChangeNotifier {
@@ -180,6 +181,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/admin/kyc',
             builder: (context, state) => const KycManagementScreen(),
+            routes: [
+              GoRoute(
+                path: ':userId',
+                builder: (context, state) {
+                  final userId = state.pathParameters['userId']!;
+                  final profileData = state.extra as Map<String, dynamic>;
+                  return KycReviewDetailScreen(
+                    userId: userId,
+                    profileData: profileData,
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/admin/auctions',

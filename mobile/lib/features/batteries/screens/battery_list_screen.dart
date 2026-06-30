@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/battery_service.dart';
 import '../../../models/battery_model.dart';
@@ -69,9 +70,21 @@ class BatteryListScreen extends ConsumerStatefulWidget {
 
 class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
   final _searchCtrl = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -122,6 +135,13 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
                       )
                     : null,
               ),
+              onChanged: (v) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  ref.read(batteryFilterProvider.notifier).state =
+                      filter.copyWith(search: v.trim().isEmpty ? null : v.trim());
+                });
+              },
               onSubmitted: (v) {
                 ref.read(batteryFilterProvider.notifier).state = filter
                     .copyWith(search: v.isEmpty ? null : v);
@@ -207,35 +227,54 @@ class _BatteryListScreenState extends ConsumerState<BatteryListScreen> {
               ),
               data: (data) {
                 if (data.data.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  return RefreshIndicator(
+                    color: AppTheme.primaryGreen,
+                    onRefresh: () async {
+                      ref.invalidate(batteryListProvider(filter));
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        Icon(
-                          Icons.battery_alert_rounded,
-                          size: 64,
-                          color: AppTheme.grey200,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Không tìm thấy pin nào',
-                          style: TextStyle(color: AppTheme.grey600),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                        const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.battery_alert_rounded,
+                                size: 64,
+                                color: AppTheme.grey200,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Không tìm thấy pin nào',
+                                style: TextStyle(color: AppTheme.grey600),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
-                return GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.72,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
+                return RefreshIndicator(
+                  color: AppTheme.primaryGreen,
+                  onRefresh: () async {
+                    ref.invalidate(batteryListProvider(filter));
+                  },
+                  child: GridView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.72,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: data.data.length,
+                    itemBuilder: (_, i) =>
+                        _BatteryGridCard(battery: data.data[i]),
                   ),
-                  itemCount: data.data.length,
-                  itemBuilder: (_, i) =>
-                      _BatteryGridCard(battery: data.data[i]),
                 );
               },
             ),
