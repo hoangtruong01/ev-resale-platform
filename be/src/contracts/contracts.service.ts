@@ -981,6 +981,8 @@ export class ContractsService {
       transactionStatus: contract.transaction.status,
       depositAmount: contract.transaction.depositAmount,
       balanceAmount: contract.transaction.balanceAmount,
+      buyerId: contract.buyerId,
+      sellerId: contract.sellerId,
     };
   }
 

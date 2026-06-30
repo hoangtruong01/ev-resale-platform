@@ -220,11 +220,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
-    allProducts.sort((a, b) {
-      final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
-      final bDate = DateTime.tryParse(b.createdAt) ?? DateTime(2020);
-      return bDate.compareTo(aDate);
-    });
+    if (_activeTab == 1) {
+      // Gần bạn (Near You)
+      allProducts.sort((a, b) {
+        final aNear = a.location.toLowerCase().contains('hà nội') || a.location.toLowerCase().contains('hanoi');
+        final bNear = b.location.toLowerCase().contains('hà nội') || b.location.toLowerCase().contains('hanoi');
+        if (aNear && !bNear) return -1;
+        if (!aNear && bNear) return 1;
+        final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
+        final bDate = DateTime.tryParse(b.createdAt) ?? DateTime(2020);
+        return bDate.compareTo(aDate);
+      });
+    } else if (_activeTab == 2) {
+      // Mới nhất (Latest)
+      allProducts.sort((a, b) {
+        final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
+        final bDate = DateTime.tryParse(b.createdAt) ?? DateTime(2020);
+        return bDate.compareTo(aDate);
+      });
+    } else if (_activeTab == 3) {
+      // Video
+      final videoProducts = allProducts.where((p) => p.title.toLowerCase().contains('vinfast') || p.title.toLowerCase().contains('tesla')).toList();
+      allProducts.clear();
+      allProducts.addAll(videoProducts);
+    } else {
+      // Dành cho bạn (For You)
+      allProducts.sort((a, b) => a.price.compareTo(b.price));
+    }
 
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),

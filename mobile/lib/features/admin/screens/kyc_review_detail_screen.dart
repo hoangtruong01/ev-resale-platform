@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_constants.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 
@@ -66,7 +67,7 @@ class _KycReviewDetailScreenState extends ConsumerState<KycReviewDetailScreen> {
                 : AppTheme.orange500,
           ),
         );
-        Navigator.pop(context, true);
+        context.pop(true);
       }
     } on DioException catch (e) {
       if (mounted) {

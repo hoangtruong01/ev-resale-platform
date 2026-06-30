@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
-import 'kyc_review_detail_screen.dart';
 
 /// Screen for Admin to view and manage pending KYC registration requests.
 class KycManagementScreen extends ConsumerWidget {
@@ -90,14 +90,9 @@ class KycManagementScreen extends ConsumerWidget {
                   submittedAt:
                       profile['updatedAt'] ?? profile['createdAt'] ?? '',
                   onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => KycReviewDetailScreen(
-                          userId: user?['id'] ?? '',
-                          profileData: profile,
-                        ),
-                      ),
+                    final result = await context.push<bool>(
+                      '/admin/kyc/${user?['id'] ?? ''}',
+                      extra: profile,
                     );
                     if (result == true) {
                       ref.invalidate(_pendingKycProvider);

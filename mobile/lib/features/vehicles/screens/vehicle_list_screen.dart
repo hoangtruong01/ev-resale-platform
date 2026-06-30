@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/vehicle_service.dart';
 import '../../../models/vehicle_model.dart';
@@ -35,9 +36,21 @@ class VehicleListScreen extends ConsumerStatefulWidget {
 
 class _VehicleListScreenState extends ConsumerState<VehicleListScreen> {
   final _searchCtrl = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -70,10 +83,27 @@ class _VehicleListScreenState extends ConsumerState<VehicleListScreen> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: TextField(
               controller: _searchCtrl,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Tìm kiếm xe điện...',
-                prefixIcon: Icon(Icons.search, color: AppTheme.grey400),
+                prefixIcon: const Icon(Icons.search, color: AppTheme.grey400),
+                suffixIcon: _searchCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: AppTheme.grey400),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          ref.read(vehicleFilterProvider.notifier).state =
+                              filter.copyWith(search: null);
+                        },
+                      )
+                    : null,
               ),
+              onChanged: (v) {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 500), () {
+                  ref.read(vehicleFilterProvider.notifier).state =
+                      filter.copyWith(search: v.trim().isEmpty ? null : v.trim());
+                });
+              },
               onSubmitted: (v) {
                 ref.read(vehicleFilterProvider.notifier).state =
                     filter.copyWith(search: v.trim().isEmpty ? null : v.trim());
@@ -88,29 +118,48 @@ class _VehicleListScreenState extends ConsumerState<VehicleListScreen> {
               error: (e, _) => Center(child: Text('Lỗi: $e')),
               data: (data) {
                 if (data.data.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  return RefreshIndicator(
+                    color: AppTheme.primaryGreen,
+                    onRefresh: () async {
+                      ref.invalidate(vehicleListProvider(filter));
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        Icon(
-                          Icons.electric_car_rounded,
-                          size: 64,
-                          color: AppTheme.grey200,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Không tìm thấy xe nào',
-                          style: TextStyle(color: AppTheme.grey600),
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                        const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.electric_car_rounded,
+                                size: 64,
+                                color: AppTheme.grey200,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Không tìm thấy xe nào',
+                                style: TextStyle(color: AppTheme.grey600),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   );
                 }
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: data.data.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => _VehicleCard(vehicle: data.data[i]),
+                return RefreshIndicator(
+                  color: AppTheme.primaryGreen,
+                  onRefresh: () async {
+                    ref.invalidate(vehicleListProvider(filter));
+                  },
+                  child: ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: data.data.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (_, i) => _VehicleCard(vehicle: data.data[i]),
+                  ),
                 );
               },
             ),
