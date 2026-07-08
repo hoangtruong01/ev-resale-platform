@@ -843,7 +843,6 @@ model Favorite {
   itemType  FavoriteItemType
   vehicleId String?
   batteryId String?
-  accessoryId String?
   auctionId String?
   createdAt DateTime         @default(now())
 

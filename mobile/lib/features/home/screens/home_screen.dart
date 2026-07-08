@@ -48,6 +48,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       final batteries = ref.watch(homeBatteriesProvider);
       final vehicles = ref.watch(homeVehiclesProvider);
+      final favoritesAsync = ref.watch(dashboardFavoritesProvider);
 
       return AnnotatedRegion<SystemUiOverlayStyle>(
         value: const SystemUiOverlayStyle(
@@ -61,6 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onRefresh: () async {
               ref.invalidate(homeBatteriesProvider);
               ref.invalidate(homeVehiclesProvider);
+              ref.invalidate(dashboardFavoritesProvider);
             },
             child: batteries.when(
               loading: () => _buildLoadingContent(context),
@@ -82,7 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     return _buildErrorContent(context, parseApiError(err));
                   },
                   data: (vehicleData) {
-                    return _buildMainContent(context, batteryData, vehicleData);
+                    return _buildMainContent(context, batteryData, vehicleData, favoritesAsync);
                   },
                 );
               },
@@ -183,6 +185,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     BuildContext context,
     BatteryListResponse batteryData,
     VehicleListResponse vehicleData,
+    AsyncValue<List<DashboardFavoriteData>> favoritesAsync,
   ) {
     final l10n = AppLocalizations.of(context)!;
     // Merge and sort products
@@ -279,7 +282,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           )
         else
-          _buildProductGrid(allProducts),
+          _buildProductGrid(allProducts, favoritesAsync),
         const SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
     );
@@ -612,7 +615,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   // ─── PRODUCT GRID ───
-  SliverPadding _buildProductGrid(List<_ProductItem> products) {
+  SliverPadding _buildProductGrid(
+    List<_ProductItem> products,
+    AsyncValue<List<DashboardFavoriteData>> favoritesAsync,
+  ) {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
       sliver: SliverGrid(
@@ -624,6 +630,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
           final item = products[index];
+          final isFavorite = favoritesAsync.maybeWhen(
+            data: (list) => list.any((fav) => fav.sourceId == item.id),
+            orElse: () => false,
+          );
+
           return ProductGridCard(
             imageUrl: item.imageUrl,
             title: item.title,
@@ -632,6 +643,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             location: item.location,
             timeAgo: formatTimeAgo(item.createdAt),
             placeholderIcon: item.icon,
+            isFavorite: isFavorite,
+            onFavoriteTap: () async {
+              try {
+                if (isFavorite) {
+                  final favItem = favoritesAsync.value?.firstWhere(
+                    (fav) => fav.sourceId == item.id,
+                  );
+                  if (favItem != null) {
+                    await ref
+                        .read(dashboardServiceProvider)
+                        .removeFavorite(favItem.id);
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
+                    );
+                  }
+                } else {
+                  if (item.type == 'battery') {
+                    await ref
+                        .read(dashboardServiceProvider)
+                        .addFavorite(batteryId: item.id);
+                  } else {
+                    await ref
+                        .read(dashboardServiceProvider)
+                        .addFavorite(vehicleId: item.id);
+                  }
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
+                    );
+                  }
+                }
+                ref.invalidate(dashboardFavoritesProvider);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Lỗi: $e')),
+                  );
+                }
+              }
+            },
             onTap: () {
               if (item.type == 'battery') {
                 context.push('/batteries/${item.id}');
