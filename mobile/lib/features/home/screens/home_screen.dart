@@ -734,12 +734,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ref.read(homeFilterProvider.notifier).state = const HomeFilterState(category: 'accessory');
             },
           ),
-          HomeCategoryItem(
-            icon: Icons.gavel_rounded,
-            label: l10n.categoryAuction,
-            color: const Color(0xFF8B5CF6),
-            onTap: () => context.go('/auctions'),
-          ),
         ],
       ),
     );
