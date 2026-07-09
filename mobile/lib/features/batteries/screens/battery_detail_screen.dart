@@ -107,30 +107,26 @@ class _BatteryDetailScreenState extends ConsumerState<BatteryDetailScreen> {
                       onPressed: () async {
                         try {
                           if (isFavorite) {
-                            final favItem = favoritesAsync.value?.firstWhere(
-                              (fav) => fav.sourceId == widget.id,
-                            );
-                            if (favItem != null) {
-                              await ref
-                                  .read(dashboardServiceProvider)
-                                  .removeFavorite(favItem.id);
-                            }
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                              );
-                            }
-                          } else {
                             await ref
-                                .read(dashboardServiceProvider)
-                                .addFavorite(batteryId: widget.id);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
-                              );
-                            }
+                                .read(dashboardFavoritesProvider.notifier)
+                                .removeFavoriteBySourceId(widget.id);
+                          } else {
+                            final tempFav = DashboardFavoriteData(
+                              id: 'temp_${battery.id}',
+                              title: battery.name,
+                              price: battery.price,
+                              thumbnail: battery.thumbnailUrl,
+                              itemType: 'BATTERY',
+                              sourceId: battery.id,
+                              location: battery.location,
+                            );
+                            await ref
+                                .read(dashboardFavoritesProvider.notifier)
+                                .addFavorite(
+                                  batteryId: battery.id,
+                                  tempFavorite: tempFav,
+                                );
                           }
-                          ref.invalidate(dashboardFavoritesProvider);
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

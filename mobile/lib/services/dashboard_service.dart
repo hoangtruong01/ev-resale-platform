@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -85,9 +86,94 @@ class DashboardFavoriteData {
   }
 }
 
-final dashboardFavoritesProvider = FutureProvider<List<DashboardFavoriteData>>((ref) {
-  return ref.watch(dashboardServiceProvider).getFavorites();
-});
+class DashboardFavoritesNotifier extends AsyncNotifier<List<DashboardFavoriteData>> {
+  @override
+  FutureOr<List<DashboardFavoriteData>> build() {
+    return ref.watch(dashboardServiceProvider).getFavorites();
+  }
+
+  Future<void> addFavorite({
+    String? vehicleId,
+    String? batteryId,
+    String? auctionId,
+    required DashboardFavoriteData tempFavorite,
+  }) async {
+    final previousState = state;
+    if (state.hasValue) {
+      final list = List<DashboardFavoriteData>.from(state.value!);
+      if (!list.any((fav) => fav.sourceId == tempFavorite.sourceId)) {
+        list.add(tempFavorite);
+        state = AsyncData(list);
+      }
+    }
+
+    try {
+      await ref.read(dashboardServiceProvider).addFavorite(
+        vehicleId: vehicleId,
+        batteryId: batteryId,
+        auctionId: auctionId,
+      );
+      final freshList = await ref.read(dashboardServiceProvider).getFavorites();
+      state = AsyncData(freshList);
+    } catch (e) {
+      state = previousState;
+      rethrow;
+    }
+  }
+
+  Future<void> removeFavorite(String favoriteId) async {
+    final previousState = state;
+    if (state.hasValue) {
+      final list = List<DashboardFavoriteData>.from(state.value!);
+      list.removeWhere((fav) => fav.id == favoriteId);
+      state = AsyncData(list);
+    }
+
+    try {
+      await ref.read(dashboardServiceProvider).removeFavorite(favoriteId);
+    } catch (e) {
+      state = previousState;
+      rethrow;
+    }
+  }
+
+  Future<void> removeFavoriteBySourceId(String sourceId) async {
+    final previousState = state;
+    String? favId;
+    if (state.hasValue) {
+      final list = List<DashboardFavoriteData>.from(state.value!);
+      final idx = list.indexWhere((fav) => fav.sourceId == sourceId);
+      if (idx != -1) {
+        favId = list[idx].id;
+        list.removeAt(idx);
+        state = AsyncData(list);
+      }
+    }
+
+    try {
+      if (favId != null && !favId.startsWith('temp_')) {
+        await ref.read(dashboardServiceProvider).removeFavorite(favId);
+      } else {
+        final freshList = await ref.read(dashboardServiceProvider).getFavorites();
+        final realItem = freshList.firstWhere(
+          (fav) => fav.sourceId == sourceId,
+          orElse: () => throw Exception('Item not found'),
+        );
+        await ref.read(dashboardServiceProvider).removeFavorite(realItem.id);
+        final updatedList = await ref.read(dashboardServiceProvider).getFavorites();
+        state = AsyncData(updatedList);
+      }
+    } catch (e) {
+      state = previousState;
+      rethrow;
+    }
+  }
+}
+
+final dashboardFavoritesProvider =
+    AsyncNotifierProvider<DashboardFavoritesNotifier, List<DashboardFavoriteData>>(
+  DashboardFavoritesNotifier.new,
+);
 
 class DashboardService {
   final Dio _dio;

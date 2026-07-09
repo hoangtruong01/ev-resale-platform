@@ -713,13 +713,7 @@ class DashboardFavoritesScreen extends ConsumerWidget {
                       icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 20),
                       onPressed: () async {
                         try {
-                          await ref.read(dashboardServiceProvider).removeFavorite(favorite.id);
-                          ref.invalidate(dashboardFavoritesProvider);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                            );
-                          }
+                          await ref.read(dashboardFavoritesProvider.notifier).removeFavorite(favorite.id);
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

@@ -11,19 +11,155 @@ import '../../../core/network/dio_client.dart';
 
 import '../../../services/battery_service.dart';
 import '../../../services/vehicle_service.dart';
+import '../../../services/accessory_service.dart';
 import '../../../services/dashboard_service.dart';
 import '../../profile/screens/profile_screen.dart';
 import '../../../models/battery_model.dart';
 import '../../../models/vehicle_model.dart';
+import '../../../models/accessory_model.dart';
 
 import '../widgets/home_widgets.dart';
 
-final homeBatteriesProvider = FutureProvider.autoDispose<BatteryListResponse>((ref) {
-  return ref.read(batteryServiceProvider).getBatteries(limit: 10);
-});
+class HomeFilterState {
+  final String category; // 'all' | 'battery' | 'vehicle' | 'accessory'
+  final double? minPrice;
+  final double? maxPrice;
+  final String? location;
+  final String? batteryType;
+  final int? minCondition;
+  final String? brand;
+  final int? minYear;
+  final int? maxYear;
+  final String? sortBy;
+  final String? sortOrder;
 
-final homeVehiclesProvider = FutureProvider.autoDispose<VehicleListResponse>((ref) {
-  return ref.read(vehicleServiceProvider).getVehicles(limit: 10);
+  const HomeFilterState({
+    this.category = 'all',
+    this.minPrice,
+    this.maxPrice,
+    this.location,
+    this.batteryType,
+    this.minCondition,
+    this.brand,
+    this.minYear,
+    this.maxYear,
+    this.sortBy,
+    this.sortOrder,
+  });
+
+  bool get isActive {
+    return category != 'all' ||
+        minPrice != null ||
+        maxPrice != null ||
+        (location != null && location!.isNotEmpty) ||
+        batteryType != null ||
+        minCondition != null ||
+        (brand != null && brand!.isNotEmpty) ||
+        minYear != null ||
+        maxYear != null ||
+        sortBy != null ||
+        sortOrder != null;
+  }
+
+  HomeFilterState copyWith({
+    String? category,
+    double? minPrice,
+    double? maxPrice,
+    String? location,
+    String? batteryType,
+    int? minCondition,
+    String? brand,
+    int? minYear,
+    int? maxYear,
+    String? sortBy,
+    String? sortOrder,
+  }) {
+    return HomeFilterState(
+      category: category ?? this.category,
+      minPrice: minPrice ?? this.minPrice,
+      maxPrice: maxPrice ?? this.maxPrice,
+      location: location ?? this.location,
+      batteryType: batteryType ?? this.batteryType,
+      minCondition: minCondition ?? this.minCondition,
+      brand: brand ?? this.brand,
+      minYear: minYear ?? this.minYear,
+      maxYear: maxYear ?? this.maxYear,
+      sortBy: sortBy ?? this.sortBy,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  HomeFilterState clear() {
+    return const HomeFilterState();
+  }
+}
+
+final homeFilterProvider = StateProvider<HomeFilterState>((ref) => const HomeFilterState());
+
+class HomeScreenData {
+  final BatteryListResponse batteries;
+  final VehicleListResponse vehicles;
+  final AccessoryListResponse accessories;
+
+  HomeScreenData({
+    required this.batteries,
+    required this.vehicles,
+    required this.accessories,
+  });
+}
+
+final homeScreenDataProvider = FutureProvider.autoDispose<HomeScreenData>((ref) async {
+  final filter = ref.watch(homeFilterProvider);
+
+  final batteriesFuture = (filter.category == 'all' || filter.category == 'battery')
+      ? ref.read(batteryServiceProvider).getBatteries(
+            limit: 10,
+            minPrice: filter.minPrice,
+            maxPrice: filter.maxPrice,
+            type: filter.batteryType,
+            minCondition: filter.minCondition,
+            location: filter.location,
+            sortBy: filter.sortBy,
+            sortOrder: filter.sortOrder,
+          )
+      : Future.value(const BatteryListResponse(data: [], total: 0, page: 1, limit: 10));
+
+  final vehiclesFuture = (filter.category == 'all' || filter.category == 'vehicle')
+      ? ref.read(vehicleServiceProvider).getVehicles(
+            limit: 10,
+            minPrice: filter.minPrice,
+            maxPrice: filter.maxPrice,
+            brand: filter.brand,
+            minYear: filter.minYear,
+            maxYear: filter.maxYear,
+            location: filter.location,
+            sortBy: filter.sortBy,
+            sortOrder: filter.sortOrder,
+          )
+      : Future.value(const VehicleListResponse(data: [], total: 0, page: 1, limit: 10));
+
+  final accessoriesFuture = (filter.category == 'all' || filter.category == 'accessory')
+      ? ref.read(accessoryServiceProvider).getAccessories(
+            limit: 10,
+            minPrice: filter.minPrice,
+            maxPrice: filter.maxPrice,
+            location: filter.location,
+            sortBy: filter.sortBy,
+            sortOrder: filter.sortOrder,
+          )
+      : Future.value(const AccessoryListResponse(data: [], total: 0, page: 1, limit: 10));
+
+  final results = await Future.wait([
+    batteriesFuture,
+    vehiclesFuture,
+    accessoriesFuture,
+  ]);
+
+  return HomeScreenData(
+    batteries: results[0] as BatteryListResponse,
+    vehicles: results[1] as VehicleListResponse,
+    accessories: results[2] as AccessoryListResponse,
+  );
 });
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -46,8 +182,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     try {
-      final batteries = ref.watch(homeBatteriesProvider);
-      final vehicles = ref.watch(homeVehiclesProvider);
+      final homeDataAsync = ref.watch(homeScreenDataProvider);
       final favoritesAsync = ref.watch(dashboardFavoritesProvider);
 
       return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -60,40 +195,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           body: RefreshIndicator(
             color: AppTheme.primaryGreen,
             onRefresh: () async {
-              ref.invalidate(homeBatteriesProvider);
-              ref.invalidate(homeVehiclesProvider);
+              ref.invalidate(homeScreenDataProvider);
               ref.invalidate(dashboardFavoritesProvider);
             },
-            child: batteries.when(
+            child: homeDataAsync.when(
               loading: () => _buildLoadingContent(context),
               error: (err, stack) {
                 if (kDebugMode) {
-                  debugPrint('[HomeScreen] batteries error: $err');
+                  debugPrint('[HomeScreen] error: $err');
                   debugPrint('[HomeScreen] stack: $stack');
                 }
                 return _buildErrorContent(context, parseApiError(err));
               },
-              data: (batteryData) {
-                return vehicles.when(
-                  loading: () => _buildLoadingContent(context),
-                  error: (err, stack) {
-                    if (kDebugMode) {
-                      debugPrint('[HomeScreen] vehicles error: $err');
-                      debugPrint('[HomeScreen] stack: $stack');
-                    }
-                    return _buildErrorContent(context, parseApiError(err));
-                  },
-                  data: (vehicleData) {
-                    return _buildMainContent(context, batteryData, vehicleData, favoritesAsync);
-                  },
-                );
+              data: (homeData) {
+                return _buildMainContent(context, homeData, favoritesAsync);
               },
             ),
           ),
         ),
       );
     } catch (e, stack) {
-      // Prevent white screen by catching any unexpected build errors
       if (kDebugMode) {
         debugPrint('[HomeScreen] CRITICAL BUILD ERROR: $e');
         debugPrint('[HomeScreen] stack: $stack');
@@ -133,8 +254,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: () {
-                    ref.invalidate(homeBatteriesProvider);
-                    ref.invalidate(homeVehiclesProvider);
+                    ref.invalidate(homeScreenDataProvider);
                     setState(() {});
                   },
                   icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -183,15 +303,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildMainContent(
     BuildContext context,
-    BatteryListResponse batteryData,
-    VehicleListResponse vehicleData,
+    HomeScreenData homeData,
     AsyncValue<List<DashboardFavoriteData>> favoritesAsync,
   ) {
     final l10n = AppLocalizations.of(context)!;
     // Merge and sort products
     final List<_ProductItem> allProducts = [];
 
-    for (final b in batteryData.data) {
+    for (final b in homeData.batteries.data) {
       allProducts.add(
         _ProductItem(
           id: b.id,
@@ -207,7 +326,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
-    for (final v in vehicleData.data) {
+    for (final v in homeData.vehicles.data) {
       allProducts.add(
         _ProductItem(
           id: v.id,
@@ -223,11 +342,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
 
+    for (final a in homeData.accessories.data) {
+      allProducts.add(
+        _ProductItem(
+          id: a.id,
+          title: a.name,
+          price: a.price,
+          imageUrl: a.thumbnailUrl,
+          sellerName: a.seller?.displayName,
+          location: a.location,
+          createdAt: a.createdAt,
+          type: 'accessory',
+          icon: Icons.extension_rounded,
+        ),
+      );
+    }
+
     if (_activeTab == 1) {
       // Gần bạn (Near You)
       allProducts.sort((a, b) {
-        final aNear = a.location.toLowerCase().contains('hà nội') || a.location.toLowerCase().contains('hanoi');
-        final bNear = b.location.toLowerCase().contains('hà nội') || b.location.toLowerCase().contains('hanoi');
+        final aNear = a.location.toLowerCase().contains('hà nội') || a.location.toLowerCase().contains('hanoi') ||
+                      a.location.toLowerCase().contains('hồ chí minh') || a.location.toLowerCase().contains('ho chi minh') || a.location.toLowerCase().contains('hcm');
+        final bNear = b.location.toLowerCase().contains('hà nội') || b.location.toLowerCase().contains('hanoi') ||
+                      b.location.toLowerCase().contains('hồ chí minh') || b.location.toLowerCase().contains('ho chi minh') || b.location.toLowerCase().contains('hcm');
         if (aNear && !bNear) return -1;
         if (!aNear && bNear) return 1;
         final aDate = DateTime.tryParse(a.createdAt) ?? DateTime(2020);
@@ -243,7 +380,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       });
     } else if (_activeTab == 3) {
       // Video
-      final videoProducts = allProducts.where((p) => p.title.toLowerCase().contains('vinfast') || p.title.toLowerCase().contains('tesla')).toList();
+      final videoProducts = allProducts.where((p) => p.title.toLowerCase().contains('vinfast') || p.title.toLowerCase().contains('tesla') || p.title.toLowerCase().contains('pin')).toList();
       allProducts.clear();
       allProducts.addAll(videoProducts);
     } else {
@@ -376,8 +513,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () {
-                ref.invalidate(homeBatteriesProvider);
-                ref.invalidate(homeVehiclesProvider);
+                ref.invalidate(homeScreenDataProvider);
               },
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: Text(
@@ -419,22 +555,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       child: Row(
         children: [
-          // Menu icon
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.menu_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
+          // Filter Icon with Badge Dot
+          Consumer(
+            builder: (context, ref, _) {
+              final filter = ref.watch(homeFilterProvider);
+              final isFilterActive = filter.isActive;
+              return GestureDetector(
+                onTap: () => _showFilterSheet(context, ref),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.tune_rounded,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    if (isFilterActive)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           ),
           const SizedBox(width: 10),
           // Search bar
@@ -554,19 +714,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             icon: Icons.battery_charging_full_rounded,
             label: l10n.categoryBattery,
             color: AppTheme.primaryGreen,
-            onTap: () => context.push('/batteries'),
+            onTap: () {
+              ref.read(homeFilterProvider.notifier).state = const HomeFilterState(category: 'battery');
+            },
           ),
           HomeCategoryItem(
             icon: Icons.electric_moped_rounded,
             label: l10n.categoryVehicle,
             color: AppTheme.accentOrange,
-            onTap: () => context.push('/vehicles'),
+            onTap: () {
+              ref.read(homeFilterProvider.notifier).state = const HomeFilterState(category: 'vehicle');
+            },
           ),
           HomeCategoryItem(
             icon: Icons.extension_rounded,
             label: l10n.categoryAccessory,
             color: AppTheme.info,
-            onTap: () => context.push('/accessories'),
+            onTap: () {
+              ref.read(homeFilterProvider.notifier).state = const HomeFilterState(category: 'accessory');
+            },
           ),
           HomeCategoryItem(
             icon: Icons.gavel_rounded,
@@ -645,38 +811,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             placeholderIcon: item.icon,
             isFavorite: isFavorite,
             onFavoriteTap: () async {
+              if (item.type == 'accessory') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Tính năng yêu thích chỉ khả dụng cho Xe điện và Pin điện.')),
+                );
+                return;
+              }
               try {
                 if (isFavorite) {
-                  final favItem = favoritesAsync.value?.firstWhere(
-                    (fav) => fav.sourceId == item.id,
-                  );
-                  if (favItem != null) {
-                    await ref
-                        .read(dashboardServiceProvider)
-                        .removeFavorite(favItem.id);
-                  }
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                    );
-                  }
+                  await ref
+                      .read(dashboardFavoritesProvider.notifier)
+                      .removeFavoriteBySourceId(item.id);
                 } else {
+                  final tempFav = DashboardFavoriteData(
+                    id: 'temp_${item.id}',
+                    title: item.title,
+                    price: item.price,
+                    thumbnail: item.imageUrl,
+                    itemType: item.type == 'battery' ? 'BATTERY' : 'VEHICLE',
+                    sourceId: item.id,
+                    location: item.location,
+                  );
                   if (item.type == 'battery') {
                     await ref
-                        .read(dashboardServiceProvider)
-                        .addFavorite(batteryId: item.id);
+                        .read(dashboardFavoritesProvider.notifier)
+                        .addFavorite(
+                          batteryId: item.id,
+                          tempFavorite: tempFav,
+                        );
                   } else {
                     await ref
-                        .read(dashboardServiceProvider)
-                        .addFavorite(vehicleId: item.id);
-                  }
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
-                    );
+                        .read(dashboardFavoritesProvider.notifier)
+                        .addFavorite(
+                          vehicleId: item.id,
+                          tempFavorite: tempFav,
+                        );
                   }
                 }
-                ref.invalidate(dashboardFavoritesProvider);
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -688,8 +859,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onTap: () {
               if (item.type == 'battery') {
                 context.push('/batteries/${item.id}');
-              } else {
+              } else if (item.type == 'vehicle') {
                 context.push('/vehicles/${item.id}');
+              } else {
+                context.push('/accessories/${item.id}');
               }
             },
           );
@@ -856,6 +1029,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
   }
+
+  void _showFilterSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _HomeFilterSheet(),
+    );
+  }
 }
 
 class _SellOption extends StatelessWidget {
@@ -929,7 +1111,6 @@ class _SellOption extends StatelessWidget {
   }
 }
 
-// ─── Internal product item ───
 class _ProductItem {
   final String id;
   final String title;
@@ -952,4 +1133,489 @@ class _ProductItem {
     required this.type,
     required this.icon,
   });
+}
+
+class _HomeFilterSheet extends ConsumerStatefulWidget {
+  const _HomeFilterSheet();
+
+  @override
+  ConsumerState<_HomeFilterSheet> createState() => _HomeFilterSheetState();
+}
+
+class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
+  late String _category;
+  final _minPriceCtrl = TextEditingController();
+  final _maxPriceCtrl = TextEditingController();
+  final _locationCtrl = TextEditingController();
+  final _brandCtrl = TextEditingController();
+  final _minYearCtrl = TextEditingController();
+  final _maxYearCtrl = TextEditingController();
+  String? _batteryType;
+  double _minCondition = 0.0;
+  String? _sortBy;
+  String? _sortOrder;
+
+  @override
+  void initState() {
+    super.initState();
+    final filter = ref.read(homeFilterProvider);
+    _category = filter.category;
+    _minPriceCtrl.text = filter.minPrice != null ? filter.minPrice!.round().toString() : '';
+    _maxPriceCtrl.text = filter.maxPrice != null ? filter.maxPrice!.round().toString() : '';
+    _locationCtrl.text = filter.location ?? '';
+    _brandCtrl.text = filter.brand ?? '';
+    _minYearCtrl.text = filter.minYear != null ? filter.minYear!.toString() : '';
+    _maxYearCtrl.text = filter.maxYear != null ? filter.maxYear!.toString() : '';
+    _batteryType = filter.batteryType;
+    _minCondition = (filter.minCondition ?? 0).toDouble();
+    _sortBy = filter.sortBy;
+    _sortOrder = filter.sortOrder;
+  }
+
+  @override
+  void dispose() {
+    _minPriceCtrl.dispose();
+    _maxPriceCtrl.dispose();
+    _locationCtrl.dispose();
+    _brandCtrl.dispose();
+    _minYearCtrl.dispose();
+    _maxYearCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: MediaQuery.of(context).padding.top > 0
+            ? MediaQuery.of(context).padding.top + 8
+            : 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : AppTheme.grey200,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: isDark ? Colors.white : AppTheme.grey900,
+                      ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Bộ lọc nâng cao',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _category = 'all';
+                      _minPriceCtrl.clear();
+                      _maxPriceCtrl.clear();
+                      _locationCtrl.clear();
+                      _brandCtrl.clear();
+                      _minYearCtrl.clear();
+                      _maxYearCtrl.clear();
+                      _batteryType = null;
+                      _minCondition = 0.0;
+                      _sortBy = null;
+                      _sortOrder = null;
+                    });
+                  },
+                  child: const Text(
+                    'Thiết lập lại',
+                    style: TextStyle(color: AppTheme.error),
+                  ),
+                )
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            const Text(
+              'Danh mục sản phẩm',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildCategoryChip('all', 'Tất cả', Icons.all_inclusive_rounded),
+                  const SizedBox(width: 8),
+                  _buildCategoryChip('vehicle', 'Xe điện', Icons.electric_car_rounded),
+                  const SizedBox(width: 8),
+                  _buildCategoryChip('battery', 'Pin điện', Icons.battery_charging_full_rounded),
+                  const SizedBox(width: 8),
+                  _buildCategoryChip('accessory', 'Phụ kiện', Icons.extension_rounded),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            const Text(
+              'Khoảng giá (VND)',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white10 : AppTheme.grey100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: TextField(
+                      controller: _minPriceCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: 'Tối thiểu',
+                        border: InputBorder.none,
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('-'),
+                ),
+                Expanded(
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white10 : AppTheme.grey100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: TextField(
+                      controller: _maxPriceCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        hintText: 'Tối đa',
+                        border: InputBorder.none,
+                      ),
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            const Text(
+              'Khu vực',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white10 : AppTheme.grey100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: TextField(
+                controller: _locationCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Ví dụ: Hà Nội, TP. HCM',
+                  prefixIcon: Icon(Icons.location_on_outlined, size: 18),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                ),
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            
+            if (_category == 'all' || _category == 'battery') ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Loại pin',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _buildBatteryTypeChip(null, 'Tất cả'),
+                  _buildBatteryTypeChip('LITHIUM_ION', 'Li-ion'),
+                  _buildBatteryTypeChip('LITHIUM_POLYMER', 'LiPo'),
+                  _buildBatteryTypeChip('NICKEL_METAL_HYDRIDE', 'NiMH'),
+                  _buildBatteryTypeChip('LEAD_ACID', 'Chì-Axit'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Tình trạng pin tối thiểu (SOH): ${_minCondition.round()}%',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              Slider(
+                value: _minCondition,
+                min: 0,
+                max: 100,
+                divisions: 20,
+                activeColor: AppTheme.primaryGreen,
+                onChanged: (v) => setState(() => _minCondition = v),
+              ),
+            ],
+
+            if (_category == 'all' || _category == 'vehicle') ...[
+              const SizedBox(height: 16),
+              const Text(
+                'Hãng sản xuất (Xe điện)',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white10 : AppTheme.grey100,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: TextField(
+                  controller: _brandCtrl,
+                  decoration: const InputDecoration(
+                    hintText: 'Ví dụ: VinFast, Tesla',
+                    border: InputBorder.none,
+                  ),
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Đời xe (Năm sản xuất)',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white10 : AppTheme.grey100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                        controller: _minYearCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: 'Từ năm',
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('-'),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white10 : AppTheme.grey100,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                        controller: _maxYearCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: 'Đến năm',
+                          border: InputBorder.none,
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 16),
+            const Text(
+              'Sắp xếp theo',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                _buildSortChip(null, null, 'Mặc định'),
+                _buildSortChip('createdAt', 'desc', 'Mới nhất'),
+                _buildSortChip('price', 'asc', 'Giá: Thấp đến Cao'),
+                _buildSortChip('price', 'desc', 'Giá: Cao đến Thấp'),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      ref.read(homeFilterProvider.notifier).state = const HomeFilterState();
+                      Navigator.pop(context);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Xóa bộ lọc'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final minPrice = double.tryParse(_minPriceCtrl.text);
+                      final maxPrice = double.tryParse(_maxPriceCtrl.text);
+                      final location = _locationCtrl.text.trim();
+                      final brand = _brandCtrl.text.trim();
+                      final minYear = int.tryParse(_minYearCtrl.text);
+                      final maxYear = int.tryParse(_maxYearCtrl.text);
+
+                      ref.read(homeFilterProvider.notifier).state = HomeFilterState(
+                        category: _category,
+                        minPrice: minPrice,
+                        maxPrice: maxPrice,
+                        location: location.isEmpty ? null : location,
+                        batteryType: _batteryType,
+                        minCondition: _minCondition > 0 ? _minCondition.round() : null,
+                        brand: brand.isEmpty ? null : brand,
+                        minYear: minYear,
+                        maxYear: maxYear,
+                        sortBy: _sortBy,
+                        sortOrder: _sortOrder,
+                      );
+                      
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Áp dụng'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(String cat, String label, IconData icon) {
+    final isSelected = _category == cat;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ChoiceChip(
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey700),
+      ),
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() => _category = cat);
+        }
+      },
+      selectedColor: AppTheme.primaryGreen,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey800),
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+      ),
+    );
+  }
+
+  Widget _buildBatteryTypeChip(String? type, String label) {
+    final isSelected = _batteryType == type;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() => _batteryType = type);
+        }
+      },
+      selectedColor: AppTheme.primaryGreen,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey800),
+      ),
+    );
+  }
+
+  Widget _buildSortChip(String? field, String? order, String label) {
+    final isSelected = _sortBy == field && _sortOrder == order;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) {
+          setState(() {
+            _sortBy = field;
+            _sortOrder = order;
+          });
+        }
+      },
+      selectedColor: AppTheme.primaryGreen,
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppTheme.grey800),
+      ),
+    );
+  }
 }
