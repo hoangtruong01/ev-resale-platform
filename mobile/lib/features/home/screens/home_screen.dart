@@ -647,26 +647,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onFavoriteTap: () async {
               try {
                 if (isFavorite) {
-                  final favItem = favoritesAsync.value?.firstWhere(
-                    (fav) => fav.sourceId == item.id,
-                  );
-                  if (favItem != null) {
-                    await ref
-                        .read(dashboardServiceProvider)
-                        .removeFavorite(favItem.id);
-                  }
+                  await ref
+                      .read(dashboardFavoritesProvider.notifier)
+                      .removeFavoriteBySourceId(item.id);
                 } else {
+                  final tempFav = DashboardFavoriteData(
+                    id: 'temp_${item.id}',
+                    title: item.title,
+                    price: item.price,
+                    thumbnail: item.imageUrl,
+                    itemType: item.type == 'battery' ? 'BATTERY' : 'VEHICLE',
+                    sourceId: item.id,
+                    location: item.location,
+                  );
                   if (item.type == 'battery') {
                     await ref
-                        .read(dashboardServiceProvider)
-                        .addFavorite(batteryId: item.id);
+                        .read(dashboardFavoritesProvider.notifier)
+                        .addFavorite(
+                          batteryId: item.id,
+                          tempFavorite: tempFav,
+                        );
                   } else {
                     await ref
-                        .read(dashboardServiceProvider)
-                        .addFavorite(vehicleId: item.id);
+                        .read(dashboardFavoritesProvider.notifier)
+                        .addFavorite(
+                          vehicleId: item.id,
+                          tempFavorite: tempFav,
+                        );
                   }
                 }
-                ref.invalidate(dashboardFavoritesProvider);
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

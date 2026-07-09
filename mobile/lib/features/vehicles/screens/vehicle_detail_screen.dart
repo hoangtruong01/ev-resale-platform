@@ -215,20 +215,26 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                       onPressed: () async {
                         try {
                           if (isFavorite) {
-                            final favItem = favoritesAsync.value?.firstWhere(
-                              (fav) => fav.sourceId == widget.id,
-                            );
-                            if (favItem != null) {
-                              await ref
-                                  .read(dashboardServiceProvider)
-                                  .removeFavorite(favItem.id);
-                            }
-                          } else {
                             await ref
-                                .read(dashboardServiceProvider)
-                                .addFavorite(vehicleId: widget.id);
+                                .read(dashboardFavoritesProvider.notifier)
+                                .removeFavoriteBySourceId(widget.id);
+                          } else {
+                            final tempFav = DashboardFavoriteData(
+                              id: 'temp_${vehicle.id}',
+                              title: vehicle.name,
+                              price: vehicle.price,
+                              thumbnail: vehicle.thumbnailUrl,
+                              itemType: 'VEHICLE',
+                              sourceId: vehicle.id,
+                              location: vehicle.location,
+                            );
+                            await ref
+                                .read(dashboardFavoritesProvider.notifier)
+                                .addFavorite(
+                                  vehicleId: vehicle.id,
+                                  tempFavorite: tempFav,
+                                );
                           }
-                          ref.invalidate(dashboardFavoritesProvider);
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

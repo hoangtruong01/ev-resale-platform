@@ -713,8 +713,7 @@ class DashboardFavoritesScreen extends ConsumerWidget {
                       icon: const Icon(Icons.delete_outline, color: AppTheme.error, size: 20),
                       onPressed: () async {
                         try {
-                          await ref.read(dashboardServiceProvider).removeFavorite(favorite.id);
-                          ref.invalidate(dashboardFavoritesProvider);
+                          await ref.read(dashboardFavoritesProvider.notifier).removeFavorite(favorite.id);
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
