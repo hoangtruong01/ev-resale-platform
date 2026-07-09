@@ -223,20 +223,10 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                                   .read(dashboardServiceProvider)
                                   .removeFavorite(favItem.id);
                             }
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                              );
-                            }
                           } else {
                             await ref
                                 .read(dashboardServiceProvider)
                                 .addFavorite(vehicleId: widget.id);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
-                              );
-                            }
                           }
                           ref.invalidate(dashboardFavoritesProvider);
                         } catch (e) {

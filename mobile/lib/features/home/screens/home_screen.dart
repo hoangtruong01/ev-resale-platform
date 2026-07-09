@@ -655,11 +655,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         .read(dashboardServiceProvider)
                         .removeFavorite(favItem.id);
                   }
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                    );
-                  }
                 } else {
                   if (item.type == 'battery') {
                     await ref
@@ -669,11 +664,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     await ref
                         .read(dashboardServiceProvider)
                         .addFavorite(vehicleId: item.id);
-                  }
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Đã lưu sản phẩm thành công')),
-                    );
                   }
                 }
                 ref.invalidate(dashboardFavoritesProvider);

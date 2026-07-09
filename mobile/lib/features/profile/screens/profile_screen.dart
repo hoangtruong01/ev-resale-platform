@@ -715,11 +715,6 @@ class DashboardFavoritesScreen extends ConsumerWidget {
                         try {
                           await ref.read(dashboardServiceProvider).removeFavorite(favorite.id);
                           ref.invalidate(dashboardFavoritesProvider);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Đã bỏ lưu sản phẩm')),
-                            );
-                          }
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
