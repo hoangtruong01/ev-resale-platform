@@ -734,12 +734,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ref.read(homeFilterProvider.notifier).state = const HomeFilterState(category: 'accessory');
             },
           ),
-          HomeCategoryItem(
-            icon: Icons.gavel_rounded,
-            label: l10n.categoryAuction,
-            color: const Color(0xFF8B5CF6),
-            onTap: () => context.go('/auctions'),
-          ),
         ],
       ),
     );
@@ -1186,369 +1180,465 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final maxHeight = MediaQuery.of(context).size.height * 0.85;
     
     return Container(
+      constraints: BoxConstraints(maxHeight: maxHeight),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: MediaQuery.of(context).padding.top > 0
-            ? MediaQuery.of(context).padding.top + 8
-            : 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: SingleChildScrollView(
+      child: SafeArea(
+        top: true,
+        bottom: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                width: 44,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : AppTheme.grey200,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+            // Fixed Top Header and Indicator
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Column(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : AppTheme.grey200,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 18,
+                              color: isDark ? Colors.white : AppTheme.grey900,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Bộ lọc nâng cao',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _category = 'all';
+                            _minPriceCtrl.clear();
+                            _maxPriceCtrl.clear();
+                            _locationCtrl.clear();
+                            _brandCtrl.clear();
+                            _minYearCtrl.clear();
+                            _maxYearCtrl.clear();
+                            _batteryType = null;
+                            _minCondition = 0.0;
+                            _sortBy = null;
+                            _sortOrder = null;
+                          });
+                        },
+                        child: const Text(
+                          'Thiết lập lại',
+                          style: TextStyle(color: AppTheme.error),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
             
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+            // Scrollable Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 8,
+                  bottom: 100 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: isDark ? Colors.white : AppTheme.grey900,
-                      ),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 8),
                     const Text(
-                      'Bộ lọc nâng cao',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                      'Danh mục sản phẩm',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildCategoryChip('all', 'Tất cả', Icons.all_inclusive_rounded),
+                          const SizedBox(width: 8),
+                          _buildCategoryChip('vehicle', 'Xe điện', Icons.electric_car_rounded),
+                          const SizedBox(width: 8),
+                          _buildCategoryChip('battery', 'Pin điện', Icons.battery_charging_full_rounded),
+                          const SizedBox(width: 8),
+                          _buildCategoryChip('accessory', 'Phụ kiện', Icons.extension_rounded),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Khoảng giá (VND)',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.transparent : Colors.white,
+                              border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextField(
+                              controller: _minPriceCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                hintText: 'Tối thiểu',
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                filled: false,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 44,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: const Text(
+                            '-',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Container(
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.transparent : Colors.white,
+                              border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: TextField(
+                              controller: _maxPriceCtrl,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                hintText: 'Tối đa',
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                filled: false,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Khu vực',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.transparent : Colors.white,
+                        border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                        controller: _locationCtrl,
+                        decoration: const InputDecoration(
+                          hintText: 'Ví dụ: Hà Nội, TP. HCM',
+                          prefixIcon: Icon(Icons.location_on_outlined, size: 18),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          filled: false,
+                          contentPadding: EdgeInsets.symmetric(vertical: 10),
+                        ),
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                    
+                    if (_category == 'all' || _category == 'battery') ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Loại pin',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 72),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildBatteryTypeChip(null, 'Tất cả'),
+                            _buildBatteryTypeChip('LITHIUM_ION', 'Li-ion'),
+                            _buildBatteryTypeChip('LITHIUM_POLYMER', 'LiPo'),
+                            _buildBatteryTypeChip('NICKEL_METAL_HYDRIDE', 'NiMH'),
+                            _buildBatteryTypeChip('LEAD_ACID', 'Chì-Axit'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Tình trạng pin tối thiểu (SOH): ${_minCondition.round()}%',
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                      Slider(
+                        value: _minCondition,
+                        min: 0,
+                        max: 100,
+                        divisions: 20,
+                        activeColor: AppTheme.primaryGreen,
+                        onChanged: (v) => setState(() => _minCondition = v),
+                      ),
+                    ],
+
+                    if (_category == 'all' || _category == 'vehicle') ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Hãng sản xuất (Xe điện)',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.transparent : Colors.white,
+                          border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: TextField(
+                          controller: _brandCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Ví dụ: VinFast, Tesla',
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            filled: false,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Đời xe (Năm sản xuất)',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.transparent : Colors.white,
+                                border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: TextField(
+                                controller: _minYearCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  hintText: 'Từ năm',
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 44,
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: const Text(
+                              '-',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: isDark ? Colors.transparent : Colors.white,
+                                border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: TextField(
+                                controller: _maxYearCtrl,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  hintText: 'Đến năm',
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  filled: false,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Sắp xếp theo',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 72),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildSortChip(null, null, 'Mặc định'),
+                          _buildSortChip('createdAt', 'desc', 'Mới nhất'),
+                          _buildSortChip('price', 'asc', 'Giá: Thấp đến Cao'),
+                          _buildSortChip('price', 'desc', 'Giá: Cao đến Thấp'),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _category = 'all';
-                      _minPriceCtrl.clear();
-                      _maxPriceCtrl.clear();
-                      _locationCtrl.clear();
-                      _brandCtrl.clear();
-                      _minYearCtrl.clear();
-                      _maxYearCtrl.clear();
-                      _batteryType = null;
-                      _minCondition = 0.0;
-                      _sortBy = null;
-                      _sortOrder = null;
-                    });
-                  },
-                  child: const Text(
-                    'Thiết lập lại',
-                    style: TextStyle(color: AppTheme.error),
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            const Text(
-              'Danh mục sản phẩm',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildCategoryChip('all', 'Tất cả', Icons.all_inclusive_rounded),
-                  const SizedBox(width: 8),
-                  _buildCategoryChip('vehicle', 'Xe điện', Icons.electric_car_rounded),
-                  const SizedBox(width: 8),
-                  _buildCategoryChip('battery', 'Pin điện', Icons.battery_charging_full_rounded),
-                  const SizedBox(width: 8),
-                  _buildCategoryChip('accessory', 'Phụ kiện', Icons.extension_rounded),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Khoảng giá (VND)',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white10 : AppTheme.grey100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: TextField(
-                      controller: _minPriceCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        hintText: 'Tối thiểu',
-                        border: InputBorder.none,
-                      ),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('-'),
-                ),
-                Expanded(
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white10 : AppTheme.grey100,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: TextField(
-                      controller: _maxPriceCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        hintText: 'Tối đa',
-                        border: InputBorder.none,
-                      ),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Khu vực',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white10 : AppTheme.grey100,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: TextField(
-                controller: _locationCtrl,
-                decoration: const InputDecoration(
-                  hintText: 'Ví dụ: Hà Nội, TP. HCM',
-                  prefixIcon: Icon(Icons.location_on_outlined, size: 18),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 12),
-                ),
-                style: const TextStyle(fontSize: 14),
               ),
             ),
             
-            if (_category == 'all' || _category == 'battery') ...[
-              const SizedBox(height: 16),
-              const Text(
-                'Loại pin',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            // Fixed bottom buttons group
+            Container(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).padding.bottom > 0
+                    ? MediaQuery.of(context).padding.bottom + 12
+                    : 16,
               ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  _buildBatteryTypeChip(null, 'Tất cả'),
-                  _buildBatteryTypeChip('LITHIUM_ION', 'Li-ion'),
-                  _buildBatteryTypeChip('LITHIUM_POLYMER', 'LiPo'),
-                  _buildBatteryTypeChip('NICKEL_METAL_HYDRIDE', 'NiMH'),
-                  _buildBatteryTypeChip('LEAD_ACID', 'Chì-Axit'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Tình trạng pin tối thiểu (SOH): ${_minCondition.round()}%',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-              Slider(
-                value: _minCondition,
-                min: 0,
-                max: 100,
-                divisions: 20,
-                activeColor: AppTheme.primaryGreen,
-                onChanged: (v) => setState(() => _minCondition = v),
-              ),
-            ],
-
-            if (_category == 'all' || _category == 'vehicle') ...[
-              const SizedBox(height: 16),
-              const Text(
-                'Hãng sản xuất (Xe điện)',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white10 : AppTheme.grey100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: TextField(
-                  controller: _brandCtrl,
-                  decoration: const InputDecoration(
-                    hintText: 'Ví dụ: VinFast, Tesla',
-                    border: InputBorder.none,
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkSurface : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
                   ),
-                  style: const TextStyle(fontSize: 14),
+                ],
+                border: Border(
+                  top: BorderSide(
+                    color: isDark ? Colors.white10 : AppTheme.grey200,
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Đời xe (Năm sản xuất)',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              Row(
+              child: Row(
                 children: [
                   Expanded(
-                    child: Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white10 : AppTheme.grey100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: TextField(
-                        controller: _minYearCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: 'Từ năm',
-                          border: InputBorder.none,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref.read(homeFilterProvider.notifier).state = const HomeFilterState();
+                        Navigator.pop(context);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        style: const TextStyle(fontSize: 14),
                       ),
+                      child: const Text('Xóa bộ lọc'),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text('-'),
-                  ),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.white10 : AppTheme.grey100,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: TextField(
-                        controller: _maxYearCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: 'Đến năm',
-                          border: InputBorder.none,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final minPrice = double.tryParse(_minPriceCtrl.text);
+                        final maxPrice = double.tryParse(_maxPriceCtrl.text);
+                        final location = _locationCtrl.text.trim();
+                        final brand = _brandCtrl.text.trim();
+                        final minYear = int.tryParse(_minYearCtrl.text);
+                        final maxYear = int.tryParse(_maxYearCtrl.text);
+
+                        ref.read(homeFilterProvider.notifier).state = HomeFilterState(
+                          category: _category,
+                          minPrice: minPrice,
+                          maxPrice: maxPrice,
+                          location: location.isEmpty ? null : location,
+                          batteryType: _batteryType,
+                          minCondition: _minCondition > 0 ? _minCondition.round() : null,
+                          brand: brand.isEmpty ? null : brand,
+                          minYear: minYear,
+                          maxYear: maxYear,
+                          sortBy: _sortBy,
+                          sortOrder: _sortOrder,
+                        );
+                        
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        style: const TextStyle(fontSize: 14),
                       ),
+                      child: const Text('Áp dụng'),
                     ),
                   ),
                 ],
               ),
-            ],
-
-            const SizedBox(height: 16),
-            const Text(
-              'Sắp xếp theo',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                _buildSortChip(null, null, 'Mặc định'),
-                _buildSortChip('createdAt', 'desc', 'Mới nhất'),
-                _buildSortChip('price', 'asc', 'Giá: Thấp đến Cao'),
-                _buildSortChip('price', 'desc', 'Giá: Cao đến Thấp'),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      ref.read(homeFilterProvider.notifier).state = const HomeFilterState();
-                      Navigator.pop(context);
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Xóa bộ lọc'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final minPrice = double.tryParse(_minPriceCtrl.text);
-                      final maxPrice = double.tryParse(_maxPriceCtrl.text);
-                      final location = _locationCtrl.text.trim();
-                      final brand = _brandCtrl.text.trim();
-                      final minYear = int.tryParse(_minYearCtrl.text);
-                      final maxYear = int.tryParse(_maxYearCtrl.text);
-
-                      ref.read(homeFilterProvider.notifier).state = HomeFilterState(
-                        category: _category,
-                        minPrice: minPrice,
-                        maxPrice: maxPrice,
-                        location: location.isEmpty ? null : location,
-                        batteryType: _batteryType,
-                        minCondition: _minCondition > 0 ? _minCondition.round() : null,
-                        brand: brand.isEmpty ? null : brand,
-                        minYear: minYear,
-                        maxYear: maxYear,
-                        sortBy: _sortBy,
-                        sortOrder: _sortOrder,
-                      );
-                      
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryGreen,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text('Áp dụng'),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
