@@ -95,6 +95,7 @@ class HomeFilterState {
 }
 
 final homeFilterProvider = StateProvider<HomeFilterState>((ref) => const HomeFilterState());
+final isFilterSheetOpenProvider = StateProvider<bool>((ref) => false);
 
 class HomeScreenData {
   final BatteryListResponse batteries;
@@ -1025,12 +1026,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _showFilterSheet(BuildContext context, WidgetRef ref) {
+    ref.read(isFilterSheetOpenProvider.notifier).state = true;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const _HomeFilterSheet(),
-    );
+    ).then((_) {
+      ref.read(isFilterSheetOpenProvider.notifier).state = false;
+    });
   }
 }
 
@@ -1180,7 +1184,7 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final maxHeight = MediaQuery.of(context).size.height * 0.85;
+    final maxHeight = MediaQuery.of(context).size.height * 0.80;
     
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),

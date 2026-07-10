@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:evn_battery_trading/l10n/app_localizations.dart';
 import '../core/theme/app_theme.dart';
 import 'floating_ai_button.dart';
+import '../features/home/screens/home_screen.dart';
 
 class MainShell extends ConsumerWidget {
   final Widget child;
@@ -90,11 +91,13 @@ class MainShell extends ConsumerWidget {
     final activeLocation = location ?? GoRouterState.of(context).matchedLocation;
     final selectedIndex = _getSelectedIndex(activeLocation);
 
+    final isFilterOpen = ref.watch(isFilterSheetOpenProvider);
+
     // Show FAB only on Home page and product detail pages (vehicles, batteries, accessories)
-    final showFab = activeLocation == '/' ||
+    final showFab = (activeLocation == '/' ||
         activeLocation.startsWith('/vehicles/') ||
         activeLocation.startsWith('/batteries/') ||
-        activeLocation.startsWith('/accessories/');
+        activeLocation.startsWith('/accessories/')) && !isFilterOpen;
 
     return Scaffold(
       body: Stack(
