@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/auth/session_state_provider.dart';
 
 
 class AdminMoreScreen extends ConsumerWidget {
@@ -108,6 +109,7 @@ class AdminMoreScreen extends ConsumerWidget {
                 ),
                 trailing: const Icon(Icons.chevron_right_rounded, color: AppTheme.grey400, size: 20),
                 onTap: () async {
+                  ref.read(adminModeProvider.notifier).state = false;
                   await ref.read(authStateProvider.notifier).logout();
                   if (context.mounted) {
                     context.go('/auth/login');

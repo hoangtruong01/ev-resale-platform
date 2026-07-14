@@ -300,9 +300,9 @@ class _ListingsTabContent extends ConsumerWidget {
 }
 
 final _listingsProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, queryKey) async {
-  final uri = Uri.parse('http://placeholder.local/?$queryKey');
-  final approvalStatus = uri.queryParameters['approvalStatus'] ?? 'PENDING';
-  final search = uri.queryParameters['search'] ?? '';
+  final queryParams = Uri.splitQueryString(queryKey);
+  final approvalStatus = queryParams['approvalStatus'] ?? 'PENDING';
+  final search = queryParams['search'] ?? '';
 
   final params = {
     'approvalStatus': approvalStatus,
