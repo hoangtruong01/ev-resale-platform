@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
+
+final _contractsProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final dio = ref.watch(dioProvider);
+  final res = await dio.get('/contracts/admin/list');
+  final data = res.data;
+  if (data is List) {
+    return List<Map<String, dynamic>>.from(data);
+  }
+  return const [];
+});
 
 class AdminContractsScreen extends ConsumerWidget {
   const AdminContractsScreen({super.key});
@@ -9,45 +21,7 @@ class AdminContractsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final List<Map<String, dynamic>> contracts = [
-      {
-        'id': 'CTR-202605-0012',
-        'buyer': 'Nguyễn Văn Hùng',
-        'seller': 'Công ty Năng Lượng Xanh',
-        'battery': 'Pin VinFast VF8 - SOH 92%',
-        'amount': 38000000.0,
-        'status': 'SIGNED', // SIGNED, WAITING_BUYER, WAITING_SELLER, CANCELLED
-        'date': '2026-05-24T14:32:00Z',
-      },
-      {
-        'id': 'CTR-202605-0011',
-        'buyer': 'Trần Minh Hoàng',
-        'seller': 'Lê Quốc Khánh (Cá nhân)',
-        'battery': 'Pin CATL LFP 72V 100Ah',
-        'amount': 15500000.0,
-        'status': 'WAITING_BUYER',
-        'date': '2026-05-24T09:15:00Z',
-      },
-      {
-        'id': 'CTR-202605-0010',
-        'buyer': 'Phạm Thuỳ Linh',
-        'seller': 'Đại lý Pin EV Sài Gòn',
-        'battery': 'Pin LG Chem 400V (VinFast e34)',
-        'amount': 45000000.0,
-        'status': 'WAITING_SELLER',
-        'date': '2026-05-23T16:45:00Z',
-      },
-      {
-        'id': 'CTR-202605-0009',
-        'buyer': 'Vũ Đức Hải',
-        'seller': 'Nguyễn Hoàng Nam',
-        'battery': 'Pin Lithium NCM 60V 50Ah',
-        'amount': 8200000.0,
-        'status': 'CANCELLED',
-        'date': '2026-05-22T11:20:00Z',
-      },
-    ];
+    final contractsAsync = ref.watch(_contractsProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
@@ -56,14 +30,79 @@ class AdminContractsScreen extends ConsumerWidget {
         backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
         foregroundColor: isDark ? Colors.white : AppTheme.grey900,
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: contracts.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
-          final contract = contracts[index];
-          return _ContractCard(contract: contract);
-        },
+      body: RefreshIndicator(
+        onRefresh: () async => ref.invalidate(_contractsProvider),
+        child: contractsAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+          ),
+          error: (e, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
+                const SizedBox(height: 12),
+                Text(
+                  'Lỗi tải hợp đồng: $e',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : AppTheme.grey700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(_contractsProvider),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                  ),
+                  child: const Text('Thử lại'),
+                ),
+              ],
+            ),
+          ),
+          data: (contracts) {
+            if (contracts.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.3,
+                  ),
+                  Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.description_outlined,
+                          size: 64,
+                          color: isDark ? Colors.white24 : AppTheme.grey300,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Chưa có hợp đồng nào',
+                          style: TextStyle(
+                            color: isDark
+                                ? AppTheme.grey400
+                                : AppTheme.grey500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: contracts.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final contract = contracts[index];
+                return _ContractCard(contract: contract);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -74,7 +113,8 @@ class _ContractCard extends StatelessWidget {
 
   const _ContractCard({required this.contract});
 
-  String _formatDate(String iso) {
+  String _formatDate(String? iso) {
+    if (iso == null || iso.isEmpty) return 'N/A';
     try {
       final date = DateTime.parse(iso).toLocal();
       return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -86,20 +126,37 @@ class _ContractCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = contract['status'] as String;
+    final status = contract['status'] as String? ?? 'PENDING';
+    final contractId =
+        contract['id']?.toString().substring(0, 8).toUpperCase() ?? 'N/A';
 
-    final statusLabel = switch (status) {
-      'SIGNED' => 'Đã ký kết',
-      'WAITING_BUYER' => 'Chờ người mua ký',
-      'WAITING_SELLER' => 'Chờ người bán ký',
+    final buyerName = contract['buyer']?['fullName'] ??
+        contract['buyer']?['name'] ??
+        contract['buyerName'] ??
+        'N/A';
+    final sellerName = contract['seller']?['fullName'] ??
+        contract['seller']?['name'] ??
+        contract['sellerName'] ??
+        'N/A';
+    final productName = contract['battery']?['name'] ??
+        contract['vehicle']?['name'] ??
+        contract['productName'] ??
+        'Sản phẩm EVN';
+    final amount = contract['amount'] ?? contract['totalAmount'] ?? 0;
+
+    final statusLabel = switch (status.toUpperCase()) {
+      'SIGNED' || 'COMPLETED' => 'Đã ký kết',
+      'WAITING_BUYER' || 'PENDING_BUYER' => 'Chờ người mua ký',
+      'WAITING_SELLER' || 'PENDING_SELLER' => 'Chờ người bán ký',
       'CANCELLED' => 'Đã huỷ bỏ',
-      _ => 'Chờ xử lý'
+      'PENDING' => 'Chờ xử lý',
+      _ => status
     };
 
-    final statusColor = switch (status) {
-      'SIGNED' => AppTheme.success,
-      'WAITING_BUYER' => AppTheme.info,
-      'WAITING_SELLER' => AppTheme.warning,
+    final statusColor = switch (status.toUpperCase()) {
+      'SIGNED' || 'COMPLETED' => AppTheme.success,
+      'WAITING_BUYER' || 'PENDING_BUYER' => AppTheme.info,
+      'WAITING_SELLER' || 'PENDING_SELLER' => AppTheme.warning,
       'CANCELLED' => AppTheme.error,
       _ => AppTheme.grey500
     };
@@ -108,7 +165,8 @@ class _ContractCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+        border:
+            Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -128,27 +186,39 @@ class _ContractCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  contract['id'],
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryGreen),
+                  '#$contractId',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: AppTheme.primaryGreen,
+                  ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     statusLabel,
-                    style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
+            child: Divider(
+              color: isDark ? Colors.white10 : AppTheme.grey100,
+              height: 1,
+            ),
           ),
 
           // Content body
@@ -158,31 +228,61 @@ class _ContractCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  contract['battery'],
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : AppTheme.grey900),
+                  productName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: isDark ? Colors.white : AppTheme.grey900,
+                  ),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Buyer / Seller info
                 Row(
                   children: [
-                    const Icon(Icons.shopping_cart_outlined, size: 14, color: AppTheme.grey400),
+                    const Icon(Icons.shopping_cart_outlined,
+                        size: 14, color: AppTheme.grey400),
                     const SizedBox(width: 8),
-                    Text('Mua: ', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
-                    Text(contract['buyer'], style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey800, fontSize: 12, fontWeight: FontWeight.w500)),
+                    const Text('Mua: ',
+                        style:
+                            TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                    Expanded(
+                      child: Text(
+                        buyerName,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : AppTheme.grey800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.storefront_outlined, size: 14, color: AppTheme.grey400),
+                    const Icon(Icons.storefront_outlined,
+                        size: 14, color: AppTheme.grey400),
                     const SizedBox(width: 8),
-                    Text('Bán: ', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
-                    Text(contract['seller'], style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey800, fontSize: 12, fontWeight: FontWeight.w500)),
+                    const Text('Bán: ',
+                        style:
+                            TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                    Expanded(
+                      child: Text(
+                        sellerName,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : AppTheme.grey800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Total amount & signature date
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -190,70 +290,29 @@ class _ContractCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Giá trị hợp đồng', style: TextStyle(fontSize: 10, color: AppTheme.grey400)),
+                        const Text('Giá trị hợp đồng',
+                            style: TextStyle(
+                                fontSize: 10, color: AppTheme.grey400)),
                         const SizedBox(height: 2),
                         Text(
-                          AppUtils.formatCurrency(contract['amount']),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryGreen),
+                          AppUtils.formatCurrency(amount),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppTheme.primaryGreen,
+                          ),
                         ),
                       ],
                     ),
                     Text(
-                      'Tạo ngày: ${_formatDate(contract['date'])}',
-                      style: const TextStyle(fontSize: 11, color: AppTheme.grey500, fontStyle: FontStyle.italic),
+                      'Tạo ngày: ${_formatDate(contract['createdAt'] ?? contract['date'])}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.grey500,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                   ],
-                ),
-              ],
-            ),
-          ),
-          
-          // Action button footer
-          Container(
-            color: isDark ? AppTheme.darkCard : AppTheme.grey50,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: () {
-                    // Show contract view dialogue
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: Text('Xem Hợp đồng ${contract['id']}'),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n\nHỢP ĐỒNG MUA BÁN THƯƠNG MẠI PIN',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 16),
-                              Text('Bên A (Người bán): ${contract['seller']}'),
-                              Text('Bên B (Người mua): ${contract['buyer']}'),
-                              const SizedBox(height: 12),
-                              Text('Nội dung: Mua bán sản phẩm ${contract['battery']}. Trị giá hợp đồng là ${AppUtils.formatCurrency(contract['amount'])}.'),
-                              const SizedBox(height: 12),
-                              const Text('Điều khoản: Bên B chuyển cọc đặt chỗ vào tài khoản ví Escrow an toàn của EVN-Market. Sau khi nghiệm thu giao dịch, sàn sẽ giải ngân cho Bên A.'),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Đóng'))
-                        ],
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.visibility_outlined, size: 16),
-                  label: const Text('Xem văn bản', style: TextStyle(fontSize: 12)),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(110, 32),
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
                 ),
               ],
             ),

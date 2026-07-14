@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../models/battery_model.dart';
-import '../../../models/vehicle_model.dart';
+
 
 class CompareState {
   final List<dynamic> items; // Can be BatteryModel or VehicleModel

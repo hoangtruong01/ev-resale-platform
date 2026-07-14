@@ -33,6 +33,7 @@ class _AdminSupportTicketsScreenState extends ConsumerState<AdminSupportTicketsS
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final status = switch (_tabController.index) {
       0 => 'OPEN',
       1 => 'IN_PROGRESS',
@@ -41,9 +42,11 @@ class _AdminSupportTicketsScreenState extends ConsumerState<AdminSupportTicketsS
     };
 
     return Scaffold(
-      backgroundColor: AppTheme.grey50,
+      backgroundColor: isDark ? AppTheme.darkBg : AppTheme.grey50,
       appBar: AppBar(
         title: const Text('Yêu cầu hỗ trợ'),
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+        foregroundColor: isDark ? Colors.white : AppTheme.grey900,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(104),
           child: Column(
@@ -54,15 +57,17 @@ class _AdminSupportTicketsScreenState extends ConsumerState<AdminSupportTicketsS
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
-                    color: AppTheme.grey100,
+                    color: isDark ? AppTheme.darkBg : AppTheme.grey100,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: TextField(
                     controller: _searchCtrl,
                     onSubmitted: (_) => setState(() {}),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                    decoration: InputDecoration(
                       hintText: 'Tìm theo tiêu đề, email...',
-                      prefixIcon: Icon(Icons.search, size: 18),
+                      hintStyle: TextStyle(color: isDark ? Colors.white38 : AppTheme.grey500),
+                      prefixIcon: Icon(Icons.search, size: 18, color: isDark ? Colors.white38 : AppTheme.grey500),
                       contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -75,7 +80,7 @@ class _AdminSupportTicketsScreenState extends ConsumerState<AdminSupportTicketsS
                 controller: _tabController,
                 indicatorColor: AppTheme.primaryGreen,
                 labelColor: AppTheme.primaryGreen,
-                unselectedLabelColor: AppTheme.grey500,
+                unselectedLabelColor: isDark ? Colors.white38 : AppTheme.grey500,
                 tabs: const [
                   Tab(text: 'Đang mở'),
                   Tab(text: 'Đang xử lý'),
@@ -175,9 +180,9 @@ class _TicketsTabContent extends ConsumerWidget {
 }
 
 final _ticketsProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, queryKey) async {
-  final uri = Uri.parse('http://placeholder.local/?$queryKey');
-  final status = uri.queryParameters['status'] ?? 'OPEN';
-  final search = uri.queryParameters['search'] ?? '';
+  final queryParams = Uri.splitQueryString(queryKey);
+  final status = queryParams['status'] ?? 'OPEN';
+  final search = queryParams['search'] ?? '';
 
   final params = {
     'status': status,
@@ -241,12 +246,14 @@ class _TicketCard extends ConsumerWidget {
       _ => 'Đang mở'
     };
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppTheme.darkSurface : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.grey200),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -264,7 +271,7 @@ class _TicketCard extends ConsumerWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.grey900),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: isDark ? Colors.white : AppTheme.grey900),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -285,10 +292,10 @@ class _TicketCard extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             desc,
-            style: const TextStyle(color: AppTheme.grey700, fontSize: 14),
+            style: TextStyle(color: isDark ? Colors.white70 : AppTheme.grey700, fontSize: 14),
           ),
           const SizedBox(height: 12),
-          const Divider(color: AppTheme.grey100, height: 1),
+          Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -296,15 +303,15 @@ class _TicketCard extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Gửi bởi: $userEmail', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                  Text('Gửi bởi: $userEmail', style: TextStyle(color: isDark ? Colors.white54 : AppTheme.grey500, fontSize: 12)),
                   const SizedBox(height: 2),
-                  Text('SĐT: $userPhone', style: const TextStyle(color: AppTheme.grey500, fontSize: 12)),
+                  Text('SĐT: $userPhone', style: TextStyle(color: isDark ? Colors.white54 : AppTheme.grey500, fontSize: 12)),
                 ],
               ),
               if (ticket['createdAt'] != null)
                 Text(
                   AppUtils.timeAgo(ticket['createdAt']),
-                  style: const TextStyle(color: AppTheme.grey400, fontSize: 11, fontStyle: FontStyle.italic),
+                  style: TextStyle(color: isDark ? Colors.white38 : AppTheme.grey400, fontSize: 11, fontStyle: FontStyle.italic),
                 ),
             ],
           ),

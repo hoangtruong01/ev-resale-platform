@@ -347,13 +347,7 @@ class ProfileScreen extends ConsumerWidget {
                         label: l10n.menuNotifications,
                         onTap: () => context.push('/notifications'),
                       ),
-                      _MenuItem(
-                        icon: Icons.credit_card_outlined,
-                        label: l10n.menuPaymentMethods,
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(l10n.menuFeatureUpdating)),
-                        ),
-                      ),
+
                       _MenuItem(
                         icon: Icons.language,
                         label: l10n.language,
@@ -392,7 +386,7 @@ class ProfileScreen extends ConsumerWidget {
                       _MenuItem(
                         icon: Icons.gavel_outlined,
                         label: l10n.menuBidHistory,
-                        onTap: () => context.go('/auctions'),
+                        onTap: () => context.push('/auctions'),
                       ),
                       _MenuItem(
                         icon: Icons.payment_outlined,

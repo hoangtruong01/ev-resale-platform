@@ -54,16 +54,14 @@ class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
-    // Set admin mode on startup if user already has admin credentials
-    final initialUser = _ref.read(authStateProvider).value?.user;
-    if (initialUser?.isAdmin == true || initialUser?.isModerator == true) {
-      _ref.read(adminModeProvider.notifier).state = true;
-    }
+    // Do NOT auto-enable admin mode on startup.
+    // Admin mode should only be activated explicitly by the user
+    // (e.g. 5-tap logo on login screen, or profile toggle).
 
     _ref.listen(authStateProvider, (prev, next) {
-      final user = next.value?.user;
-      if (user?.isAdmin == true || user?.isModerator == true) {
-        _ref.read(adminModeProvider.notifier).state = true;
+      // When user logs out, also reset admin mode
+      if (next.value?.isAuthenticated != true) {
+        _ref.read(adminModeProvider.notifier).state = false;
       }
       notifyListeners();
     });
@@ -186,7 +184,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: ':userId',
                 builder: (context, state) {
                   final userId = state.pathParameters['userId']!;
-                  final profileData = state.extra as Map<String, dynamic>;
+                  final profileData =
+                      state.extra as Map<String, dynamic>? ?? {};
+                  if (profileData.isEmpty) {
+                    // Fallback: redirect to KYC list if no extra data
+                    return const KycManagementScreen();
+                  }
                   return KycReviewDetailScreen(
                     userId: userId,
                     profileData: profileData,

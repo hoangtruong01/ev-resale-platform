@@ -69,7 +69,8 @@ class _TransactionCard extends StatelessWidget {
 
   const _TransactionCard({required this.item});
 
-  Widget _buildInfoRow(BuildContext context, String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(BuildContext context, String label, String value,
+      {Color? valueColor}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -80,7 +81,9 @@ class _TransactionCard extends StatelessWidget {
             width: 80,
             child: Text(
               label,
-              style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : AppTheme.grey500),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.white54 : AppTheme.grey500),
             ),
           ),
           Expanded(
@@ -105,15 +108,146 @@ class _TransactionCard extends StatelessWidget {
     return id.length <= 8 ? id : id.substring(0, 8);
   }
 
+  void _showTransactionDetailSheet(BuildContext context, TransactionItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.4,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkSurface : Colors.white,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : AppTheme.grey200,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Chi tiết Giao dịch',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : AppTheme.grey900,
+                    ),
+                  ),
+                  _StatusChip(item: item),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'MÃ GD: #${item.id}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                  color: isDark ? Colors.white54 : AppTheme.grey500,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                item.title,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppTheme.grey900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.amountLabel,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primaryGreen,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+              _DetailRow(
+                  label: 'Vai trò của bạn',
+                  value: item.roleLabel,
+                  isDark: isDark),
+              _DetailRow(
+                  label: 'Phân loại', value: item.productType, isDark: isDark),
+              _DetailRow(
+                label: item.role == 'seller' ? 'Người mua' : 'Người bán',
+                value: item.partnerName,
+                isDark: isDark,
+              ),
+              _DetailRow(
+                label: 'Ngày giao dịch',
+                value:
+                    item.createdAtLabel.isNotEmpty ? item.createdAtLabel : 'N/A',
+                isDark: isDark,
+              ),
+              _DetailRow(
+                label: 'Hợp đồng',
+                value: item.hasContract
+                    ? (item.contractStatus == 'SIGNED'
+                        ? 'Đã ký kết'
+                        : 'Đang chờ ký')
+                    : 'Không có hợp đồng',
+                valueColor: item.hasContract ? AppTheme.primaryGreen : null,
+                isDark: isDark,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGreen,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Đóng',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () {
-        // TODO: Navigate to detail
-      },
+      onTap: () => _showTransactionDetailSheet(context, item),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -149,7 +283,8 @@ class _TransactionCard extends StatelessWidget {
                               '${item.productType} • #${_shortId(item.id)}',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? Colors.white54 : AppTheme.grey600,
+                                color:
+                                    isDark ? Colors.white54 : AppTheme.grey600,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -170,8 +305,10 @@ class _TransactionCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  _buildInfoRow(context, 'Người bán:', item.sellerName ?? '---'),
-                  _buildInfoRow(context, 'Người mua:', item.buyerName ?? '---'),
+                  _buildInfoRow(
+                      context, 'Người bán:', item.sellerName ?? '---'),
+                  _buildInfoRow(
+                      context, 'Người mua:', item.buyerName ?? '---'),
                   if (item.hasContract)
                     _buildInfoRow(
                       context,
@@ -207,6 +344,52 @@ class _TransactionCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  final bool isDark;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? Colors.white54 : AppTheme.grey600,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: valueColor ?? (isDark ? Colors.white : AppTheme.grey800),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

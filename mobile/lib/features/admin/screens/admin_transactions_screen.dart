@@ -176,9 +176,9 @@ class _TransactionsTabContent extends ConsumerWidget {
 }
 
 final _transactionsProvider = FutureProvider.autoDispose.family<dynamic, String>((ref, queryKey) async {
-  final uri = Uri.parse('http://placeholder.local/?$queryKey');
-  final status = uri.queryParameters['status'] ?? 'processing';
-  final search = uri.queryParameters['search'] ?? '';
+  final queryParams = Uri.splitQueryString(queryKey);
+  final status = queryParams['status'] ?? 'processing';
+  final search = queryParams['search'] ?? '';
 
   final params = {
     'status': status,

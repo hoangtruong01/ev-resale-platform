@@ -169,13 +169,14 @@ class _AuctionCardState extends State<AuctionCard> {
   @override
   Widget build(BuildContext context) {
     final auction = widget.auction;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => context.push('/auctions/${auction.id}'),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? AppTheme.darkSurface : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.grey200),
+          border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
