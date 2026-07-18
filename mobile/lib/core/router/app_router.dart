@@ -95,9 +95,17 @@ class RouterNotifier extends ChangeNotifier {
       final isAdminMode = _ref.read(adminModeProvider);
 
       if (userHasAdminRights && isAdminMode) {
-        // Force admins in admin mode to stay within admin screens
+        // Force admins in admin mode to stay within admin screens,
+        // but allow viewing details of items and auctions.
         if (!isGoingToAdmin) {
-          return '/admin';
+          final isDetailRoute = (state.matchedLocation.startsWith('/batteries/') && state.matchedLocation != '/batteries') ||
+              (state.matchedLocation.startsWith('/vehicles/') && state.matchedLocation != '/vehicles') ||
+              (state.matchedLocation.startsWith('/accessories/') && state.matchedLocation != '/accessories') ||
+              (state.matchedLocation.startsWith('/auctions/') && state.matchedLocation != '/auctions/create' && state.matchedLocation != '/auctions');
+          
+          if (!isDetailRoute) {
+            return '/admin';
+          }
         }
       } else {
         // Normal users, or admins who switched off admin mode, cannot access admin pages

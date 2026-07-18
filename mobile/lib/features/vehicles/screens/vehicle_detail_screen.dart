@@ -56,115 +56,95 @@ class _SpecGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final specs = [
-      {
-        'icon': Icons.calendar_today_outlined,
-        'label': 'Năm SX',
-        'value': '${vehicle.year}',
-      },
-      {
-        'icon': Icons.speed_outlined,
-        'label': 'Số km',
-        'value': vehicle.mileage != null
-            ? '${AppUtils.formatNumber(vehicle.mileage)} km'
-            : 'N/A',
-      },
-      {
-        'icon': Icons.settings_outlined,
-        'label': 'Hộp số',
-        'value': vehicle.transmission ?? 'N/A',
-      },
-      {
-        'icon': Icons.palette_outlined,
-        'label': 'Màu sắc',
-        'value': vehicle.color ?? 'N/A',
-      },
-      {
-        'icon': Icons.airline_seat_recline_normal_outlined,
-        'label': 'Số ghế',
-        'value': vehicle.seatCount?.toString() ?? 'N/A',
-      },
-      {
-        'icon': Icons.location_on_outlined,
-        'label': 'Khu vực',
-        'value': vehicle.location,
-      },
-      {
-        'icon': Icons.verified_outlined,
-        'label': 'Bảo hành',
-        'value': vehicle.hasWarranty == true ? 'Có' : 'Không',
-      },
-      {
-        'icon': Icons.info_outline,
-        'label': 'Tình trạng',
-        'value': vehicle.condition,
-      },
+      _SpecItem(icon: Icons.calendar_today_outlined, label: 'Năm sản xuất', value: '${vehicle.year}'),
+      _SpecItem(
+        icon: Icons.speed_outlined,
+        label: 'Số km đã đi',
+        value: vehicle.mileage != null ? '${AppUtils.formatNumber(vehicle.mileage)} km' : 'Chưa cập nhật',
+      ),
+      _SpecItem(icon: Icons.settings_rounded, label: 'Hộp số', value: vehicle.transmissionLabel),
+      _SpecItem(icon: Icons.palette_outlined, label: 'Màu sắc', value: vehicle.colorLabel),
+      if (vehicle.seatCount != null)
+        _SpecItem(icon: Icons.airline_seat_recline_normal_rounded, label: 'Số chỗ ngồi', value: '${vehicle.seatCount} chỗ'),
+      _SpecItem(icon: Icons.inventory_2_outlined, label: 'Tình trạng', value: vehicle.conditionLabel),
+      _SpecItem(icon: Icons.verified_rounded, label: 'Bảo hành', value: vehicle.hasWarranty == true ? '✓ Còn bảo hành' : 'Không có'),
+      _SpecItem(icon: Icons.location_on_outlined, label: 'Khu vực', value: vehicle.location),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 2.5,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white10 : AppTheme.grey200),
+        boxShadow: isDark ? [] : [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
       ),
-      itemCount: specs.length,
-      itemBuilder: (_, i) {
-        final spec = specs[i];
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.darkCard : AppTheme.grey50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: isDark ? Colors.white10 : AppTheme.grey200,
-            ),
-          ),
-          child: Row(
+      child: Column(
+        children: List.generate(specs.length, (i) {
+          final spec = specs[i];
+          final isLast = i == specs.length - 1;
+          return Column(
             children: [
-              Icon(
-                spec['icon'] as IconData,
-                size: 18,
-                color: AppTheme.primaryGreen,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
                   children: [
-                    Text(
-                      spec['label'] as String,
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white60
-                            : AppTheme.grey400,
-                        fontSize: 11,
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryGreen.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      child: Icon(spec.icon, size: 18, color: AppTheme.primaryGreen),
                     ),
-                    Text(
-                      spec['value'] as String,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : AppTheme.grey900,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            spec.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white54 : AppTheme.grey500,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            spec.value,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : AppTheme.grey900,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
+              if (!isLast)
+                Divider(height: 1, indent: 64, endIndent: 16, color: isDark ? Colors.white10 : AppTheme.grey100),
             ],
-          ),
-        );
-      },
+          );
+        }),
+      ),
     );
   }
+}
+
+class _SpecItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _SpecItem({required this.icon, required this.label, required this.value});
 }
 
 class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
@@ -371,104 +351,147 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Thông số xe',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    // Section header
+                    Row(
+                      children: [
+                        Container(width: 4, height: 18, decoration: BoxDecoration(color: AppTheme.primaryGreen, borderRadius: BorderRadius.circular(2))),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Thông số xe',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     _SpecGrid(vehicle: vehicle),
-                    if (vehicle.description != null) ...[
-                      const SizedBox(height: 20),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Mô tả',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    if (vehicle.description != null && vehicle.description!.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Container(width: 4, height: 18, decoration: BoxDecoration(color: AppTheme.primaryGreen, borderRadius: BorderRadius.circular(2))),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Mô tả',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        vehicle.description!,
-                        style: const TextStyle(
-                          color: AppTheme.grey600,
-                          height: 1.6,
-                          fontSize: 14,
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppTheme.darkCard
+                              : AppTheme.grey50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white10
+                                : AppTheme.grey200,
+                          ),
+                        ),
+                        child: Text(
+                          vehicle.description!,
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white70
+                                : AppTheme.grey700,
+                            height: 1.7,
+                            fontSize: 14,
+                          ),
                         ),
                       ),
                     ],
 
                     // Seller info
                     if (vehicle.seller != null) ...[
-                      const SizedBox(height: 20),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Người bán',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       Row(
                         children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: AppTheme.primaryGreen.withValues(
-                              alpha: 0.1,
-                            ),
-                            child: Text(
-                              vehicle.seller!.displayName.isNotEmpty
-                                  ? vehicle.seller!.displayName[0].toUpperCase()
-                                  : 'U',
-                              style: const TextStyle(
-                                color: AppTheme.primaryGreen,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  vehicle.seller!.displayName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                                if (vehicle.seller!.rating != null)
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star_rounded,
-                                        size: 16,
-                                        color: AppTheme.accentYellow,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        '${vehicle.seller!.rating!.toStringAsFixed(1)} (${vehicle.seller!.totalRatings} đánh giá)',
-                                        style: const TextStyle(
-                                          color: AppTheme.grey600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                              ],
-                            ),
+                          Container(width: 4, height: 18, decoration: BoxDecoration(color: AppTheme.primaryGreen, borderRadius: BorderRadius.circular(2))),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Người bán',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppTheme.darkCard
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white10
+                                : AppTheme.grey200,
+                          ),
+                          boxShadow: Theme.of(context).brightness == Brightness.dark ? [] : [
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.12),
+                              child: Text(
+                                vehicle.seller!.displayName.isNotEmpty
+                                    ? vehicle.seller!.displayName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryGreen,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    vehicle.seller!.displayName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  if (vehicle.seller!.rating != null)
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.star_rounded, size: 14, color: AppTheme.accentYellow),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          '${vehicle.seller!.rating!.toStringAsFixed(1)} (${vehicle.seller!.totalRatings} đánh giá)',
+                                          style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                                        ),
+                                      ],
+                                    )
+                                  else
+                                    const Text('Chưa có đánh giá', style: TextStyle(color: AppTheme.grey400, fontSize: 12)),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryGreen.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Xem trang',
+                                style: TextStyle(color: AppTheme.primaryGreen, fontSize: 11, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
 

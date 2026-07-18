@@ -85,6 +85,89 @@ class VehicleModel {
     };
     return labels[status] ?? status;
   }
+
+  String get conditionLabel {
+    switch (condition.toLowerCase()) {
+      case 'new':
+      case 'moi':
+        return 'Mới';
+      case 'used':
+      case 'cu':
+      case 'like_new':
+        return 'Đã qua sử dụng';
+      case 'good':
+        return 'Tốt';
+      case 'fair':
+        return 'Khá';
+      case 'poor':
+        return 'Cũ';
+      default:
+        return condition;
+    }
+  }
+
+  String get transmissionLabel {
+    if (transmission == null) return 'N/A';
+    switch (transmission!.toLowerCase().replaceAll(' ', '_')) {
+      case 'automatic':
+      case 'tu_dong':
+      case 'tự_động':
+        return 'Tự động';
+      case 'manual':
+      case 'so_san':
+      case 'số_sàn':
+        return 'Số sàn';
+      case 'semi_automatic':
+      case 'ban_tu_dong':
+        return 'Bán tự động';
+      default:
+        return transmission!;
+    }
+  }
+
+  String get colorLabel {
+    if (color == null) return 'N/A';
+    switch (color!.toLowerCase().replaceAll(' ', '_')) {
+      case 'trang':
+      case 'white':
+        return 'Trắng';
+      case 'den':
+      case 'do_den':
+      case 'black':
+        return 'Đen';
+      case 'bac':
+      case 'silver':
+        return 'Bạc';
+      case 'xam':
+      case 'gray':
+      case 'grey':
+        return 'Xám';
+      case 'do':
+      case 'red':
+        return 'Đỏ';
+      case 'xanh_lam':
+      case 'xanh':
+      case 'blue':
+        return 'Xanh lam';
+      case 'xanh_la':
+      case 'green':
+        return 'Xanh lá';
+      case 'vang':
+      case 'yellow':
+        return 'Vàng';
+      case 'cam':
+      case 'orange':
+        return 'Cam';
+      case 'nau':
+      case 'brown':
+        return 'Nâu';
+      case 'tim':
+      case 'purple':
+        return 'Tím';
+      default:
+        return color!;
+    }
+  }
 }
 
 class VehicleListResponse {

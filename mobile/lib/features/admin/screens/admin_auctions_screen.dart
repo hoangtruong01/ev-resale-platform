@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
+import '../../../widgets/app_network_image.dart';
 
 class AdminAuctionsScreen extends ConsumerStatefulWidget {
   const AdminAuctionsScreen({super.key});
@@ -527,110 +529,115 @@ class _AuctionCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Upper details (Image + Text info)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+          InkWell(
+            onTap: () {
+              final id = auction['id'];
+              context.push('/auctions/$id');
+            },
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    color: isDark ? AppTheme.darkCard : AppTheme.grey100,
-                    child: imageUrl != null
-                        ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.gavel, color: AppTheme.grey400))
-                        : const Icon(Icons.gavel, color: AppTheme.grey400),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
+                // Upper details (Image + Text info)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: typeColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              typeLabel,
-                              style: TextStyle(color: typeColor, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Text(
-                            _formatDateTime(auction['startTime']),
-                            style: const TextStyle(fontSize: 11, color: AppTheme.grey500),
-                          ),
-                        ],
+                      AppNetworkImage(
+                        url: imageUrl,
+                        width: 80,
+                        height: 80,
+                        borderRadius: BorderRadius.circular(12),
+                        placeholderIcon: Icons.gavel,
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _getItemName(auction),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, 
-                          fontSize: 15, 
-                          color: isDark ? Colors.white : AppTheme.grey900
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: typeColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    typeLabel,
+                                    style: TextStyle(color: typeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                Text(
+                                  _formatDateTime(auction['startTime']),
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.grey500),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _getItemName(auction),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 15, 
+                                color: isDark ? Colors.white : AppTheme.grey900
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Giá hiện tại', style: TextStyle(fontSize: 10, color: AppTheme.grey400)),
+                                    Text(
+                                      AppUtils.formatCurrency(currentPrice),
+                                      style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    const Text('Lượt đấu', style: TextStyle(fontSize: 10, color: AppTheme.grey400)),
+                                    Text(
+                                      '$bidCount lượt',
+                                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: isDark ? Colors.white70 : AppTheme.grey800),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Giá hiện tại', style: TextStyle(fontSize: 10, color: AppTheme.grey400)),
-                              Text(
-                                AppUtils.formatCurrency(currentPrice),
-                                style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('Lượt đấu', style: TextStyle(fontSize: 10, color: AppTheme.grey400)),
-                              Text(
-                                '$bidCount lượt',
-                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: isDark ? Colors.white70 : AppTheme.grey800),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
-          ),
-          
-          // Additional metadata (Seller & TimeRemaining)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Bán bởi: ${auction['seller']?['fullName'] ?? auction['seller']?['name'] ?? 'N/A'}',
-                  style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
                 ),
-                Text(
-                  _getTimeRemaining(auction['endTime']),
-                  style: const TextStyle(color: AppTheme.accentOrange, fontSize: 11, fontWeight: FontWeight.w600),
+                // Additional metadata (Seller & TimeRemaining)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Bán bởi: ${auction['seller']?['fullName'] ?? auction['seller']?['name'] ?? 'N/A'}',
+                        style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                      ),
+                      Text(
+                        _getTimeRemaining(auction['endTime']),
+                        style: const TextStyle(color: AppTheme.accentOrange, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

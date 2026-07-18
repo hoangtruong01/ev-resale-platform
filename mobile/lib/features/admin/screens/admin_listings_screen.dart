@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/utils/app_utils.dart';
+import '../../../widgets/app_network_image.dart';
 import 'admin_auctions_screen.dart'; // Import to embed AdminAuctionsList
 
 class AdminListingsScreen extends ConsumerStatefulWidget {
@@ -498,108 +500,122 @@ class _ListingItemCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Upper details (Image + Text info)
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
+          InkWell(
+            onTap: () {
+              final id = item['id'];
+              final type = item['type'];
+              if (type == 'vehicle') {
+                context.push('/vehicles/$id');
+              } else if (type == 'battery') {
+                context.push('/batteries/$id');
+              } else if (type == 'accessory') {
+                context.push('/accessories/$id');
+              }
+            },
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    color: isDark ? AppTheme.darkCard : AppTheme.grey100,
-                    child: imageUrl != null
-                        ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.image, color: AppTheme.grey400))
-                        : const Icon(Icons.image, color: AppTheme.grey400),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
+                // Upper details (Image + Text info)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: typeColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                      AppNetworkImage(
+                        url: imageUrl,
+                        width: 80,
+                        height: 80,
+                        borderRadius: BorderRadius.circular(12),
+                        placeholderIcon: Icons.image,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: typeColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    typeLabel,
+                                    style: TextStyle(color: typeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                if (isVerified)
+                                  const Icon(Icons.verified_rounded, color: Colors.amber, size: 16),
+                                if (isSpam) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.error.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'AI Spam: ${item['spamScore']}%',
+                                      style: const TextStyle(color: AppTheme.error, fontSize: 10, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                            child: Text(
-                              typeLabel,
-                              style: TextStyle(color: typeColor, fontSize: 10, fontWeight: FontWeight.bold),
+                            const SizedBox(height: 6),
+                            Text(
+                              item['title'] ?? 'Không tên',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : AppTheme.grey900),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          if (isVerified)
-                            const Icon(Icons.verified_rounded, color: Colors.amber, size: 16),
-                          if (isSpam) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppTheme.error.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'AI Spam: ${item['spamScore']}%',
-                                style: const TextStyle(color: AppTheme.error, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              AppUtils.formatCurrency(item['price'] ?? 0),
+                              style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                           ],
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        item['title'] ?? 'Không tên',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: isDark ? Colors.white : AppTheme.grey900),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        AppUtils.formatCurrency(item['price'] ?? 0),
-                        style: const TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
                       ),
                     ],
                   ),
                 ),
+                // Additional metadata
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Bán bởi: ${item['seller']?['fullName'] ?? item['seller']?['name'] ?? 'N/A'}',
+                        style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
+                      ),
+                      Text(
+                        AppUtils.timeAgo(item['createdAt'] ?? ''),
+                        style: const TextStyle(color: AppTheme.grey400, fontSize: 11, fontStyle: FontStyle.italic),
+                      ),
+                    ],
+                  ),
+                ),
+                // Spam Reasons list if any
+                if (isSpam && (item['spamReasons'] as List? ?? []).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                    child: Text(
+                      'Lý do spam: ${(item['spamReasons'] as List).join(', ')}',
+                      style: const TextStyle(color: AppTheme.error, fontSize: 11),
+                    ),
+                  ),
               ],
             ),
           ),
-          // Additional metadata
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Divider(color: isDark ? Colors.white10 : AppTheme.grey100, height: 1),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Bán bởi: ${item['seller']?['fullName'] ?? item['seller']?['name'] ?? 'N/A'}',
-                  style: const TextStyle(color: AppTheme.grey500, fontSize: 12),
-                ),
-                Text(
-                  AppUtils.timeAgo(item['createdAt'] ?? ''),
-                  style: const TextStyle(color: AppTheme.grey400, fontSize: 11, fontStyle: FontStyle.italic),
-                ),
-              ],
-            ),
-          ),
-          // Spam Reasons list if any
-          if (isSpam && (item['spamReasons'] as List? ?? []).isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-              child: Text(
-                'Lý do spam: ${(item['spamReasons'] as List).join(', ')}',
-                style: const TextStyle(color: AppTheme.error, fontSize: 11),
-              ),
-            ),
           // Action Buttons Footer
           Container(
             color: isDark ? AppTheme.darkCard : AppTheme.grey50,
