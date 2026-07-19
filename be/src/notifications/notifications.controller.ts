@@ -133,8 +133,6 @@ export class NotificationsController {
     return this.notificationsService.update(id, updateNotificationDto);
   }
 
-  @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
@@ -175,6 +173,8 @@ export class NotificationsController {
     return this.notificationsService.markAllAsRead(userId as string);
   }
 
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a notification' })
   @ApiParam({ name: 'id', description: 'Notification ID' })
