@@ -340,6 +340,7 @@ class _FilterSheet extends ConsumerWidget {
               final value = option['value'] as String?;
               final isSelected = filter.category == value;
               return ChoiceChip(
+                showCheckmark: false,
                 label: Text(option['label'] as String),
                 selected: isSelected,
                 onSelected: (_) {

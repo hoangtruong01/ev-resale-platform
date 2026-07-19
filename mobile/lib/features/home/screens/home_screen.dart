@@ -1870,6 +1870,7 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
     final isSelected = _category == cat;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ChoiceChip(
+      showCheckmark: false,
       avatar: Icon(
         icon,
         size: 16,
@@ -1894,6 +1895,7 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
     final isSelected = _batteryType == type;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ChoiceChip(
+      showCheckmark: false,
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {
@@ -1912,6 +1914,7 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
     final isSelected = _sortBy == field && _sortOrder == order;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ChoiceChip(
+      showCheckmark: false,
       label: Text(label),
       selected: isSelected,
       onSelected: (selected) {

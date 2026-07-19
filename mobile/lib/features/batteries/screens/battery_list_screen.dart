@@ -515,6 +515,7 @@ class _FilterSheetState extends ConsumerState<_FilterSheet> {
                           'LEAD_ACID': 'Chì-Axit',
                         }[type]!;
                   return FilterChip(
+                    showCheckmark: false,
                     label: Text(label),
                     selected: _selectedType == type,
                     onSelected: (_) => setState(() => _selectedType = type),
