@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1181,6 +1182,203 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
     super.dispose();
   }
 
+  void _showYearRangePicker(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentYear = DateTime.now().year;
+    final List<int?> yearsList = [null, ...List.generate(currentYear - 2000 + 2, (index) => 2000 + index)];
+    
+    int minIndex = yearsList.indexOf(int.tryParse(_minYearCtrl.text));
+    if (minIndex == -1) minIndex = 0;
+    
+    int maxIndex = yearsList.indexOf(int.tryParse(_maxYearCtrl.text));
+    if (maxIndex == -1) maxIndex = 0;
+
+    int tempMinIndex = minIndex;
+    int tempMaxIndex = maxIndex;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              height: 320,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(
+                            'Hủy',
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : AppTheme.grey600,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'Chọn năm sản xuất',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : AppTheme.grey900,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            final minVal = yearsList[tempMinIndex];
+                            final maxVal = yearsList[tempMaxIndex];
+                            
+                            if (minVal != null && maxVal != null && minVal > maxVal) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Năm bắt đầu phải nhỏ hơn hoặc bằng năm kết thúc'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+                            
+                            setState(() {
+                              _minYearCtrl.text = minVal != null ? minVal.toString() : '';
+                              _maxYearCtrl.text = maxVal != null ? maxVal.toString() : '';
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Xong',
+                            style: TextStyle(
+                              color: AppTheme.primaryGreen,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  'Từ năm',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: isDark ? Colors.white70 : AppTheme.grey600,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: CupertinoTheme(
+                                  data: CupertinoThemeData(
+                                    brightness: isDark ? Brightness.dark : Brightness.light,
+                                    textTheme: CupertinoTextThemeData(
+                                      pickerTextStyle: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  child: CupertinoPicker(
+                                    scrollController: FixedExtentScrollController(initialItem: minIndex),
+                                    itemExtent: 40.0,
+                                    onSelectedItemChanged: (index) {
+                                      tempMinIndex = index;
+                                    },
+                                    children: yearsList.map((y) {
+                                      return Center(
+                                        child: Text(
+                                          y == null ? 'Tất cả' : y.toString(),
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white : Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          color: isDark ? Colors.white10 : AppTheme.grey200,
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  'Đến năm',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: isDark ? Colors.white70 : AppTheme.grey600,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: CupertinoTheme(
+                                  data: CupertinoThemeData(
+                                    brightness: isDark ? Brightness.dark : Brightness.light,
+                                    textTheme: CupertinoTextThemeData(
+                                      pickerTextStyle: TextStyle(
+                                        color: isDark ? Colors.white : Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  child: CupertinoPicker(
+                                    scrollController: FixedExtentScrollController(initialItem: maxIndex),
+                                    itemExtent: 40.0,
+                                    onSelectedItemChanged: (index) {
+                                      tempMaxIndex = index;
+                                    },
+                                    children: yearsList.map((y) {
+                                      return Center(
+                                        child: Text(
+                                          y == null ? 'Tất cả' : y.toString(),
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white : Colors.black,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1475,26 +1673,35 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.transparent : Colors.white,
-                                border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: TextField(
-                                controller: _minYearCtrl,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  hintText: 'Từ năm',
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  filled: false,
-                                  contentPadding: EdgeInsets.zero,
+                            child: GestureDetector(
+                              onTap: () => _showYearRangePicker(context),
+                              child: Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.transparent : Colors.white,
+                                  border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                style: const TextStyle(fontSize: 14),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _minYearCtrl.text.isEmpty ? 'Từ năm' : _minYearCtrl.text,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _minYearCtrl.text.isEmpty
+                                            ? (isDark ? Colors.white38 : AppTheme.grey400)
+                                            : (isDark ? Colors.white : AppTheme.grey900),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      size: 18,
+                                      color: isDark ? Colors.white38 : AppTheme.grey400,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -1511,26 +1718,35 @@ class _HomeFilterSheetState extends ConsumerState<_HomeFilterSheet> {
                             ),
                           ),
                           Expanded(
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.transparent : Colors.white,
-                                border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              child: TextField(
-                                controller: _maxYearCtrl,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  hintText: 'Đến năm',
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  filled: false,
-                                  contentPadding: EdgeInsets.zero,
+                            child: GestureDetector(
+                              onTap: () => _showYearRangePicker(context),
+                              child: Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.transparent : Colors.white,
+                                  border: Border.all(color: isDark ? Colors.white24 : AppTheme.grey300),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                style: const TextStyle(fontSize: 14),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _maxYearCtrl.text.isEmpty ? 'Đến năm' : _maxYearCtrl.text,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _maxYearCtrl.text.isEmpty
+                                            ? (isDark ? Colors.white38 : AppTheme.grey400)
+                                            : (isDark ? Colors.white : AppTheme.grey900),
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.keyboard_arrow_down_rounded,
+                                      size: 18,
+                                      color: isDark ? Colors.white38 : AppTheme.grey400,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
