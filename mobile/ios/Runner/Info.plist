@@ -59,6 +59,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Cho phép chụp ảnh để cập nhật ảnh đại diện.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cho phép chọn ảnh từ thư viện để cập nhật ảnh đại diện.</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

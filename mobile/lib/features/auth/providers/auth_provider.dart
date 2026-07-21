@@ -191,11 +191,36 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
   Future<void> updateAvatar(File imageFile) async {
     final authService = ref.read(authServiceProvider);
     final user = await authService.updateAvatar(imageFile);
-    await _storage.write(
-        key: 'user_data', value: jsonEncode(user.toJson()));
-    state = AsyncValue.data(AuthState(user: user));
+    await _persistUser(user);
   }
 
+  Future<void> removeAvatar() async {
+    final authService = ref.read(authServiceProvider);
+    final user = await authService.removeAvatar();
+    await _persistUser(user);
+  }
+
+  Future<void> updateProfile({
+    required String fullName,
+    required String phone,
+    required String address,
+  }) async {
+    final authService = ref.read(authServiceProvider);
+    final user = await authService.updateProfile(
+      fullName: fullName,
+      phone: phone,
+      address: address,
+    );
+    await _persistUser(user);
+  }
+
+  Future<void> _persistUser(UserModel user) async {
+    await _storage.write(
+      key: 'user_data',
+      value: jsonEncode(user.toJson()),
+    );
+    state = AsyncValue.data(AuthState(user: user));
+  }
   Future<void> _saveAuth(AuthResponse response) async {
     await _storage.write(
         key: 'access_token', value: response.accessToken);

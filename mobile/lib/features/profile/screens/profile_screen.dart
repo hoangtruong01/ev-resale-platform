@@ -39,15 +39,32 @@ class ProfileScreen extends ConsumerWidget {
     final overviewAsync = ref.watch(dashboardOverviewProvider);
     final favoritesAsync = ref.watch(dashboardFavoritesProvider);
 
-    Future<void> pickAndUploadAvatar() async {
+    Future<void> pickAndUploadAvatar(ImageSource source) async {
+      var loadingDialogVisible = false;
       try {
         final picker = ImagePicker();
         final pickedFile = await picker.pickImage(
-          source: ImageSource.gallery,
+          source: source,
           imageQuality: 80,
+          maxWidth: 1920,
+          maxHeight: 1920,
         );
 
         if (pickedFile == null) return;
+
+        if (!context.mounted) return;
+
+        const maxAvatarBytes = 5 * 1024 * 1024;
+        final imageFile = File(pickedFile.path);
+        if (await imageFile.length() > maxAvatarBytes) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Ảnh phải có dung lượng nhỏ hơn hoặc bằng 5 MB.'),
+            ),
+          );
+          return;
+        }
 
         if (context.mounted) {
           showDialog(
@@ -57,26 +74,122 @@ class ProfileScreen extends ConsumerWidget {
               child: CircularProgressIndicator(color: AppTheme.primaryGreen),
             ),
           );
+          loadingDialogVisible = true;
         }
 
-        await ref
-            .read(authStateProvider.notifier)
-            .updateAvatar(File(pickedFile.path));
+        await ref.read(authStateProvider.notifier).updateAvatar(imageFile);
 
         if (context.mounted) {
-          Navigator.pop(context); // Dismiss loading dialog
+          if (loadingDialogVisible) {
+            Navigator.of(context, rootNavigator: true).pop();
+            loadingDialogVisible = false;
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cập nhật ảnh đại diện thành công!')),
           );
         }
       } catch (e) {
         if (context.mounted) {
-          Navigator.pop(context); // Dismiss loading dialog
+          if (loadingDialogVisible) {
+            Navigator.of(context, rootNavigator: true).pop();
+            loadingDialogVisible = false;
+          }
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text('Lỗi khi cập nhật ảnh: $e')));
         }
       }
+    }
+
+    Future<void> removeAvatar() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Xóa ảnh đại diện?'),
+          content: const Text(
+            'Ảnh hiện tại sẽ bị xóa và tài khoản sẽ dùng chữ cái đại diện.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.error),
+              child: const Text('Xóa ảnh'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true || !context.mounted) return;
+
+      try {
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryGreen),
+          ),
+        );
+        await ref.read(authStateProvider.notifier).removeAvatar();
+        if (!context.mounted) return;
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã xóa ảnh đại diện.')));
+      } catch (error) {
+        if (!context.mounted) return;
+        Navigator.of(context, rootNavigator: true).pop();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không thể xóa ảnh: $error')));
+      }
+    }
+
+    Future<void> showAvatarActions() async {
+      await showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (sheetContext) => SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Chọn từ thư viện'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  pickAndUploadAvatar(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('Chụp ảnh mới'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  pickAndUploadAvatar(ImageSource.camera);
+                },
+              ),
+              if (user?.avatar?.isNotEmpty == true)
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.error,
+                  ),
+                  title: const Text(
+                    'Xóa ảnh đại diện',
+                    style: TextStyle(color: AppTheme.error),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    removeAvatar();
+                  },
+                ),
+            ],
+          ),
+        ),
+      );
     }
 
     final overview = overviewAsync.maybeWhen(
@@ -111,7 +224,7 @@ class ProfileScreen extends ConsumerWidget {
                     children: [
                       // Avatar
                       GestureDetector(
-                        onTap: pickAndUploadAvatar,
+                        onTap: showAvatarActions,
                         child: Stack(
                           children: [
                             CircleAvatar(
@@ -264,7 +377,7 @@ class ProfileScreen extends ConsumerWidget {
                         icon: Icons.person_outline,
                         label: l10n.menuPersonalInfo,
                         onTap: () =>
-                            _showProfileInfoDialog(context, user, l10n),
+                            _showProfileInfoDialog(context, ref, user, l10n),
                       ),
                       _MenuItem(
                         icon: Icons.verified_user_outlined,
@@ -553,40 +666,152 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showProfileInfoDialog(
+  Future<void> _showProfileInfoDialog(
     BuildContext context,
+    WidgetRef ref,
     UserModel? user,
     AppLocalizations l10n,
-  ) {
-    showDialog(
+  ) async {
+    if (user == null) return;
+
+    final formKey = GlobalKey<FormState>();
+    final fullNameController = TextEditingController(text: user.displayName);
+    final phoneController = TextEditingController(text: user.phone ?? '');
+    final addressController = TextEditingController(text: user.address ?? '');
+    var isSaving = false;
+    String? errorMessage;
+
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.menuPersonalInfo),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${l10n.infoFullName}: ${user?.displayName ?? l10n.menuNotUpdated}',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(l10n.menuPersonalInfo),
+          content: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: fullNameController,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: l10n.infoFullName,
+                      prefixIcon: const Icon(Icons.person_outline),
+                    ),
+                    validator: (value) {
+                      final name = value?.trim() ?? '';
+                      if (name.length < 2) {
+                        return 'Họ tên phải có ít nhất 2 ký tự';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    initialValue: user.email,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.infoEmail,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      labelText: l10n.infoPhone,
+                      hintText: '0901234567',
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                    ),
+                    validator: (value) {
+                      final phone = value?.trim() ?? '';
+                      if (phone.isNotEmpty &&
+                          !RegExp(r'^0\d{9,10}$').hasMatch(phone)) {
+                        return 'Số điện thoại phải gồm 10-11 số và bắt đầu bằng 0';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: addressController,
+                    minLines: 2,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: l10n.infoAddress,
+                      prefixIcon: const Icon(Icons.location_on_outlined),
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  if (errorMessage != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      errorMessage!,
+                      style: const TextStyle(color: AppTheme.error),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${l10n.infoEmail}: ${user?.email ?? l10n.menuNotUpdated}'),
-            const SizedBox(height: 8),
-            Text('${l10n.infoPhone}: ${user?.phone ?? l10n.menuNotUpdated}'),
-            const SizedBox(height: 8),
-            Text(
-              '${l10n.infoAddress}: ${user?.address ?? l10n.menuNotUpdated}',
+          ),
+          actions: [
+            TextButton(
+              onPressed: isSaving
+                  ? null
+                  : () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.menuCancel),
+            ),
+            FilledButton.icon(
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        isSaving = true;
+                        errorMessage = null;
+                      });
+                      try {
+                        await ref
+                            .read(authStateProvider.notifier)
+                            .updateProfile(
+                              fullName: fullNameController.text,
+                              phone: phoneController.text,
+                              address: addressController.text,
+                            );
+                        if (ctx.mounted) Navigator.pop(dialogContext, true);
+                      } catch (error) {
+                        if (!ctx.mounted) return;
+                        setDialogState(() {
+                          isSaving = false;
+                          errorMessage = 'Không thể cập nhật hồ sơ: $error';
+                        });
+                      }
+                    },
+              icon: isSaving
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save_outlined),
+              label: const Text('Lưu thay đổi'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(l10n.menuClose),
-          ),
-        ],
       ),
     );
+
+    fullNameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+
+    if (saved == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cập nhật hồ sơ thành công!')),
+      );
+    }
   }
 }
 

@@ -13,7 +13,7 @@ class AuthService {
   AuthService(this._dio);
 
   Future<UserModel> updateAvatar(File imageFile) async {
-    final fileName = imageFile.path.split('/').last;
+    final fileName = imageFile.uri.pathSegments.last;
     final formData = FormData.fromMap({
       'avatar': await MultipartFile.fromFile(
         imageFile.path,
@@ -31,6 +31,23 @@ class AuthService {
     return UserModel.fromJson(response.data['user']);
   }
 
+  Future<UserModel> removeAvatar() async {
+    final response = await _dio.delete('/users/profile/avatar');
+    return UserModel.fromJson(response.data['user']);
+  }
+
+  Future<UserModel> updateProfile({
+    required String fullName,
+    required String phone,
+    required String address,
+  }) async {
+    final response = await _dio.patch('/users/profile', data: {
+      'fullName': fullName.trim(),
+      'phone': phone.trim(),
+      'streetAddress': address.trim(),
+    });
+    return UserModel.fromJson(response.data['user']);
+  }
   Future<AuthResponse> login({
     required String email,
     required String password,
