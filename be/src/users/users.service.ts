@@ -214,6 +214,7 @@ export class UsersService {
     const sanitizedDistrict = sanitizeNullable(updateProfileDto.district);
     const sanitizedProvince = sanitizeNullable(updateProfileDto.province);
     const sanitizedPhone = sanitizeNullable(updateProfileDto.phone);
+    const sanitizedFullName = sanitizeNullable(updateProfileDto.fullName);
     const sanitizedBio = sanitizeNullable(updateProfileDto.bio);
     const sanitizedWebsite = sanitizeNullable(updateProfileDto.website);
 
@@ -228,6 +229,10 @@ export class UsersService {
       addressParts.length > 0 ? addressParts.join(', ') : null;
 
     const userUpdateData: Record<string, unknown> = {};
+    if (sanitizedFullName !== undefined) {
+      userUpdateData.fullName = sanitizedFullName;
+      userUpdateData.name = sanitizedFullName;
+    }
 
     if (sanitizedPhone !== undefined) {
       userUpdateData.phone = sanitizedPhone;
@@ -757,6 +762,11 @@ export class UsersService {
         role: true,
         isProfileComplete: true,
         updatedAt: true,
+        phone: true,
+        address: true,
+        rating: true,
+        totalRatings: true,
+        createdAt: true,
       },
     });
 
@@ -766,6 +776,49 @@ export class UsersService {
       await unlink(absolutePath).catch((error: NodeJS.ErrnoException) => {
         if (error.code !== 'ENOENT') {
           console.error('Failed to remove old avatar file', error);
+        }
+      });
+    }
+
+    return updatedUser;
+  }
+
+  async removeAvatar(userId: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { avatar: true },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatar: null },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        name: true,
+        avatar: true,
+        role: true,
+        isProfileComplete: true,
+        phone: true,
+        address: true,
+        rating: true,
+        totalRatings: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (existingUser.avatar?.startsWith('/uploads/')) {
+      const normalizedPath = existingUser.avatar.replace(/^\/+/, '');
+      const absolutePath = join(process.cwd(), normalizedPath);
+      await unlink(absolutePath).catch((error: NodeJS.ErrnoException) => {
+        if (error.code !== 'ENOENT') {
+          console.error('Failed to remove avatar file', error);
         }
       });
     }

@@ -4,10 +4,18 @@ import {
   IsUrl,
   IsObject,
   Matches,
+  Length,
+  ValidateIf,
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateProfileDto {
+  @ApiPropertyOptional({ description: 'User full name' })
+  @IsOptional()
+  @IsString()
+  @Length(2, 100)
+  fullName?: string;
+
   @ApiPropertyOptional({ description: 'User bio' })
   @IsOptional()
   @IsString()
@@ -38,6 +46,7 @@ export class UpdateProfileDto {
     example: '0901234567',
   })
   @IsOptional()
+  @ValidateIf((_object, value) => value !== '')
   @Matches(/^0\d{9,10}$/u, {
     message: 'Phone number must start with 0 and contain 10-11 digits',
   })

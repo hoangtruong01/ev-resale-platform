@@ -167,6 +167,20 @@ export class UsersController {
     };
   }
 
+  @Delete('profile/avatar')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Remove current user avatar' })
+  async removeAvatar(@Req() req: AuthenticatedRequest) {
+    const userId = this.extractUserId(req);
+    const user = await this.usersService.removeAvatar(userId);
+
+    return {
+      message: 'Avatar removed successfully',
+      user,
+    };
+  }
+
   // ─── eKYC Endpoints ────────────────────────────────────────────────────────
 
   /**
