@@ -31,6 +31,9 @@ import '../../widgets/main_shell.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/batteries/screens/battery_monitor_screen.dart';
 import '../../features/transactions/screens/transaction_list_screen.dart';
+import '../../features/transactions/screens/payment_method_screen.dart';
+import '../../features/transactions/screens/sepay_payment_screen.dart';
+import '../../features/transactions/screens/payment_result_screen.dart';
 import '../../features/support/screens/support_screen.dart';
 import '../../features/compare/screens/compare_screen.dart';
 import '../../features/ai_chat/screens/ai_chat_screen.dart';
@@ -334,6 +337,42 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/transactions',
             builder: (context, state) => const TransactionListScreen(),
+          ),
+          GoRoute(
+            path: '/transactions/:id/payment',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return PaymentMethodScreen(
+                transactionId: id,
+                amount: (extra['amount'] as num?)?.toDouble() ?? 0,
+                paymentType: extra['paymentType'] as String? ?? 'FULL',
+              );
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id/payment/sepay',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return SepayPaymentScreen(
+                transactionId: id,
+                amount: (extra['amount'] as num?)?.toDouble() ?? 0,
+                paymentType: extra['paymentType'] as String? ?? 'FULL',
+              );
+            },
+          ),
+          GoRoute(
+            path: '/transactions/:id/payment/result',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return PaymentResultScreen(
+                transactionId: id,
+                success: extra['success'] as bool? ?? false,
+                amount: (extra['amount'] as num?)?.toDouble() ?? 0,
+              );
+            },
           ),
           GoRoute(
             path: '/support',

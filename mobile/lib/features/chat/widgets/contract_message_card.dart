@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
@@ -448,78 +449,36 @@ class _PaymentButtonState extends State<_PaymentButton> with WidgetsBindingObser
     }
   }
 
-  Future<void> _startPayment(BuildContext context, WidgetRef ref) async {
-    setState(() => _isLoading = true);
-    try {
-      final dio = ref.read(dioProvider);
-      
-      // Determine return URL based on platform
-      String? returnUrl;
-      if (kIsWeb) {
-        returnUrl = Uri.base.toString();
-      }
-
-      final res = await dio.post(
-        '/payments/vnpay/create-url',
-        data: {
-          'transactionId': widget.transactionId,
-          'paymentType': widget.paymentType,
-          if (returnUrl != null) 'returnUrl': returnUrl,
-        },
-      );
-      
-      final paymentUrl = res.data['paymentUrl'] as String?;
-      if (paymentUrl != null) {
-        final uri = Uri.parse(paymentUrl);
-        if (await canLaunchUrl(uri)) {
-          // On Web, stay in the same tab if possible, or open new
-          await launchUrl(
-            uri, 
-            mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication
-          );
-          if (mounted) {
-            ScaffoldMessenger.of(this.context).showSnackBar(
-              const SnackBar(
-                content: Text('Vui lòng hoàn tất thanh toán và quay lại ứng dụng.'),
-                duration: Duration(seconds: 10),
-              ),
-            );
-          }
-        }
-      }
-    } on DioException catch (e) {
+  void _startPayment(BuildContext context) {
+    context.push(
+      '/transactions/${widget.transactionId}/payment/sepay',
+      extra: {
+        'paymentType': widget.paymentType,
+      },
+    ).then((_) {
       if (mounted) {
-        ScaffoldMessenger.of(this.context).showSnackBar(
-          SnackBar(
-            content: Text(parseApiError(e)),
-            backgroundColor: AppTheme.error,
-          ),
-        );
+        widget.onPaid();
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, _) => SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _isLoading ? null : () => _startPayment(context, ref),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryGreen,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-          icon: _isLoading
-              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Icon(Icons.payment, color: Colors.white, size: 18),
-          label: Text(
-            widget.label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.white),
-          ),
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _isLoading ? null : () => _startPayment(context),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppTheme.primaryGreen,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        icon: _isLoading
+            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Icon(Icons.payment, color: Colors.white, size: 18),
+        label: Text(
+          widget.label,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
     );

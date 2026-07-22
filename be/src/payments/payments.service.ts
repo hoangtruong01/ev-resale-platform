@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   PaymentAttemptStatus,
@@ -21,6 +22,7 @@ import { ChatService } from '../chat/chat.service';
 import { ChatGateway } from '../chat/chat.gateway';
 import { ContractsService } from '../contracts/contracts.service';
 import { CreateVnpayPaymentDto } from './dto/create-vnpay-payment.dto';
+import { CreateSepayPaymentDto } from './dto/create-sepay-payment.dto';
 
 type VnpayQuery = Record<string, string | string[] | undefined>;
 
@@ -638,5 +640,401 @@ export class PaymentsService {
       .update(data, 'utf8')
       .digest('hex')
       .toUpperCase();
+  }
+
+  // ─────────────────────────── SePay ───────────────────────────
+
+  async createSepayPayment(
+    dto: CreateSepayPaymentDto,
+    currentUserId: string,
+  ): Promise<{
+    qrUrl: string;
+    transferContent: string;
+    amount: number;
+    bankAccountNumber: string;
+    bankAccountName: string;
+    bankName: string;
+    paymentAttemptId: string;
+    expireAt: string;
+  }> {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id: dto.transactionId },
+      include: {
+        chatRoom: { select: { buyerId: true, sellerId: true } },
+        purchase: { select: { buyerId: true } },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Không tìm thấy giao dịch');
+    }
+
+    // Authorization check
+    const participantIds = new Set<string>([transaction.sellerId]);
+    if (transaction.chatRoom?.buyerId)
+      participantIds.add(transaction.chatRoom.buyerId);
+    if (transaction.chatRoom?.sellerId)
+      participantIds.add(transaction.chatRoom.sellerId);
+    if (transaction.purchase?.buyerId)
+      participantIds.add(transaction.purchase.buyerId);
+
+    if (!participantIds.has(currentUserId)) {
+      throw new ForbiddenException(
+        'Bạn không có quyền tạo thanh toán cho giao dịch này.',
+      );
+    }
+
+    const paymentType = dto.paymentType ?? PaymentType.FULL;
+    this.validateTransactionStatusForPaymentType(transaction.status, paymentType);
+
+    // Check duplicate success attempt
+    const existingSuccess = await this.prisma.paymentAttempt.findFirst({
+      where: {
+        transactionId: transaction.id,
+        gateway: PaymentGateway.SEPAY,
+        status: PaymentAttemptStatus.SUCCESS,
+        paymentType,
+      },
+    });
+    if (existingSuccess) {
+      throw new BadRequestException(
+        'Giao dịch này đã có phiên thanh toán SePay thành công cho loại thanh toán này.',
+      );
+    }
+
+    // Calculate amount
+    let totalAmount = this.calculateTotalAmount(transaction);
+    if (paymentType === PaymentType.DEPOSIT) {
+      totalAmount = Math.round(totalAmount / 2);
+    } else if (paymentType === PaymentType.BALANCE) {
+      totalAmount = totalAmount - Math.round(totalAmount / 2);
+    }
+    if (totalAmount <= 0) {
+      throw new BadRequestException('Số tiền giao dịch không hợp lệ.');
+    }
+
+    // SePay config
+    const merchantId =
+      this.configService.get<string>('SEPAY_MERCHANT_ID') ?? 'SP-TEST-HMA24444';
+
+    // Bank info (configurable, fallback to demo MB Bank)
+    const bankAccountNumber =
+      this.configService.get<string>('SEPAY_BANK_ACCOUNT_NUMBER') ??
+      '0001234567890';
+    const bankAccountName =
+      this.configService.get<string>('SEPAY_BANK_ACCOUNT_NAME') ??
+      'NGUYEN VAN A';
+    const bankBin =
+      this.configService.get<string>('SEPAY_BANK_BIN') ?? '970422'; // MB Bank
+    const bankName =
+      this.configService.get<string>('SEPAY_BANK_NAME') ?? 'MB Bank';
+
+    // Generate unique transfer content
+    const shortId = transaction.id.replace(/-/g, '').substring(0, 10).toUpperCase();
+    const transferContent = `EVNPAY${shortId}`;
+
+    // VietQR URL (SePay QR image)
+    const qrUrl =
+      `https://qr.sepay.vn/img` +
+      `?bank=${bankBin}` +
+      `&acc=${bankAccountNumber}` +
+      `&template=compact` +
+      `&amount=${Math.round(totalAmount)}` +
+      `&des=${encodeURIComponent(transferContent)}`;
+
+    const expireAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    const txnRef = `SP${Date.now()}${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
+
+    const attempt = await this.prisma.paymentAttempt.create({
+      data: {
+        transactionId: transaction.id,
+        gateway: PaymentGateway.SEPAY,
+        status: PaymentAttemptStatus.PENDING,
+        amount: new Prisma.Decimal(totalAmount),
+        orderInfo: transferContent,
+        txnRef,
+        payUrl: qrUrl,
+        paymentType,
+        vnpParams: {
+          merchantId,
+          transferContent,
+          bankAccountNumber,
+          bankAccountName,
+          bankBin,
+          bankName,
+          expireAt: expireAt.toISOString(),
+        },
+      },
+    });
+
+    return {
+      qrUrl,
+      transferContent,
+      amount: totalAmount,
+      bankAccountNumber,
+      bankAccountName,
+      bankName,
+      paymentAttemptId: attempt.id,
+      expireAt: expireAt.toISOString(),
+    };
+  }
+
+  async handleSepayWebhook(
+    body: Record<string, unknown>,
+    apiKey: string,
+  ): Promise<{ success: boolean; message: string }> {
+    // Validate API key
+    const secretKey =
+      this.configService.get<string>('SEPAY_SECRET_KEY') ?? '';
+    if (apiKey !== secretKey) {
+      throw new UnauthorizedException('Invalid SePay API key.');
+    }
+
+    /*
+     * SePay webhook body format:
+     * {
+     *   id: number,
+     *   content: string,   // nội dung chuyển khoản
+     *   transferAmount: number,
+     *   transferType: 'in' | 'out',
+     *   ...
+     * }
+     */
+    const content = String(body['content'] ?? '');
+    const transferAmount = Number(body['transferAmount'] ?? 0);
+    const transferType = String(body['transferType'] ?? '');
+
+    // Only process incoming transfers
+    if (transferType !== 'in') {
+      return { success: false, message: 'Bỏ qua giao dịch không phải chuyển tiền vào.' };
+    }
+
+    // Find pending payment attempt matching transfer content
+    const attempt = await this.prisma.paymentAttempt.findFirst({
+      where: {
+        gateway: PaymentGateway.SEPAY,
+        status: PaymentAttemptStatus.PENDING,
+        orderInfo: content,
+      },
+      include: {
+        transaction: {
+          include: {
+            chatRoom: { select: { id: true, buyerId: true, sellerId: true } },
+            purchase: { select: { id: true, buyerId: true, status: true } },
+          },
+        },
+      },
+    });
+
+    if (!attempt) {
+      this.logger.warn(`SePay webhook: no pending attempt for content "${content}"`);
+      return { success: false, message: 'Không tìm thấy phiên thanh toán khớp.' };
+    }
+
+    // Amount tolerance check (±1000 VND)
+    const expectedAmount = Number(attempt.amount);
+    if (Math.abs(transferAmount - expectedAmount) > 1000) {
+      this.logger.warn(
+        `SePay webhook: amount mismatch. Expected ${expectedAmount}, got ${transferAmount}`,
+      );
+      return { success: false, message: 'Số tiền không khớp.' };
+    }
+
+    // Mark attempt success
+    await this.prisma.paymentAttempt.update({
+      where: { id: attempt.id },
+      data: {
+        status: PaymentAttemptStatus.SUCCESS,
+        responseCode: '00',
+        callbackAt: new Date(),
+        vnpParams: {
+          ...(attempt.vnpParams as Record<string, unknown>),
+          webhookBody: body,
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    // Update transaction status
+    let nextStatus: TransactionStatus = TransactionStatus.COMPLETED;
+    if (attempt.paymentType === PaymentType.DEPOSIT) {
+      nextStatus = TransactionStatus.DEPOSIT_PAID;
+    }
+
+    const completedTransaction = await this.prisma.transaction.update({
+      where: { id: attempt.transactionId },
+      data: {
+        status: nextStatus,
+        paymentMethod: 'SEPAY',
+      },
+      include: {
+        chatRoom: { select: { id: true, buyerId: true, sellerId: true } },
+        purchase: { select: { id: true, buyerId: true, status: true } },
+      },
+    });
+
+    // Update purchase status
+    if (completedTransaction.purchase) {
+      const { id: purchaseId, status } = completedTransaction.purchase;
+      if (status !== PurchaseStatus.CONFIRMED) {
+        await this.prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { status: PurchaseStatus.CONFIRMED },
+        });
+      }
+    }
+
+    // Notify via chat
+    await this.notifySepaySuccess(completedTransaction, attempt.id, attempt.amount, attempt.paymentType);
+
+    // Trigger contract flow for deposit
+    if (attempt.paymentType === PaymentType.DEPOSIT) {
+      await this.contractsService.handleTransactionCompleted(completedTransaction.id);
+    }
+
+    return { success: true, message: 'Thanh toán SePay được xử lý thành công.' };
+  }
+
+  async getSepayPaymentStatus(attemptId: string): Promise<{
+    status: string;
+    transactionId: string;
+    amount: number;
+    paymentType: string;
+  }> {
+    const attempt = await this.prisma.paymentAttempt.findUnique({
+      where: { id: attemptId },
+    });
+
+    if (!attempt || attempt.gateway !== PaymentGateway.SEPAY) {
+      throw new NotFoundException('Không tìm thấy phiên thanh toán SePay.');
+    }
+
+    return {
+      status: attempt.status,
+      transactionId: attempt.transactionId,
+      amount: Number(attempt.amount),
+      paymentType: attempt.paymentType,
+    };
+  }
+
+  async simulateSepayPayment(
+    attemptId: string,
+    targetStatus: 'SUCCESS' | 'FAILED',
+  ): Promise<{ success: boolean; status: string; message: string }> {
+    const attempt = await this.prisma.paymentAttempt.findUnique({
+      where: { id: attemptId },
+      include: {
+        transaction: {
+          include: {
+            chatRoom: { select: { id: true, buyerId: true, sellerId: true } },
+            purchase: { select: { id: true, buyerId: true, status: true } },
+          },
+        },
+      },
+    });
+
+    if (!attempt || attempt.gateway !== PaymentGateway.SEPAY) {
+      throw new NotFoundException('Không tìm thấy phiên thanh toán SePay.');
+    }
+
+    if (targetStatus === 'FAILED') {
+      await this.prisma.paymentAttempt.update({
+        where: { id: attemptId },
+        data: {
+          status: PaymentAttemptStatus.FAILED,
+          responseCode: 'SIMULATED_FAILED',
+          callbackAt: new Date(),
+        },
+      });
+      return { success: true, status: 'FAILED', message: 'Đã giả lập thanh toán thất bại.' };
+    }
+
+    // SUCCESS
+    await this.prisma.paymentAttempt.update({
+      where: { id: attemptId },
+      data: {
+        status: PaymentAttemptStatus.SUCCESS,
+        responseCode: '00',
+        callbackAt: new Date(),
+      },
+    });
+
+    let nextStatus: TransactionStatus = TransactionStatus.COMPLETED;
+    if (attempt.paymentType === PaymentType.DEPOSIT) {
+      nextStatus = TransactionStatus.DEPOSIT_PAID;
+    }
+
+    const completedTransaction = await this.prisma.transaction.update({
+      where: { id: attempt.transactionId },
+      data: {
+        status: nextStatus,
+        paymentMethod: 'SEPAY',
+      },
+      include: {
+        chatRoom: { select: { id: true, buyerId: true, sellerId: true } },
+        purchase: { select: { id: true, buyerId: true, status: true } },
+      },
+    });
+
+    if (completedTransaction.purchase) {
+      const { id: purchaseId, status } = completedTransaction.purchase;
+      if (status !== PurchaseStatus.CONFIRMED) {
+        await this.prisma.purchase.update({
+          where: { id: purchaseId },
+          data: { status: PurchaseStatus.CONFIRMED },
+        });
+      }
+    }
+
+    await this.notifySepaySuccess(completedTransaction, attempt.id, attempt.amount, attempt.paymentType);
+
+    if (attempt.paymentType === PaymentType.DEPOSIT) {
+      await this.contractsService.handleTransactionCompleted(completedTransaction.id);
+    }
+
+    return { success: true, status: 'SUCCESS', message: 'Đã giả lập thanh toán thành công!' };
+  }
+
+  private async notifySepaySuccess(
+    transaction: TransactionWithPaymentRelations,
+    paymentAttemptId: string,
+    amount: Prisma.Decimal | number,
+    paymentType: PaymentType,
+  ) {
+    const chatRoom = transaction.chatRoom;
+    if (!chatRoom?.id || !chatRoom.buyerId) return;
+
+    const numericAmount =
+      this.toPlainNumber(amount) ?? this.calculateTotalAmount(transaction);
+    const typeLabel =
+      paymentType === PaymentType.DEPOSIT
+        ? 'đặt cọc 50%'
+        : paymentType === PaymentType.BALANCE
+          ? 'thanh toán nốt 50%'
+          : 'thanh toán';
+
+    try {
+      const message = await this.chatService.createMessage({
+        roomId: chatRoom.id,
+        senderId: chatRoom.buyerId,
+        content: `Người mua đã ${typeLabel} thành công qua SePay (chuyển khoản ngân hàng).`,
+        metadata: {
+          kind: 'payment-status',
+          gateway: 'sepay',
+          status: 'success',
+          transactionId: transaction.id,
+          paymentAttemptId,
+          amount: numericAmount,
+          buyerId: chatRoom.buyerId,
+          sellerId: chatRoom.sellerId,
+        },
+      });
+      this.emitChatMessage(chatRoom.id, message);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error ?? 'unknown');
+      this.logger.error(
+        `Không thể gửi thông báo SePay cho giao dịch ${transaction.id}: ${reason}`,
+      );
+    }
   }
 }
