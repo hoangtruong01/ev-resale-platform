@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../models/transaction_item.dart';
@@ -108,6 +109,24 @@ class _TransactionCard extends StatelessWidget {
     return id.length <= 8 ? id : id.substring(0, 8);
   }
 
+  bool _canPay(TransactionItem item) {
+    // Only buyer can initiate payment
+    if (item.role != 'buyer') return false;
+    return [
+      'PENDING',
+      'AWAITING_DEPOSIT',
+      'AWAITING_BALANCE',
+    ].contains(item.status);
+  }
+
+  String _paymentType(TransactionItem item) {
+    return switch (item.status) {
+      'AWAITING_DEPOSIT' => 'DEPOSIT',
+      'AWAITING_BALANCE' => 'BALANCE',
+      _ => 'FULL',
+    };
+  }
+
   void _showTransactionDetailSheet(BuildContext context, TransactionItem item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
@@ -213,22 +232,81 @@ class _TransactionCard extends StatelessWidget {
                 valueColor: item.hasContract ? AppTheme.primaryGreen : null,
                 isDark: isDark,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
+
+              // Payment button (only for buyers with payable status)
+              if (_canPay(item)) ...[  
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryGreen.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppTheme.primaryGreen.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded,
+                          color: AppTheme.primaryGreen, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Giao dịch đang chờ thanh toán. Nhấn để thanh toán ngay!',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white70 : AppTheme.grey700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.push(
+                        '/transactions/${item.id}/payment',
+                        extra: {
+                          'amount': item.amount,
+                          'paymentType': _paymentType(item),
+                        },
+                      );
+                    },
+                    icon: const Icon(Icons.payment_rounded),
+                    label: const Text('Thanh toán ngay'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryGreen,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: OutlinedButton(
                   onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGreen,
+                  style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(
+                      color: isDark ? Colors.white30 : AppTheme.grey300,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Đóng',
                     style: TextStyle(
-                        color: Colors.white,
+                        color: isDark ? Colors.white70 : AppTheme.grey700,
                         fontSize: 16,
                         fontWeight: FontWeight.bold),
                   ),
